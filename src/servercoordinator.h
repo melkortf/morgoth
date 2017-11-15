@@ -1,6 +1,7 @@
 #ifndef SERVERCOORDINATOR_H
 #define SERVERCOORDINATOR_H
 
+#include "eventhandler.h"
 #include "server.h"
 #include "tmuxsessionwrapper.h"
 #include <QtCore/QObject>
@@ -16,13 +17,21 @@ public:
     ServerCoordinator(const Server* server);
     virtual ~ServerCoordinator();
 
+    void installEventHandler(EventHandler* handler);
+
     const Server* server() const { return m_server; }
     bool isStarted() const { return m_started; }
+
+    EventHandler* findEvent(const QString& name);
 
 public slots:
     bool start();
     void stop();
     bool command(const QString& cmd);
+
+private slots:
+    void handleServerStarted();
+    void handleServerStopped();
 
 private:
     const Server* m_server;
@@ -30,6 +39,7 @@ private:
     bool m_started = false;
     QString m_logFileName;
     LogListener* m_logListener = nullptr;
+    QMap<QString, EventHandler*> m_eventHandlers;
 
 };
 

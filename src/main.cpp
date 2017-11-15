@@ -1,3 +1,4 @@
+#include "mapchangeevent.h"
 #include "servermanager.h"
 #include "server.h"
 #include "servercoordinator.h"
@@ -16,7 +17,7 @@ void handleUnixSignals(std::initializer_list<int> quitSignals)
 
     sigset_t blocking_mask;
     sigemptyset(&blocking_mask);
-    for (auto sig : quitSignals)
+    for (auto sig: quitSignals)
         sigaddset(&blocking_mask, sig);
 
     struct sigaction sa;
@@ -24,7 +25,7 @@ void handleUnixSignals(std::initializer_list<int> quitSignals)
     sa.sa_mask    = blocking_mask;
     sa.sa_flags   = 0;
 
-    for (auto sig : quitSignals)
+    for (auto sig: quitSignals)
         sigaction(sig, &sa, nullptr);
 }
 
@@ -36,6 +37,7 @@ int main(int argc, char** argv)
     ServerManager* sm = new ServerManager(&app);
 
     auto server = sm->find("one");
+    QObject::connect(server->coordinator()->findEvent(MapChangeEvent::Name), &MapChangeEvent::activated, []() { qDebug() << "Map changed"; });
     server->coordinator()->start();
 
     QTimer::singleShot(30 * 1000, [server]() { server->coordinator()->command("changelevel cp_badlands"); });

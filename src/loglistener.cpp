@@ -7,9 +7,14 @@ namespace Morgoth {
 
 LogListener::LogListener(const QString& filePath, QObject* parent) :
     QThread(parent),
-    m_filePath(filePath)
-{
+    m_filePath(filePath) {}
 
+void LogListener::installEventHandler(EventHandler *handler)
+{
+    handler->setParent(this);
+
+    QMutexLocker ml(&m_eventListMutex);
+    m_events.append(handler);
 }
 
 void LogListener::run()
@@ -31,17 +36,16 @@ void LogListener::run()
 
         QMutexLocker ml(&m_eventListMutex);
         for (auto e: m_events) {
-            QRegularExpressionMatch match = e.first.match(qtline);
+            QRegularExpression regex = e->regex();
+            QRegularExpressionMatch match = regex.match(qtline);
             if (match.hasMatch())
-                e.second(qtline, match);
+                e->maybeActivated(qtline, match);
         }
-    }
-}
 
-void LogListener::addEvent(const QRegularExpression& regex, std::function<void(const QString&, const QRegularExpressionMatch&)> handler)
-{
-    QMutexLocker ml(&m_eventListMutex);
-    m_events.append(qMakePair(regex, handler));
+        QRegularExpression rx("Server Quit$");
+        if (rx.match(qtline).hasMatch())
+            break;
+    }
 }
 
 } // namespace Morgoth

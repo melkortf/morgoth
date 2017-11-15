@@ -22,7 +22,7 @@ void ServerManager::initializeServers()
 {
     // TODO Read servers from a database
 
-    Server* server = new Server("/home/garapich/Coding/melkor/tf2server", "one", this);
+    Server* server = new Server("/home/garapich/tf2/test", "one", this);
     m_servers.push_back(server);
 
     std::for_each(m_servers.begin(), m_servers.end(), [](auto s) {

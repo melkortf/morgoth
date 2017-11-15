@@ -1,21 +1,48 @@
 #include "servercoordinator.h"
 #include "loglistener.h"
+#include "mapchangeevent.h"
+#include "serverstartedevent.h"
+#include "serverstoppedevent.h"
 #include <QtCore>
+#include <functional>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
 namespace Morgoth {
 
-ServerCoordinator::ServerCoordinator(const Server *server) :
+ServerCoordinator::ServerCoordinator(const Server* server) :
     m_server(server)
 {
     connect(qApp, &QCoreApplication::aboutToQuit, this, &ServerCoordinator::stop);
+    installEventHandler(new MapChangeEvent);
+
+    ServerStartedEvent* serverStarted = new ServerStartedEvent;
+    connect(serverStarted, &EventHandler::activated, this, &ServerCoordinator::handleServerStarted);
+    installEventHandler(serverStarted);
+
+    ServerStoppedEvent* serverStopped = new ServerStoppedEvent;
+    connect(serverStopped, &EventHandler::activated, this, &ServerCoordinator::handleServerStopped);
+    installEventHandler(serverStopped);
 }
 
 ServerCoordinator::~ServerCoordinator()
 {
     stop();
+    m_logListener->wait();
+    QCoreApplication::processEvents();
+}
+
+void ServerCoordinator::installEventHandler(EventHandler* handler)
+{
+    m_eventHandlers.insert(handler->name(), handler);
+    if (m_logListener)
+        m_logListener->installEventHandler(handler);
+}
+
+EventHandler* ServerCoordinator::findEvent(const QString& name)
+{
+    return m_eventHandlers.value(name, nullptr);
 }
 
 bool ServerCoordinator::start()
@@ -42,9 +69,8 @@ bool ServerCoordinator::start()
     m_logListener = new LogListener(m_logFileName, this);
     m_logListener->start();
 
-    m_logListener->addEvent(QRegularExpression(".*Host_Changelevel.*"), [this](auto, auto) {
-        qDebug("%s: map change", qPrintable(this->server()->name()));
-    });
+    std::for_each(m_eventHandlers.begin(), m_eventHandlers.end(),
+                  std::bind(&LogListener::installEventHandler, m_logListener, std::placeholders::_1));
 
     if (!m_tmux.redirectOutput(m_logFileName)) {
         qWarning("%s: could not redirect output to %s", qPrintable(server()->name()), qPrintable(m_logFileName));
@@ -57,10 +83,7 @@ bool ServerCoordinator::start()
         return false;
     }
 
-    m_started = true;
-    qDebug("%s: started", qPrintable(server()->name()));
-
-    return m_started;
+    return true;
 }
 
 void ServerCoordinator::stop()
@@ -68,9 +91,6 @@ void ServerCoordinator::stop()
     if (isStarted()) {
         qDebug("%s: stopping...", qPrintable(server()->name()));
         m_tmux.sendKeys("quit");
-
-        unlink(qPrintable(m_logFileName));
-        m_logListener->requestInterruption();
     }
 }
 
@@ -82,6 +102,21 @@ bool ServerCoordinator::command(const QString& cmd)
     }
 
     return m_tmux.sendKeys(cmd);
+}
+
+void ServerCoordinator::handleServerStarted()
+{
+    ServerStartedEvent* e = qobject_cast<ServerStartedEvent*>(sender());
+    qDebug("%s: started %s", qPrintable(server()->name()), qPrintable(e->game()));
+    m_started = true;
+}
+
+void ServerCoordinator::handleServerStopped()
+{
+    m_logListener->requestInterruption();
+    m_started = false;
+    unlink(qPrintable(m_logFileName));
+    qDebug("%s: stopped", qPrintable(server()->name()));
 }
 
 } // namespace Morgoth
