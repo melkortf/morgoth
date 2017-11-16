@@ -4,13 +4,13 @@
 #include "server.h"
 #include <QtCore/QObject>
 
-namespace Morgoth {
+namespace morgoth {
 
 class ServerManager : public QObject {
     Q_OBJECT
 
 public:
-    ServerManager(QObject* parent = nullptr);
+    explicit ServerManager(QObject* parent = nullptr);
 
     Server* find(const QString& name) const;
 

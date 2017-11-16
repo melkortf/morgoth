@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-namespace Morgoth {
+namespace morgoth {
 
 ServerCoordinator::ServerCoordinator(const Server* server) :
     m_server(server)

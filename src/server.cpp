@@ -2,7 +2,7 @@
 #include "servercoordinator.h"
 #include <QtCore>
 
-namespace Morgoth {
+namespace morgoth {
 
 Server::Server(const QString& path, const QString& name, QObject* parent) :
     QObject(parent),

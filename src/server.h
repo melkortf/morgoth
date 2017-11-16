@@ -4,7 +4,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QString>
 
-namespace Morgoth {
+namespace morgoth {
 
 class ServerCoordinator;
 

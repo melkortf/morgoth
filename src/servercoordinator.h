@@ -6,7 +6,7 @@
 #include "tmuxsessionwrapper.h"
 #include <QtCore/QObject>
 
-namespace Morgoth {
+namespace morgoth {
 
 class LogListener;
 
@@ -14,7 +14,7 @@ class ServerCoordinator : public QObject {
     Q_OBJECT
 
 public:
-    ServerCoordinator(const Server* server);
+    explicit ServerCoordinator(const Server* server);
     virtual ~ServerCoordinator();
 
     void installEventHandler(EventHandler* handler);

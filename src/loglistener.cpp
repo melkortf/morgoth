@@ -3,7 +3,7 @@
 #include <fstream>
 #include <string>
 
-namespace Morgoth {
+namespace morgoth {
 
 LogListener::LogListener(const QString& filePath, QObject* parent) :
     QThread(parent),

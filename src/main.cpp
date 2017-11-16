@@ -2,10 +2,11 @@
 #include "servermanager.h"
 #include "server.h"
 #include "servercoordinator.h"
+#include "stdinreader.h"
 #include <QtCore>
 #include <csignal>
 
-using namespace Morgoth;
+using namespace morgoth;
 
 void handleUnixSignals(std::initializer_list<int> quitSignals)
 {
@@ -42,6 +43,9 @@ int main(int argc, char** argv)
 
     QTimer::singleShot(30 * 1000, [server]() { server->coordinator()->command("changelevel cp_badlands"); });
     QTimer::singleShot(60 * 1000, &app, &QCoreApplication::quit);
+
+    StdinReader* stdinReader = new StdinReader(&app);
+    QObject::connect(stdinReader, &StdinReader::lineReceived, [](QString line) { qInfo() << line; });
 
     return app.exec();
 }

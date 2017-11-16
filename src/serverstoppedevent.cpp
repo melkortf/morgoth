@@ -1,6 +1,6 @@
 #include "serverstoppedevent.h"
 
-namespace Morgoth {
+namespace morgoth {
 
 ServerStoppedEvent::ServerStoppedEvent(QObject *parent) :
     EventHandler(Name, parent)

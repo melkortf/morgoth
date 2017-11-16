@@ -1,6 +1,6 @@
 #include "eventhandler.h"
 
-namespace Morgoth {
+namespace morgoth {
 
 EventHandler::EventHandler(const QString &name, QObject* parent) :
     QObject(parent),

@@ -4,7 +4,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QRegularExpression>
 
-namespace Morgoth {
+namespace morgoth {
 
 class LogListener;
 

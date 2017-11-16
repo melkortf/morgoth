@@ -1,6 +1,6 @@
 #include "serverstartedevent.h"
 
-namespace Morgoth {
+namespace morgoth {
 
 ServerStartedEvent::ServerStartedEvent(QObject *parent) :
     EventHandler(Name, parent)

@@ -1,6 +1,6 @@
 #include "mapchangeevent.h"
 
-namespace Morgoth {
+namespace morgoth {
 
 MapChangeEvent::MapChangeEvent(QObject *parent) :
     EventHandler(Name, parent) {}

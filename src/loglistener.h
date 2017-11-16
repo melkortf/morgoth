@@ -8,7 +8,7 @@
 #include <QtCore/QThread>
 #include <functional>
 
-namespace Morgoth {
+namespace morgoth {
 
 class LogListener : public QThread {
     Q_OBJECT

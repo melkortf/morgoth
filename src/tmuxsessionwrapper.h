@@ -3,7 +3,7 @@
 
 #include <QtCore/QString>
 
-namespace Morgoth {
+namespace morgoth {
 
 class TmuxSessionWrapper {
 public:

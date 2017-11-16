@@ -3,7 +3,7 @@
 
 #include "eventhandler.h"
 
-namespace Morgoth {
+namespace morgoth {
 
 class ServerStoppedEvent : public EventHandler {
     Q_OBJECT

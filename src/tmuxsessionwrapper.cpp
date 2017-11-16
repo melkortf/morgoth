@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-namespace Morgoth {
+namespace morgoth {
 
 constexpr auto TmuxExec = "/usr/bin/tmux";
 

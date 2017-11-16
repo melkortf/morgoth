@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <iostream>
 
-namespace Morgoth {
+namespace morgoth {
 
 ServerManager::ServerManager(QObject* parent) :
     QObject(parent)
