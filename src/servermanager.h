@@ -14,6 +14,8 @@ public:
 
     Server* find(const QString& name) const;
 
+    const QList<Server*>& servers() const { return m_servers; }
+
 private:
     void initializeServers();
 

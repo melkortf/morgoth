@@ -1,4 +1,4 @@
-find_package (Qt5 5.8 REQUIRED COMPONENTS Core)
+find_package (Qt5 5.8 REQUIRED COMPONENTS Core Sql)
 
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -38,4 +38,4 @@ add_executable (morgoth
 add_subdirectory (dbus)
 target_link_libraries (morgoth dbus)
 
-target_link_libraries (morgoth Qt5::Core)
+target_link_libraries (morgoth Qt5::Core Qt5::Sql)

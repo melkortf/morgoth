@@ -1,4 +1,6 @@
 #include "servermanager.h"
+#include <QtCore>
+#include <QtSql>
 #include <algorithm>
 #include <iostream>
 
@@ -20,14 +22,30 @@ Server* ServerManager::find(const QString& name) const
 
 void ServerManager::initializeServers()
 {
-    // TODO Read servers from a database
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName("morgoth.sqlite");
+    if (!db.open()) {
+        qFatal("Could not connect to database; exiting...");
+    }
 
-    Server* server = new Server("/home/garapich/tf2/test", "one", this);
-    m_servers.push_back(server);
+    QSqlTableModel model;
+    model.setTable("servers");
+    model.select();
+
+    for (int i = 0; i < model.rowCount(); ++i) {
+        QSqlRecord record = model.record(i);
+        QString path = record.value("path").toString();
+        QString name = record.value("name").toString();
+
+        Server* s = new Server(path, name, this);
+        m_servers.push_back(s);
+    }
 
     std::for_each(m_servers.begin(), m_servers.end(), [](auto s) {
         qInfo("%s: %s", qPrintable(s->name()), (s->isValid() ? qPrintable(s->path()) : "NOT FOUND"));
     });
+
+    db.close();
 }
 
 } // namespace Morgoth

@@ -3,6 +3,7 @@
 #include "server.h"
 #include "servercoordinator.h"
 #include "stdinreader.h"
+#include "dbus/servermanageradaptor.h"
 #include <QtCore>
 #include <csignal>
 
@@ -37,15 +38,12 @@ int main(int argc, char** argv)
 
     ServerManager* sm = new ServerManager(&app);
 
-    auto server = sm->find("one");
-    QObject::connect(server->coordinator()->findEvent(MapChangeEvent::Name), &MapChangeEvent::activated, []() { qDebug() << "Map changed"; });
-    server->coordinator()->start();
-
-    QTimer::singleShot(30 * 1000, [server]() { server->coordinator()->command("changelevel cp_badlands"); });
-    QTimer::singleShot(60 * 1000, &app, &QCoreApplication::quit);
-
     StdinReader* stdinReader = new StdinReader(&app);
-    QObject::connect(stdinReader, &StdinReader::lineReceived, [](QString line) { qInfo() << line; });
+    QObject::connect(stdinReader, &StdinReader::lineReceived, [](QString line) {
+        if (line == "quit") {
+            QCoreApplication::quit();
+        }
+    });
 
     return app.exec();
 }

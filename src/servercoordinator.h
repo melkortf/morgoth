@@ -12,6 +12,14 @@ class LogListener;
 
 class ServerCoordinator : public QObject {
     Q_OBJECT
+    Q_ENUMS(Status)
+    Q_PROPERTY(ServerCoordinator::Status status READ status NOTIFY statusChanged)
+
+public:
+    enum Status { Offline, Starting, Running, ShuttingDown };
+
+signals:
+    void statusChanged(ServerCoordinator::Status status);
 
 public:
     explicit ServerCoordinator(const Server* server);
@@ -20,11 +28,12 @@ public:
     void installEventHandler(EventHandler* handler);
 
     const Server* server() const { return m_server; }
-    bool isStarted() const { return m_started; }
+    Status status() const { return m_status; }
 
     EventHandler* findEvent(const QString& name);
 
 public slots:
+    void setStatus(Status status);
     bool start();
     void stop();
     bool command(const QString& cmd);
@@ -32,11 +41,12 @@ public slots:
 private slots:
     void handleServerStarted();
     void handleServerStopped();
+    void stopSync();
 
 private:
     const Server* m_server;
+    Status m_status = Status::Offline;
     TmuxSessionWrapper m_tmux;
-    bool m_started = false;
     QString m_logFileName;
     LogListener* m_logListener = nullptr;
     QMap<QString, EventHandler*> m_eventHandlers;

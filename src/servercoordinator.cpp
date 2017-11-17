@@ -14,7 +14,7 @@ namespace morgoth {
 ServerCoordinator::ServerCoordinator(const Server* server) :
     m_server(server)
 {
-    connect(qApp, &QCoreApplication::aboutToQuit, this, &ServerCoordinator::stop);
+    connect(qApp, &QCoreApplication::aboutToQuit, this, &ServerCoordinator::stopSync);
     installEventHandler(new MapChangeEvent);
 
     ServerStartedEvent* serverStarted = new ServerStartedEvent;
@@ -28,9 +28,7 @@ ServerCoordinator::ServerCoordinator(const Server* server) :
 
 ServerCoordinator::~ServerCoordinator()
 {
-    stop();
-    m_logListener->wait();
-    QCoreApplication::processEvents();
+    stopSync();
 }
 
 void ServerCoordinator::installEventHandler(EventHandler* handler)
@@ -45,6 +43,12 @@ EventHandler* ServerCoordinator::findEvent(const QString& name)
     return m_eventHandlers.value(name, nullptr);
 }
 
+void ServerCoordinator::setStatus(ServerCoordinator::Status status)
+{
+    m_status = status;
+    emit statusChanged(m_status);
+}
+
 bool ServerCoordinator::start()
 {
     if (!server()->isValid()) {
@@ -52,7 +56,13 @@ bool ServerCoordinator::start()
         return false;
     }
 
+    if (status() != Offline) {
+        qWarning("%s is already running", qPrintable(server()->name()));
+        return false;
+    }
+
     qDebug("%s: starting...", qPrintable(server()->name()));
+    setStatus(Starting);
 
     if (!m_tmux.create()) {
         qWarning("%s: could not create a tmux session", qPrintable(server()->name()));
@@ -88,15 +98,16 @@ bool ServerCoordinator::start()
 
 void ServerCoordinator::stop()
 {
-    if (isStarted()) {
+    if (status() == Running || status() == Starting) {
         qDebug("%s: stopping...", qPrintable(server()->name()));
+        setStatus(ShuttingDown);
         m_tmux.sendKeys("quit");
     }
 }
 
 bool ServerCoordinator::command(const QString& cmd)
 {
-    if (!isStarted()) {
+    if (status() != Running) {
         qWarning("ServerCoordinator::stop(): %s is not started", qPrintable(server()->name()));
         return false;
     }
@@ -108,15 +119,27 @@ void ServerCoordinator::handleServerStarted()
 {
     ServerStartedEvent* e = qobject_cast<ServerStartedEvent*>(sender());
     qDebug("%s: started %s", qPrintable(server()->name()), qPrintable(e->game()));
-    m_started = true;
+    setStatus(Running);
 }
 
 void ServerCoordinator::handleServerStopped()
 {
     m_logListener->requestInterruption();
-    m_started = false;
+    m_logListener = nullptr;
     unlink(qPrintable(m_logFileName));
+    setStatus(Offline);
     qDebug("%s: stopped", qPrintable(server()->name()));
+}
+
+void ServerCoordinator::stopSync()
+{
+    // send stop keys and wait for the server to actually shut down
+    stop();
+
+    if (m_logListener) {
+        QCoreApplication::processEvents();
+        m_logListener->wait();
+    }
 }
 
 } // namespace Morgoth
