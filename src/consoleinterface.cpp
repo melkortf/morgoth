@@ -43,10 +43,24 @@ void ConsoleInterface::handleCommand(QString line)
                 << endl;
         }
     } else {
-        QRegularExpression serverAction("^(.+) (.+)$");
+        QRegularExpression serverAction("^(.[^\\s]+)\\s(.+)$");
         auto match = serverAction.match(line);
         if (match.hasMatch()) {
-            handleServerCommand(match.captured(1), match.captured(2));
+            QString first = match.captured(1);
+            if (first == "add") {
+                QString args = match.captured(2);
+                QStringList splitted = args.split(QRegularExpression("\\s+"));
+                if (splitted.size() != 2) {
+                    qWarning("Invalid command");
+                    return;
+                }
+
+                QString name = splitted.at(0);
+                QString path = splitted.at(1);
+                m_serverManager->add(path, name);
+            } else {
+                handleServerCommand(match.captured(1), match.captured(2));
+            }
         }
     }
 }

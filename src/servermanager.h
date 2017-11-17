@@ -3,6 +3,8 @@
 
 #include "server.h"
 #include <QtCore/QObject>
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlTableModel>
 
 namespace morgoth {
 
@@ -14,12 +16,16 @@ public:
 
     Server* find(const QString& name) const;
 
+    bool add(const QString& path, const QString& name);
+
     const QList<Server*>& servers() const { return m_servers; }
 
 private:
     void initializeServers();
 
     QList<Server*> m_servers;
+    QSqlDatabase m_database;
+    QSqlTableModel m_model;
 
 };
 
