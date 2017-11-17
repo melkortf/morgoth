@@ -1,6 +1,9 @@
 #include "consoleinterface.h"
 #include "servermanager.h"
+#include "dbus/morgothadaptor.h"
+#include "dbus/servermanageradaptor.h"
 #include <QtCore>
+#include <QtDBus>
 #include <csignal>
 
 using namespace morgoth;
@@ -30,9 +33,20 @@ void handleUnixSignals(std::initializer_list<int> quitSignals)
 int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
+    app.setApplicationVersion("0.1");
+
     handleUnixSignals({ SIGQUIT, SIGINT, SIGTERM, SIGHUP });
 
-    ServerManager* sm = new  ServerManager(&app);
+    QDBusConnection dbus = QDBusConnection::sessionBus();
+    dbus.registerService("org.morgoth");
+
+    new dbus::MorgothAdaptor(&app);
+    dbus.registerObject("/daemon", &app);
+
+    ServerManager* sm = new ServerManager(&app);
+    new dbus::ServerManagerAdaptor(sm);
+    dbus.registerObject("/servers", sm);
+
     new ConsoleInterface(sm, &app);
 
     return app.exec();

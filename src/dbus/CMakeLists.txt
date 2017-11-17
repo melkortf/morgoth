@@ -3,10 +3,14 @@ find_package (Qt5 5.8 REQUIRED COMPONENTS Core DBus)
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set (dbus_INCLUDES
+    morgothadaptor.h
+    serveradaptor.h
     servermanageradaptor.h
 )
 
 set (dbus_SOURCES
+    morgothadaptor.cpp
+    serveradaptor.cpp
     servermanageradaptor.cpp
 )
 

@@ -2,18 +2,30 @@
 #define SERVERMANAGERADAPTOR_H
 
 #include "../servermanager.h"
+#include <QtCore/QStringList>
 #include <QtDBus/QDBusAbstractAdaptor>
 
 namespace morgoth { namespace dbus {
 
 class ServerManagerAdaptor : public QDBusAbstractAdaptor {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.eu.morgoth.ServerManager")
+    Q_CLASSINFO("D-Bus Interface", "org.morgoth.ServerManager")
+    Q_PROPERTY(QStringList servers READ servers)
 
 public:
     explicit ServerManagerAdaptor(ServerManager* serverManager);
 
     virtual ~ServerManagerAdaptor();
+
+    QStringList servers() const;
+
+public slots:
+    bool add(QString path, QString name);
+
+private:
+    void registerServers();
+
+    ServerManager* m_serverManager;
 
 };
 
