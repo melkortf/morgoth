@@ -1,9 +1,5 @@
-#include "mapchangeevent.h"
+#include "consoleinterface.h"
 #include "servermanager.h"
-#include "server.h"
-#include "servercoordinator.h"
-#include "stdinreader.h"
-#include "dbus/servermanageradaptor.h"
 #include <QtCore>
 #include <csignal>
 
@@ -36,14 +32,8 @@ int main(int argc, char** argv)
     QCoreApplication app(argc, argv);
     handleUnixSignals({ SIGQUIT, SIGINT, SIGTERM, SIGHUP });
 
-    ServerManager* sm = new ServerManager(&app);
-
-    StdinReader* stdinReader = new StdinReader(&app);
-    QObject::connect(stdinReader, &StdinReader::lineReceived, [](QString line) {
-        if (line == "quit") {
-            QCoreApplication::quit();
-        }
-    });
+    ServerManager* sm = new  ServerManager(&app);
+    new ConsoleInterface(sm, &app);
 
     return app.exec();
 }

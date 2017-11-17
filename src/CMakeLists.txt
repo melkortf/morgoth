@@ -5,6 +5,7 @@ set (CMAKE_INCLUDE_CURRENT_DIR ON)
 set (CMAKE_AUTOMOC ON)
 
 set (morgoth_INCLUDES
+    consoleinterface.h
     eventhandler.h
     loglistener.h
     mapchangeevent.h
@@ -18,6 +19,7 @@ set (morgoth_INCLUDES
 )
 
 set (morgoth_SOURCES
+    consoleinterface.cpp
     eventhandler.cpp
     loglistener.cpp
     mapchangeevent.cpp

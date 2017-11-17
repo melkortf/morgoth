@@ -12,11 +12,11 @@ class LogListener;
 
 class ServerCoordinator : public QObject {
     Q_OBJECT
-    Q_ENUMS(Status)
     Q_PROPERTY(ServerCoordinator::Status status READ status NOTIFY statusChanged)
 
 public:
     enum Status { Offline, Starting, Running, ShuttingDown };
+    Q_ENUM(Status)
 
 signals:
     void statusChanged(ServerCoordinator::Status status);

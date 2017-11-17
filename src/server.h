@@ -20,6 +20,7 @@ public:
     bool isValid() const { return m_valid; }
     const QString& srcdsExec() const { return m_srcdsExec; }
     ServerCoordinator* coordinator() { return m_coordinator; }
+    const  ServerCoordinator* coordinator() const { return m_coordinator; }
 
 private:
     void discover();
