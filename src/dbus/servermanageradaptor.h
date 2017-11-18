@@ -25,6 +25,10 @@ public slots:
 private:
     void registerServers();
 
+private slots:
+    void handleNewServer(Server* server);
+
+private:
     ServerManager* m_serverManager;
 
 };

@@ -41,6 +41,15 @@ void ServerManagerAdaptor::registerServers()
         QString path = QString("/servers/%1").arg(server->name());
         dbus.registerObject(path, server);
     }
+
+    connect(m_serverManager, &ServerManager::serverAdded, this, &ServerManagerAdaptor::handleNewServer);
+}
+
+void ServerManagerAdaptor::handleNewServer(Server* server)
+{
+    new ServerAdaptor(server);
+    QString path = QString("/servers/%1").arg(server->name());
+    QDBusConnection::sessionBus().registerObject(path, server);
 }
 
 }} // namespace morgoth::dbus

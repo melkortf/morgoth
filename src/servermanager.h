@@ -11,6 +11,10 @@ namespace morgoth {
 class ServerManager : public QObject {
     Q_OBJECT
 
+signals:
+    void serverAdded(Server* server);
+    void serverDeleted(Server* server);
+
 public:
     explicit ServerManager(QObject* parent = nullptr);
 

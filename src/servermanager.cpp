@@ -34,7 +34,6 @@ bool ServerManager::add(const QString& path, const QString& name)
     }
 
     Server* s = new Server(path, name, this);
-    m_servers.append(s);
 
     QSqlRecord record = m_model.record();
     record.setGenerated("id", true);
@@ -45,6 +44,9 @@ bool ServerManager::add(const QString& path, const QString& name)
         qWarning("Error adding \"%s\"", qPrintable(name));
         return false;
     }
+
+    m_servers.append(s);
+    emit serverAdded(s);
 
     return true;
 }
