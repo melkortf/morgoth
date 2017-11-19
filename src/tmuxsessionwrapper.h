@@ -18,8 +18,10 @@ public:
     const QString& name() const { return m_name; }
 
 private:
+    void findTmuxExec();
     void generateRandomName();
 
+    QString m_tmuxExec;
     QString m_name;
     bool m_open = false;
 
