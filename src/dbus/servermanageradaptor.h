@@ -12,6 +12,9 @@ class ServerManagerAdaptor : public QDBusAbstractAdaptor {
     Q_CLASSINFO("D-Bus Interface", "org.morgoth.ServerManager")
     Q_PROPERTY(QStringList servers READ servers)
 
+signals:
+    void serverAdded(const QString& serverName);
+
 public:
     explicit ServerManagerAdaptor(ServerManager* serverManager);
 

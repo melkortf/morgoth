@@ -1,0 +1,13 @@
+[Unit]
+Description=Morgoth Daemon
+
+[Service]
+Type=dbus
+ExecStart=${CMAKE_INSTALL_PREFIX}/bin/morgoth
+Restart=always
+BusName=org.morgoth
+StandardOutput=inherit
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

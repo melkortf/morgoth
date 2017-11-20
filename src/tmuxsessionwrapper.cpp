@@ -87,7 +87,7 @@ void TmuxSessionWrapper::findTmuxExec()
 
 void TmuxSessionWrapper::generateRandomName()
 {
-    m_name = "morgoth_" + []() -> QString {
+    m_name = "morgoth-" + []() -> QString {
         auto randchar = []() -> char {
             const char charset[] = "0123456789abcdef";
             const int max_index = (sizeof(charset) - 2);

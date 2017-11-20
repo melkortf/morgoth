@@ -61,18 +61,21 @@ bool ServerCoordinator::start()
         return false;
     }
 
-    qDebug("%s: starting...", qPrintable(server()->name()));
+    qInfo("%s: starting...", qPrintable(server()->name()));
     setStatus(Starting);
 
     if (!m_tmux.create()) {
         qWarning("%s: could not create a tmux session", qPrintable(server()->name()));
+        setStatus(Crashed);
         return false;
     }
 
-    m_logFileName = QString("/tmp/morgoth-%1").arg(m_tmux.name());
-    int ret = mkfifo(qPrintable(m_logFileName), 0666);
+    m_logFileName = QString("/tmp/%1-tmux").arg(m_tmux.name());
+    int ret = mkfifo(m_logFileName.toLocal8Bit().constData(), 0666);
     if (ret) {
         qWarning("%s: could not create fifo at %s", qPrintable(server()->name()), qPrintable(m_logFileName));
+        m_tmux.kill();
+        setStatus(Crashed);
         return false;
     }
 
@@ -84,12 +87,18 @@ bool ServerCoordinator::start()
 
     if (!m_tmux.redirectOutput(m_logFileName)) {
         qWarning("%s: could not redirect output to %s", qPrintable(server()->name()), qPrintable(m_logFileName));
+        m_tmux.kill();
+        unlink(m_logFileName.toLocal8Bit().constData());
+        setStatus(Crashed);
         return false;
     }
 
     QString cmd = QString("%1/srcds_run +map cp_badlands").arg(server()->path());
     if (!m_tmux.sendKeys(cmd)) {
         qWarning("%s: could not start the server", qPrintable(server()->name()));
+        m_tmux.kill();
+        unlink(m_logFileName.toLocal8Bit().constData());
+        setStatus(Crashed);
         return false;
     }
 
@@ -118,17 +127,20 @@ bool ServerCoordinator::command(const QString& cmd)
 void ServerCoordinator::handleServerStarted()
 {
     ServerStartedEvent* e = qobject_cast<ServerStartedEvent*>(sender());
-    qDebug("%s: started %s", qPrintable(server()->name()), qPrintable(e->game()));
+    qInfo("%s: started %s", qPrintable(server()->name()), qPrintable(e->game()));
     setStatus(Running);
 }
 
 void ServerCoordinator::handleServerStopped()
 {
+    Q_ASSERT(m_logListener);
     m_logListener->requestInterruption();
     m_logListener = nullptr;
-    unlink(qPrintable(m_logFileName));
+    unlink(m_logFileName.toLocal8Bit().constData());
+    m_tmux.kill();
+    Q_ASSERT(status() == ShuttingDown);
     setStatus(Offline);
-    qDebug("%s: stopped", qPrintable(server()->name()));
+    qInfo("%s: stopped", qPrintable(server()->name()));
 }
 
 void ServerCoordinator::stopSync()
@@ -137,9 +149,11 @@ void ServerCoordinator::stopSync()
     stop();
 
     if (m_logListener) {
-        QCoreApplication::processEvents();
         m_logListener->wait();
     }
+
+    m_tmux.kill();
+    unlink(m_logFileName.toLocal8Bit().constData());
 }
 
 } // namespace Morgoth

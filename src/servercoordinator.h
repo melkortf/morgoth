@@ -15,7 +15,7 @@ class ServerCoordinator : public QObject {
     Q_PROPERTY(ServerCoordinator::Status status READ status NOTIFY statusChanged)
 
 public:
-    enum Status { Offline, Starting, Running, ShuttingDown };
+    enum Status { Offline, Starting, Running, ShuttingDown, Crashed };
     Q_ENUM(Status)
 
 signals:

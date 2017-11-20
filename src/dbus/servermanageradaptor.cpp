@@ -34,7 +34,7 @@ bool ServerManagerAdaptor::add(QString path, QString name)
 
 void ServerManagerAdaptor::registerServers()
 {
-    QDBusConnection dbus = QDBusConnection::sessionBus();
+    QDBusConnection dbus = QDBusConnection::systemBus();
 
     for (Server* server: m_serverManager->servers()) {
         new ServerAdaptor(server);
@@ -49,7 +49,7 @@ void ServerManagerAdaptor::handleNewServer(Server* server)
 {
     new ServerAdaptor(server);
     QString path = QString("/servers/%1").arg(server->name());
-    QDBusConnection::sessionBus().registerObject(path, server);
+    QDBusConnection::systemBus().registerObject(path, server);
 }
 
 }} // namespace morgoth::dbus

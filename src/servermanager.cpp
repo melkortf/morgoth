@@ -10,7 +10,7 @@ ServerManager::ServerManager(QObject* parent) :
     QObject(parent),
     m_database(QSqlDatabase::addDatabase("QSQLITE"))
 {
-    m_database.setDatabaseName("morgoth.sqlite");
+    m_database.setDatabaseName("/var/lib/morgoth/morgoth.sqlite");
     if (!m_database.open()) {
         qFatal("Could not connect to database; exiting...");
     }

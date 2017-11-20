@@ -9,6 +9,7 @@ set (morgoth_INCLUDES
     eventhandler.h
     loglistener.h
     mapchangeevent.h
+    morgothdaemon.h
     server.h
     servercoordinator.h
     servermanager.h
@@ -23,6 +24,7 @@ set (morgoth_SOURCES
     eventhandler.cpp
     loglistener.cpp
     mapchangeevent.cpp
+    morgothdaemon.cpp
     server.cpp
     servercoordinator.cpp
     servermanager.cpp
@@ -41,3 +43,15 @@ add_subdirectory (dbus)
 target_link_libraries (morgoth dbus)
 
 target_link_libraries (morgoth Qt5::Core Qt5::Sql)
+
+install (TARGETS morgoth DESTINATION bin)
+
+configure_file (
+    ${CMAKE_CURRENT_SOURCE_DIR}/morgoth.service.in
+    ${CMAKE_CURRENT_BINARY_DIR}/morgoth.service
+)
+
+install (FILES ${CMAKE_CURRENT_BINARY_DIR}/morgoth.service
+    DESTINATION lib/systemd/system)
+install (DIRECTORY
+    DESTINATION /var/lib/morgoth)

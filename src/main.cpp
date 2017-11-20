@@ -1,44 +1,22 @@
-#include "consoleinterface.h"
+#include "morgothdaemon.h"
 #include "servermanager.h"
 #include "dbus/morgothadaptor.h"
 #include "dbus/servermanageradaptor.h"
 #include <QtCore>
 #include <QtDBus>
-#include <csignal>
 
 using namespace morgoth;
-
-void handleUnixSignals(std::initializer_list<int> quitSignals)
-{
-    auto handler = [](int sig) -> void {
-        // blocking and not aysnc-signal-safe func are valid
-        qInfo("\n--- Caught signal %d; exiting gracefully ---\n", sig);
-        QCoreApplication::quit();
-    };
-
-    sigset_t blocking_mask;
-    sigemptyset(&blocking_mask);
-    for (auto sig: quitSignals)
-        sigaddset(&blocking_mask, sig);
-
-    struct sigaction sa;
-    sa.sa_handler = handler;
-    sa.sa_mask    = blocking_mask;
-    sa.sa_flags   = 0;
-
-    for (auto sig: quitSignals)
-        sigaction(sig, &sa, nullptr);
-}
 
 int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
     app.setApplicationVersion("0.1");
 
-    handleUnixSignals({ SIGQUIT, SIGINT, SIGTERM, SIGHUP });
+    // handle unix signals, as a good daemon should do
+    new MorgothDaemon(&app);
 
-    QDBusConnection dbus = QDBusConnection::sessionBus();
-    dbus.registerService("org.morgoth");
+    // setup D-Bus daemon so one can control the daemon
+    QDBusConnection dbus = QDBusConnection::systemBus();
 
     new dbus::MorgothAdaptor(&app);
     dbus.registerObject("/daemon", &app);
@@ -47,7 +25,8 @@ int main(int argc, char** argv)
     new dbus::ServerManagerAdaptor(sm);
     dbus.registerObject("/servers", sm);
 
-    new ConsoleInterface(sm, &app);
+    if (!dbus.registerService("org.morgoth"))
+        qFatal("Error registering service in the system bus: %s", qPrintable(dbus.lastError().message()));
 
     return app.exec();
 }
