@@ -8,7 +8,7 @@ namespace morgoth { namespace dbus {
 
 /**
  * \brief The MorgothAdaptor class is a D-Bus adaptor for the morgoth
- * application.
+ * daemon.
  */
 class MorgothAdaptor : public QDBusAbstractAdaptor {
     Q_OBJECT

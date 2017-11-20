@@ -37,6 +37,7 @@ set (morgoth_SOURCES
 add_executable (morgoth
     ${morgoth_INCLUDES} ${morgoth_SOURCES}
     main.cpp
+    morgoth.service.in
 )
 
 add_subdirectory (dbus)
@@ -52,6 +53,7 @@ configure_file (
 )
 
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/morgoth.service
-    DESTINATION lib/systemd/system)
+    DESTINATION lib/systemd/system
+    COMPONENT binaries)
 install (DIRECTORY
     DESTINATION /var/lib/morgoth)

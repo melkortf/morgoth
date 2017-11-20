@@ -14,7 +14,10 @@ set (dbus_SOURCES
     servermanageradaptor.cpp
 )
 
-add_library (dbus STATIC ${dbus_INCLUDES} ${dbus_SOURCES})
+add_library (dbus STATIC
+    ${dbus_INCLUDES} ${dbus_SOURCES}
+    morgoth.conf
+)
 target_link_libraries (dbus Qt5::Core Qt5::DBus)
 
 install (FILES morgoth.conf
