@@ -5,6 +5,7 @@ set (CMAKE_INCLUDE_CURRENT_DIR ON)
 set (CMAKE_AUTOMOC ON)
 
 set (morgoth_INCLUDES
+    configuration.h
     consoleinterface.h
     eventhandler.h
     loglistener.h
@@ -20,6 +21,7 @@ set (morgoth_INCLUDES
 )
 
 set (morgoth_SOURCES
+    configuration.cpp
     consoleinterface.cpp
     eventhandler.cpp
     loglistener.cpp
@@ -37,6 +39,7 @@ set (morgoth_SOURCES
 add_executable (morgoth
     ${morgoth_INCLUDES} ${morgoth_SOURCES}
     main.cpp
+    morgoth.conf
     morgoth.service.in
 )
 
@@ -45,7 +48,9 @@ target_link_libraries (morgoth dbus)
 
 target_link_libraries (morgoth Qt5::Core Qt5::Sql)
 
-install (TARGETS morgoth DESTINATION bin)
+install (TARGETS morgoth
+    DESTINATION bin
+    COMPONENT binaries)
 
 configure_file (
     ${CMAKE_CURRENT_SOURCE_DIR}/morgoth.service.in
@@ -54,6 +59,9 @@ configure_file (
 
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/morgoth.service
     DESTINATION lib/systemd/system
-    COMPONENT binaries)
+    COMPONENT configs)
+install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/morgoth.conf
+    DESTINATION /etc
+    COMPONENT configs)
 install (DIRECTORY
     DESTINATION /var/lib/morgoth)

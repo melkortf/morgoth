@@ -1,4 +1,6 @@
 #include "servermanager.h"
+#include "configuration.h"
+#include "dbus/servermanageradaptor.h"
 #include <QtCore>
 #include <QtSql>
 #include <algorithm>
@@ -10,12 +12,17 @@ ServerManager::ServerManager(QObject* parent) :
     QObject(parent),
     m_database(QSqlDatabase::addDatabase("QSQLITE"))
 {
-    m_database.setDatabaseName("/var/lib/morgoth/morgoth.sqlite");
+    Configuration* config = qApp->property("configuration").value<Configuration*>();
+    QString databaseFile = config->value("database", "morgoth.sqlite").toString();
+    qDebug("Using database file: %s", qPrintable(databaseFile));
+    m_database.setDatabaseName(databaseFile);
     if (!m_database.open()) {
         qFatal("Could not connect to database; exiting...");
     }
 
     initializeServers();
+
+    new dbus::ServerManagerAdaptor(this);
 }
 
 Server* ServerManager::find(const QString& name) const
@@ -41,7 +48,8 @@ bool ServerManager::add(const QString& path, const QString& name)
     record.setValue("path", path);
     bool ret = m_model.insertRecord(-1, record);
     if (!ret) {
-        qWarning("Error adding \"%s\"", qPrintable(name));
+        QSqlError error = m_database.lastError();
+        qWarning("Error adding \"%s\": %s", qPrintable(name), qPrintable(error.text()));
         return false;
     }
 

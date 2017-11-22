@@ -21,4 +21,5 @@ add_library (dbus STATIC
 target_link_libraries (dbus Qt5::Core Qt5::DBus)
 
 install (FILES morgoth.conf
-    DESTINATION /etc/dbus-1/system.d)
+    DESTINATION /etc/dbus-1/system.d
+    COMPONENT configs)

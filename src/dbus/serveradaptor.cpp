@@ -1,14 +1,21 @@
 #include "serveradaptor.h"
+#include "../morgothdaemon.h"
 #include <QtCore>
+#include <QtDBus>
 
 namespace morgoth { namespace dbus {
 
 ServerAdaptor::ServerAdaptor(Server* server) :
     QDBusAbstractAdaptor(server),
-    m_server(server)
+    m_server(server),
+    m_morgothDaemon(qApp->property("daemon").value<MorgothDaemon*>())
 {
     connect(m_server->coordinator(), &ServerCoordinator::statusChanged,
             this, &ServerAdaptor::handleServerStatusChange);
+
+    QString path = QString("/servers/%1").arg(m_server->name());
+    QDBusConnection dbus = m_morgothDaemon->dbusConnection();
+    dbus.registerObject(path, m_server);
 }
 
 QString ServerAdaptor::name() const

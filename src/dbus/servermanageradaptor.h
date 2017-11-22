@@ -1,6 +1,7 @@
 #ifndef SERVERMANAGERADAPTOR_H
 #define SERVERMANAGERADAPTOR_H
 
+#include "../morgothdaemon.h"
 #include "../servermanager.h"
 #include <QtCore/QStringList>
 #include <QtDBus/QDBusAbstractAdaptor>
@@ -25,14 +26,12 @@ public:
 public slots:
     bool add(QString path, QString name);
 
-private:
-    void registerServers();
-
 private slots:
     void handleNewServer(Server* server);
 
 private:
     ServerManager* m_serverManager;
+    MorgothDaemon* m_morgothDaemon;
 
 };
 

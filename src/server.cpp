@@ -1,5 +1,6 @@
 #include "server.h"
 #include "servercoordinator.h"
+#include "dbus/serveradaptor.h"
 #include <QtCore>
 
 namespace morgoth {
@@ -12,12 +13,10 @@ Server::Server(const QString& path, const QString& name, QObject* parent) :
     m_coordinator(new ServerCoordinator(this))
 {
     discover();
+    new dbus::ServerAdaptor(this);
 }
 
-Server::~Server()
-{
-
-}
+Server::~Server() {}
 
 void Server::discover()
 {

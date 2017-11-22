@@ -1,6 +1,6 @@
+#include "configuration.h"
 #include "morgothdaemon.h"
 #include "servermanager.h"
-#include "dbus/morgothadaptor.h"
 #include "dbus/servermanageradaptor.h"
 #include <QtCore>
 #include <QtDBus>
@@ -12,19 +12,25 @@ int main(int argc, char** argv)
     QCoreApplication app(argc, argv);
     app.setApplicationVersion("0.1");
 
-    // handle unix signals, as a good daemon should do
-    new MorgothDaemon(&app);
+    QCommandLineParser parser;
+    parser.addVersionOption();
 
-    // setup D-Bus daemon so one can control the daemon
-    QDBusConnection dbus = QDBusConnection::systemBus();
+    QCommandLineOption configFileOption(QStringList() << "c" << "config", "Config file to use", "config");
+    parser.addOption(configFileOption);
 
-    new dbus::MorgothAdaptor(&app);
-    dbus.registerObject("/daemon", &app);
+    parser.process(app);
+
+    QString configFile = parser.isSet(configFileOption) ? parser.value(configFileOption) : QString();
+    Configuration* config = new Configuration(configFile);
+    app.setProperty("configuration", QVariant::fromValue(config));
+
+    // make this application a good daemon
+    MorgothDaemon* daemon = new MorgothDaemon(&app);
 
     ServerManager* sm = new ServerManager(&app);
-    new dbus::ServerManagerAdaptor(sm);
-    dbus.registerObject("/servers", sm);
+    app.setProperty("serverManager", QVariant::fromValue(sm));
 
+    QDBusConnection dbus = daemon->dbusConnection();
     if (!dbus.registerService("org.morgoth"))
         qFatal("Error registering service in the system bus: %s", qPrintable(dbus.lastError().message()));
 

@@ -3,6 +3,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QSocketNotifier>
+#include <QtDBus/QDBusConnection>
 
 namespace morgoth {
 
@@ -15,11 +16,14 @@ class MorgothDaemon : public QObject {
 public:
     MorgothDaemon(QObject* parent = nullptr);
 
+    QDBusConnection dbusConnection() const { return m_dbusConnection; }
+
 private slots:
     void handleSignal();
 
 private:
     QSocketNotifier* m_signal;
+    QDBusConnection m_dbusConnection;
 
 };
 

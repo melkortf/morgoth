@@ -1,4 +1,6 @@
 #include "morgothdaemon.h"
+#include "configuration.h"
+#include "dbus/morgothadaptor.h"
 #include <QtCore>
 #include <csignal>
 #include <unistd.h>
@@ -71,15 +73,35 @@ void installMessageHandler()
     qInstallMessageHandler(systemdMessageHandler);
 }
 
+QDBusConnection getDBusConnection()
+{
+    using namespace morgoth;
+    Configuration* config = qApp->property("configuration").value<Configuration*>();
+    QString dbus = config->value("dbus", "session").toString();
+    // the options are "session" or "system" anyway
+    return dbus == "system" ? QDBusConnection::systemBus() : QDBusConnection::sessionBus();
+}
+
 }
 
 namespace morgoth {
 
 MorgothDaemon::MorgothDaemon(QObject* parent) :
-    QObject(parent)
+    QObject(parent),
+    m_dbusConnection(getDBusConnection())
 {
+    auto dynamicProperties = qApp->dynamicPropertyNames();
+    if (dynamicProperties.contains("daemon")) {
+        qFatal("Only one instance of MorgothDaemon can be created");
+    }
+
     m_signal = new QSocketNotifier(signalFd[1], QSocketNotifier::Read, this);
     connect(m_signal, &QSocketNotifier::activated, this, &MorgothDaemon::handleSignal);
+
+    qApp->setProperty("daemon", QVariant::fromValue(this));
+
+    new dbus::MorgothAdaptor(qApp);
+    m_dbusConnection.registerObject("/daemon", qApp);
 }
 
 void MorgothDaemon::handleSignal()
@@ -94,10 +116,12 @@ void MorgothDaemon::handleSignal()
             QCoreApplication::quit();
             break;
 
-        case SIGHUP:
+        case SIGHUP: {
             qInfo("-- SIGHUP --");
-            // do something
+            Configuration* config = qApp->property("configuration").value<Configuration*>();
+            config->readConfig();
             break;
+        }
 
         default:
             qInfo("Caught unhandled signal (%d)", signal);
