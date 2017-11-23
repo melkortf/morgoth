@@ -1,10 +1,26 @@
 project(libsftclient)
 cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
+set (CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
     set(CMAKE_BUILD_TYPE Debug)
 else ()
     set(CMAKE_BUILD_TYPE Release)
+endif ()
+
+# find version
+if (NOT morgoth_VERSION)
+    file (READ ${CMAKE_CURRENT_SOURCE_DIR}/VERSION morgoth_VERSION)
+    string (STRIP ${morgoth_VERSION} morgoth_VERSION)
+
+    include (GetGitRevisionDescription)
+    get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+
+    if (NOT "${GIT_SHA1}" STREQUAL "GITDIR-NOTFOUND")
+        # shorten SHA
+        string (SUBSTRING "${GIT_SHA1}" 0 10 GIT_HASH)
+        set (morgoth_VERSION "${morgoth_VERSION}-${GIT_HASH}-git")
+    endif ()
 endif ()
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g -ggdb -Wall -Wextra -Wpedantic")
@@ -35,3 +51,7 @@ add_custom_target (
     uninstall
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
 )
+
+message (STATUS "morgoth-${morgoth_VERSION} build summary:")
+message (STATUS " * install prefix: ${CMAKE_INSTALL_PREFIX}")
+message (STATUS " * build type: ${CMAKE_BUILD_TYPE}")

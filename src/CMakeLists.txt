@@ -1,5 +1,7 @@
 find_package (Qt5 5.8 REQUIRED COMPONENTS Core Sql)
 
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
 set (CMAKE_AUTOMOC ON)
@@ -38,6 +40,7 @@ set (morgoth_SOURCES
 
 add_executable (morgoth
     ${morgoth_INCLUDES} ${morgoth_SOURCES}
+    config.h.in
     main.cpp
     morgoth.conf
     morgoth.service.in

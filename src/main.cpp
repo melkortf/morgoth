@@ -2,6 +2,7 @@
 #include "morgothdaemon.h"
 #include "servermanager.h"
 #include "dbus/servermanageradaptor.h"
+#include "config.h"
 #include <QtCore>
 #include <QtDBus>
 
@@ -10,7 +11,7 @@ using namespace morgoth;
 int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
-    app.setApplicationVersion("0.1");
+    app.setApplicationVersion(QString(MORGOTH_VERSION));
 
     QCommandLineParser parser;
     parser.addVersionOption();
