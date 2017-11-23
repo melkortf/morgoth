@@ -2,8 +2,6 @@
 #include <QtCore>
 #include <algorithm>
 #include <random>
-#include <sys/types.h>
-#include <unistd.h>
 
 namespace morgoth {
 
@@ -22,9 +20,12 @@ TmuxSessionWrapper::~TmuxSessionWrapper()
 
 bool TmuxSessionWrapper::create()
 {
-    QString cmd = QString("%1 new -d -s %2").arg(m_tmuxExec, name());
+    int ret = QProcess::execute(m_tmuxExec, {
+        "new-session",
+        "-d", // detached
+        "-s", name() // session name
+    });
 
-    int ret = system(qPrintable(cmd));
     if (!ret)
         m_open = true;
 
@@ -36,9 +37,11 @@ bool TmuxSessionWrapper::redirectOutput(const QString& dest)
     if (!m_open)
         return false;
 
-    QString cmd = QString("%1 pipe-pane -t %2 '/usr/bin/cat > %3'").arg(m_tmuxExec, name(), dest);
-
-    int ret = system(qPrintable(cmd));
+    int ret = QProcess::execute(m_tmuxExec, {
+        "pipe-pane",
+        "-t", name(), // session name
+        QString("/usr/bin/cat > %1").arg(dest) // redirect output to cat and cat output to dest
+    });
     return !ret;
 }
 
@@ -47,9 +50,11 @@ bool TmuxSessionWrapper::sendKeys(const QString& keys)
     if (!m_open)
         return false;
 
-    QString cmd = QString("%1 send-keys -t %2 '%3' C-m").arg(m_tmuxExec, name(), keys);
-
-    int ret = system(qPrintable(cmd));
+    int ret = QProcess::execute(m_tmuxExec, {
+        "send-keys",
+        "-t", name(),
+        keys, "C-m"
+    });
     return !ret;
 }
 
@@ -58,9 +63,10 @@ bool TmuxSessionWrapper::kill()
     if (!m_open)
         return false;
 
-    QString cmd = QString("%1 kill-session -t %2").arg(m_tmuxExec, name());
-
-    int ret = system(qPrintable(cmd));
+    int ret = QProcess::execute(m_tmuxExec, {
+        "kill-session",
+        "-t", name()
+    });
     if (ret)
         m_open = false;
 
