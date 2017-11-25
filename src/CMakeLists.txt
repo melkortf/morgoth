@@ -15,6 +15,7 @@ set (morgoth_INCLUDES
     morgothdaemon.h
     server.h
     servercoordinator.h
+    serverlauncharguments.h
     servermanager.h
     serverstartedevent.h
     serverstoppedevent.h
@@ -31,6 +32,7 @@ set (morgoth_SOURCES
     morgothdaemon.cpp
     server.cpp
     servercoordinator.cpp
+    serverlauncharguments.cpp
     servermanager.cpp
     serverstartedevent.cpp
     serverstoppedevent.cpp
