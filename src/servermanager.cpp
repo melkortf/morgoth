@@ -1,3 +1,18 @@
+// This file is part of morgoth.
+
+// morgoth is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #include "servermanager.h"
 #include "configuration.h"
 #include "dbus/servermanageradaptor.h"
@@ -33,11 +48,11 @@ Server* ServerManager::find(const QString& name) const
     return it == m_servers.end() ? nullptr : *it;
 }
 
-bool ServerManager::add(const QString& path, const QString& name)
+Server* ServerManager::add(const QString& path, const QString& name)
 {
     if (find(name) != nullptr) {
         qWarning("Could not add server \"%s\": name already exists", qPrintable(name));
-        return false;
+        return nullptr;
     }
 
     Server* s = new Server(path, name, this);
@@ -50,13 +65,14 @@ bool ServerManager::add(const QString& path, const QString& name)
     if (!ret) {
         QSqlError error = m_database.lastError();
         qWarning("Error adding \"%s\": %s", qPrintable(name), qPrintable(error.text()));
-        return false;
+        delete s;
+        return nullptr;
     }
 
     m_servers.append(s);
     emit serverAdded(s);
 
-    return true;
+    return s;
 }
 
 void ServerManager::initializeServers()

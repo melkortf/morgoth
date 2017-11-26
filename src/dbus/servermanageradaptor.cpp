@@ -30,7 +30,7 @@ QStringList ServerManagerAdaptor::servers() const
 
 bool ServerManagerAdaptor::add(QString path, QString name)
 {
-    return m_serverManager->add(path, name);
+    return m_serverManager->add(path, name) != nullptr;
 }
 
 void ServerManagerAdaptor::handleNewServer(Server* server)
