@@ -25,7 +25,7 @@ QString ServerAdaptor::name() const
 
 QString ServerAdaptor::path() const
 {
-    return m_server->path();
+    return m_server->path().toString();
 }
 
 bool ServerAdaptor::isValid() const

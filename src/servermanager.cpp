@@ -48,7 +48,7 @@ Server* ServerManager::find(const QString& name) const
     return it == m_servers.end() ? nullptr : *it;
 }
 
-Server* ServerManager::add(const QString& path, const QString& name)
+Server* ServerManager::add(const QUrl& path, const QString& name)
 {
     if (find(name) != nullptr) {
         qWarning("Could not add server \"%s\": name already exists", qPrintable(name));
@@ -60,7 +60,7 @@ Server* ServerManager::add(const QString& path, const QString& name)
     QSqlRecord record = m_model.record();
     record.setGenerated("id", true);
     record.setValue("name", name);
-    record.setValue("path", path);
+    record.setValue("path", path.toString());
     bool ret = m_model.insertRecord(-1, record);
     if (!ret) {
         QSqlError error = m_database.lastError();
@@ -92,7 +92,7 @@ void ServerManager::initializeServers()
     }
 
     std::for_each(m_servers.begin(), m_servers.end(), [](auto s) {
-        qInfo("%s: %s", qPrintable(s->name()), (s->isValid() ? qPrintable(s->path()) : "NOT FOUND"));
+        qInfo("%s: %s", qPrintable(s->name()), (s->isValid() ? qPrintable(s->path().toString()) : "NOT FOUND"));
     });
 }
 

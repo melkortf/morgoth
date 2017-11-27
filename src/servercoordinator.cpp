@@ -1,3 +1,18 @@
+// This file is part of morgoth.
+
+// morgoth is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #include "servercoordinator.h"
 #include "loglistener.h"
 #include "mapchangeevent.h"
@@ -93,7 +108,8 @@ bool ServerCoordinator::start()
         return false;
     }
 
-    QString cmd = QString("%1/srcds_run +map cp_badlands").arg(server()->path());
+    QString arguments = server()->launchArguments().asSrcdsArguments();
+    QString cmd = QString("%1/srcds_run %2").arg(server()->path().toLocalFile(), arguments);
     if (!m_tmux.sendKeys(cmd)) {
         qWarning("%s: could not start the server", qPrintable(server()->name()));
         m_tmux.kill();
@@ -112,16 +128,6 @@ void ServerCoordinator::stop()
         setStatus(ShuttingDown);
         m_tmux.sendKeys("quit");
     }
-}
-
-bool ServerCoordinator::command(const QString& cmd)
-{
-    if (status() != Running) {
-        qWarning("ServerCoordinator::stop(): %s is not started", qPrintable(server()->name()));
-        return false;
-    }
-
-    return m_tmux.sendKeys(cmd);
 }
 
 void ServerCoordinator::handleServerStarted()

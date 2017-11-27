@@ -2,7 +2,7 @@
 #define CONSOLEINTERFACE_H
 
 #include "servermanager.h"
-#include <QObject>
+#include <QtCore/QObject>
 
 namespace morgoth {
 

@@ -61,7 +61,7 @@ public:
      * \param name Name of the new server.
      * \return The \c Server instance of the newly created server.
      */
-    Server* add(const QString& path, const QString& name);
+    Server* add(const QUrl& path, const QString& name);
 
     /**
      * \brief Gives direct access to all installed servers.

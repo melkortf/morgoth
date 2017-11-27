@@ -20,11 +20,10 @@
 
 namespace morgoth {
 
-Server::Server(const QString& path, const QString& name, QObject* parent) :
+Server::Server(const QUrl& path, const QString& name, QObject* parent) :
     QObject(parent),
     m_name(name),
     m_path(path),
-    m_srcdsExec(path + "/srcds_run"),
     m_coordinator(new ServerCoordinator(this))
 {
     discover();
@@ -35,7 +34,21 @@ Server::~Server() {}
 
 void Server::discover()
 {
-    m_valid = QFile::exists(m_srcdsExec);
+    m_valid = false;
+
+    if (!m_path.isLocalFile()) {
+        qWarning("Cannot handle server %s: remote servers not supported", qPrintable(m_path.toString()));
+        return;
+    }
+
+    m_srcdsExec = m_path.toLocalFile() + QDir::separator() + "srcds_run";
+
+    if (!QFile::exists(m_srcdsExec)) {
+        qWarning("%s does not exist", qPrintable(m_srcdsExec));
+        return;
+    }
+
+    m_valid = true;
 }
 
 } // namespace Morgoth

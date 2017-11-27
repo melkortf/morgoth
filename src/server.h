@@ -16,8 +16,10 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include "serverlauncharguments.h"
 #include <QtCore/QObject>
 #include <QtCore/QString>
+#include <QtCore/QUrl>
 
 namespace morgoth {
 
@@ -32,6 +34,7 @@ class ServerCoordinator;
  * any command or access its status, use \ref ServerCoordinator.
  *
  * \sa ServerCoordinator and ServerManager.
+ * \todo Handle remote servers.
  */
 class Server : public QObject {
     Q_OBJECT
@@ -44,24 +47,26 @@ class Server : public QObject {
     /**
      * Path to this server's installation.
      */
-    Q_PROPERTY(QString path READ path CONSTANT)
+    Q_PROPERTY(QUrl path READ path CONSTANT)
 
     /**
      * This server's coordinator instance.
      */
     Q_PROPERTY(ServerCoordinator* coordinator READ coordinator CONSTANT)
 
+
+
 public:
     /**
      * \brief Creates the new \c Server instance.
-     * \param path Path to the server directory.
+     * \param path Path to the directory where the server is installed.
      * \param name Name of the server.
      * \param parent Passed to QObject.
      * \warning Do _not_ use this constructor unless you know exactly what you
      *  are doing.
      * \sa ServerManager::add().
      */
-    Server(const QString& path, const QString& name, QObject* parent = nullptr);
+    Server(const QUrl& path, const QString& name, QObject* parent = nullptr);
 
     /**
      * \brief Deletes this \c Server instance.
@@ -81,15 +86,18 @@ public:
     const QString& srcdsExec() const { return m_srcdsExec; }
 
     const QString& name() const { return m_name; }
-    const QString& path() const { return m_path; }
+    const QUrl& path() const { return m_path; }
     ServerCoordinator* coordinator() { return m_coordinator; }
     const  ServerCoordinator* coordinator() const { return m_coordinator; }
+    const ServerLaunchArguments& launchArguments() const { return m_launchArguments; }
+    void setLaunchArguments(const ServerLaunchArguments& launchArguments);
 
 private:
     void discover();
 
     QString m_name;
-    QString m_path;
+    QUrl m_path;
+    ServerLaunchArguments m_launchArguments;
     bool m_valid;
     QString m_srcdsExec;
     ServerCoordinator* m_coordinator;

@@ -38,7 +38,7 @@ void ConsoleInterface::handleCommand(QString line)
         QTextStream out(stdout);
 
         for (const Server* s: m_serverManager->servers()) {
-            out << s->name() << " (" << s->path() << "): "
+            out << s->name() << " (" << s->path().toString() << "): "
                 << QMetaEnum::fromType<ServerCoordinator::Status>().valueToKey(s->coordinator()->status())
                 << endl;
         }
