@@ -61,6 +61,10 @@ Server* ServerManager::add(const QUrl& path, const QString& name)
     record.setGenerated("id", true);
     record.setValue("name", name);
     record.setValue("path", path);
+
+    ServerLaunchArguments launchArguments;
+    record.setValue("launchArguments", launchArguments.asSrcdsArguments());
+
     bool ret = m_model.insertRecord(-1, record);
     if (!ret) {
         QSqlError error = m_database.lastError();
@@ -77,7 +81,7 @@ Server* ServerManager::add(const QUrl& path, const QString& name)
 
 void ServerManager::initializeServers()
 {
-    m_database.exec("CREATE TABLE IF NOT EXISTS servers(id integer primary key autoincrement, path text, name text)");
+    m_database.exec("CREATE TABLE IF NOT EXISTS servers(id integer primary key autoincrement, path text, name text, launchArguments text)");
 
     m_model.setTable("servers");
     m_model.select();
@@ -86,8 +90,10 @@ void ServerManager::initializeServers()
         QSqlRecord record = m_model.record(i);
         QUrl path = record.value("path").toUrl();
         QString name = record.value("name").toString();
+        QString launchArguments = record.value("launchArguments").toString();
 
         Server* s = new Server(path, name, this);
+        s->setLaunchArguments(ServerLaunchArguments::fromSrcdsArguments(launchArguments));
         m_servers.append(s);
     }
 

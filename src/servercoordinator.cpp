@@ -108,6 +108,8 @@ bool ServerCoordinator::start()
         return false;
     }
 
+    qDebug() << server()->name() << server()->launchArguments();
+
     QString arguments = server()->launchArguments().asSrcdsArguments();
     QString cmd = QString("%1/srcds_run %2").arg(server()->path().toLocalFile(), arguments);
     if (!m_tmux.sendKeys(cmd)) {

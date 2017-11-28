@@ -84,8 +84,45 @@ QString ServerLaunchArguments::asSrcdsArguments() const
         arguments.append(QStringLiteral(" +map %1").arg(initialMapArg));
     }
 
-    qDebug("srcds_run %s", qPrintable(arguments));
     return arguments;
 }
 
+ServerLaunchArguments ServerLaunchArguments::fromSrcdsArguments(const QString& srcdsArguments)
+{
+    ServerLaunchArguments result;
+    QStringList tmp = srcdsArguments.split(QRegularExpression("\\s+"));
+    for (int i = 0; i < tmp.size(); ++i) {
+        QString arg = tmp.at(i);
+        if (arg == QStringLiteral("-secured"))
+            result.setSecured(true);
+        else if (arg == QStringLiteral("-insecure"))
+            result.setSecured(false);
+        else if (arg == QStringLiteral("-port")) {
+            unsigned port = tmp.at(++i).toUInt();
+            result.setPort(port);
+        } else if (arg == QStringLiteral("+map")) {
+            QString map = tmp.at(++i);
+            result.setInitialMap(map);
+        }
+    }
+
+    return result;
+}
+
 } // namespace morgoth
+
+QDebug operator<<(QDebug dbg, const morgoth::ServerLaunchArguments launchArguments)
+{
+    dbg.nospace().noquote()
+            << "ServerLaunchArguments("
+            << launchArguments.asSrcdsArguments()
+            << ")";
+    return dbg.maybeSpace();
+}
+
+static void registerMetaType()
+{
+    qRegisterMetaType<morgoth::ServerLaunchArguments>();
+}
+
+Q_COREAPP_STARTUP_FUNCTION(registerMetaType)
