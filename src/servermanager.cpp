@@ -60,7 +60,7 @@ Server* ServerManager::add(const QUrl& path, const QString& name)
     QSqlRecord record = m_model.record();
     record.setGenerated("id", true);
     record.setValue("name", name);
-    record.setValue("path", path.toString());
+    record.setValue("path", path);
     bool ret = m_model.insertRecord(-1, record);
     if (!ret) {
         QSqlError error = m_database.lastError();
@@ -84,7 +84,7 @@ void ServerManager::initializeServers()
 
     for (int i = 0; i < m_model.rowCount(); ++i) {
         QSqlRecord record = m_model.record(i);
-        QString path = record.value("path").toString();
+        QUrl path = record.value("path").toUrl();
         QString name = record.value("name").toString();
 
         Server* s = new Server(path, name, this);

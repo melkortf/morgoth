@@ -35,7 +35,7 @@ TmuxSessionWrapper::~TmuxSessionWrapper()
 
 bool TmuxSessionWrapper::create()
 {
-    if (m_open) {
+    if (exists()) {
         qWarning("TmuxSessionWrapper::create(): the session is already created");
         return false;
     }
@@ -46,12 +46,12 @@ bool TmuxSessionWrapper::create()
         "-s", name() // session name
     });
 
-    return m_open = !ret;
+    return !ret;
 }
 
 bool TmuxSessionWrapper::redirectOutput(const QString& dest)
 {
-    if (!m_open)
+    if (!exists())
         return false;
 
     int ret = QProcess::execute(m_tmuxExec, {
@@ -64,7 +64,7 @@ bool TmuxSessionWrapper::redirectOutput(const QString& dest)
 
 bool TmuxSessionWrapper::sendKeys(const QString& keys)
 {
-    if (!m_open)
+    if (!exists())
         return false;
 
     int ret = QProcess::execute(m_tmuxExec, {
@@ -77,17 +77,25 @@ bool TmuxSessionWrapper::sendKeys(const QString& keys)
 
 bool TmuxSessionWrapper::kill()
 {
-    if (!m_open)
+    if (!exists())
         return false;
 
     int ret = QProcess::execute(m_tmuxExec, {
         "kill-session",
         "-t", name()
     });
-    if (ret)
-        m_open = false;
 
     return !ret;
+}
+
+bool TmuxSessionWrapper::exists() const
+{
+    int ret = QProcess::execute(m_tmuxExec, {
+        "has-session",
+        "-t", name()
+    });
+
+    return ret == 0;
 }
 
 void TmuxSessionWrapper::findTmuxExec()

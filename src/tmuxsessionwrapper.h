@@ -66,13 +66,22 @@ public:
      */
     const QString& name() const { return m_name; }
 
+    /**
+     * \brief Queries tmux to find out whether this session is running or not.
+     */
+    bool exists() const;
+
+    /**
+     * \brief Returns \c true if this session exists.
+     */
+    operator bool() const { return exists(); }
+
 private:
     void findTmuxExec();
     void generateRandomName();
 
     QString m_tmuxExec;
     QString m_name;
-    bool m_open = false;
 
 };
 
