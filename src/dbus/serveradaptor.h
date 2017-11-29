@@ -22,8 +22,6 @@
 #include <QtDBus/QDBusAbstractAdaptor>
 #include <QtDBus/QDBusArgument>
 
-namespace morgoth { class MorgothDaemon; }
-
 namespace morgoth { namespace dbus {
 
 class ServerAdaptor : public QDBusAbstractAdaptor {
@@ -57,7 +55,6 @@ private slots:
 
 private:
     Server* m_server;
-    MorgothDaemon* m_morgothDaemon;
 
 };
 

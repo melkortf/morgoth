@@ -16,42 +16,56 @@
 #ifndef MORGOTHDAEMON_H
 #define MORGOTHDAEMON_H
 
-#include <QtCore/QObject>
+#include "configuration.h"
+#include <QtCore/QCoreApplication>
 #include <QtCore/QSocketNotifier>
 #include <QtDBus/QDBusConnection>
 
 namespace morgoth {
 
 /**
- * \brief The MorgothDaemon class makes morgoth a proper posix daemon.
- * \todo Derive MorgothDaemon from QCoreApplication.
+ * \brief The MorgothDaemon class makes morgoth a proper posix daemon out of
+ *  a regular \c QCoreApplication.
  */
-class MorgothDaemon : public QObject {
+class MorgothDaemon : public QCoreApplication {
     Q_OBJECT
 
 public:
     /**
-     * \brief Creates a new \c MorgothDaemon instance.
-     * \param parent Passed to QObject.
-     * \warning Only one instance of \c MorgothDaemon per \c QCoreApplication
-     *  can be created.
+     * \brief Creates a new \c MorgothDaemon instance, takes control over
+     *  \c QCoreApplication.
      */
-    MorgothDaemon(QObject* parent = nullptr);
+    MorgothDaemon(int& argc, char** argv);
 
     /**
      * \brief Returns application-wide dbus connection.
      */
-    QDBusConnection dbusConnection() const { return m_dbusConnection; }
+    QDBusConnection* dbusConnection() const { return m_dbusConnection; }
+
+    /**
+     * \brief Returns the configuration of the application.
+     * @{
+     */
+    const Configuration* configuration() const { return m_configuration; }
+    Configuration* configuration() { return m_configuration; }
+    /** @} */
+
+private:
+    void parseArguments();
 
 private slots:
     void handleSignal();
 
 private:
     QSocketNotifier* m_signal;
-    QDBusConnection m_dbusConnection;
+    Configuration* m_configuration;
+    QDBusConnection* m_dbusConnection;
 
 };
 
 } // namespace morgoth
+
+#undef qApp
+#define qApp qobject_cast<morgoth::MorgothDaemon*>(QCoreApplication::instance())
 
 #endif // MORGOTHDAEMON_H

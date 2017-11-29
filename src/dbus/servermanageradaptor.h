@@ -16,7 +16,6 @@
 #ifndef SERVERMANAGERADAPTOR_H
 #define SERVERMANAGERADAPTOR_H
 
-#include "../morgothdaemon.h"
 #include "../servermanager.h"
 #include <QtCore/QStringList>
 #include <QtDBus/QDBusAbstractAdaptor>
@@ -46,7 +45,6 @@ private slots:
 
 private:
     ServerManager* m_serverManager;
-    MorgothDaemon* m_morgothDaemon;
 
 };
 

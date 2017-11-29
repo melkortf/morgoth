@@ -88,35 +88,40 @@ void installMessageHandler()
     qInstallMessageHandler(systemdMessageHandler);
 }
 
-QDBusConnection getDBusConnection()
-{
-    using namespace morgoth;
-    Configuration* config = qApp->property("configuration").value<Configuration*>();
-    QString dbus = config->value("dbus", "session").toString();
-    // the options are "session" or "system" anyway
-    return dbus == "system" ? QDBusConnection::systemBus() : QDBusConnection::sessionBus();
-}
-
 }
 
 namespace morgoth {
 
-MorgothDaemon::MorgothDaemon(QObject* parent) :
-    QObject(parent),
-    m_dbusConnection(getDBusConnection())
+MorgothDaemon::MorgothDaemon(int& argc, char** argv) :
+    QCoreApplication(argc, argv)
 {
-    auto dynamicProperties = qApp->dynamicPropertyNames();
-    if (dynamicProperties.contains("daemon")) {
-        qFatal("Only one instance of MorgothDaemon can be created");
-    }
+    ::installMessageHandler();
+    ::setupSignalHandlers();
 
     m_signal = new QSocketNotifier(signalFd[1], QSocketNotifier::Read, this);
     connect(m_signal, &QSocketNotifier::activated, this, &MorgothDaemon::handleSignal);
 
-    qApp->setProperty("daemon", QVariant::fromValue(this));
+    parseArguments();
+    
+    m_dbusConnection = new QDBusConnection(QDBusConnection::sessionBus());
 
-    new dbus::MorgothAdaptor(qApp);
-    m_dbusConnection.registerObject("/daemon", qApp);
+    new dbus::MorgothAdaptor(this);
+    m_dbusConnection->registerObject("/daemon", this);
+}
+
+void MorgothDaemon::parseArguments()
+{
+    QCommandLineParser parser;
+    parser.addVersionOption();
+
+    QCommandLineOption configFileOption(QStringList() << "c" << "config", "Config file to use", "config");
+    parser.addOption(configFileOption);
+
+    parser.process(*this);
+
+    QString configFile = parser.isSet(configFileOption) ? parser.value(configFileOption) : QString();
+    m_configuration = new Configuration(configFile);
+    setProperty("configuration", QVariant::fromValue(m_configuration));
 }
 
 void MorgothDaemon::handleSignal()
@@ -146,6 +151,3 @@ void MorgothDaemon::handleSignal()
 }
 
 } // namespace morgoth
-
-Q_COREAPP_STARTUP_FUNCTION(setupSignalHandlers)
-Q_COREAPP_STARTUP_FUNCTION(installMessageHandler)

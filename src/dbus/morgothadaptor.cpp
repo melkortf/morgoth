@@ -17,21 +17,26 @@
 
 namespace morgoth { namespace dbus {
 
-MorgothAdaptor::MorgothAdaptor(QCoreApplication* app) :
-    QDBusAbstractAdaptor(app),
-    m_app(app)
+MorgothAdaptor::MorgothAdaptor(MorgothDaemon* daemon) :
+    QDBusAbstractAdaptor(daemon),
+    m_daemon(daemon)
 {
 
+}
+
+QString MorgothAdaptor::name() const
+{
+    return m_daemon->applicationName();
 }
 
 QString MorgothAdaptor::version() const
 {
-    return m_app->applicationVersion();
+    return m_daemon->applicationVersion();
 }
 
 void MorgothAdaptor::quit()
 {
-    m_app->quit();
+    m_daemon->quit();
 }
 
 }} // namespace morgoth::dbus

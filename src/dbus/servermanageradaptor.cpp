@@ -15,6 +15,7 @@
 
 #include "servermanageradaptor.h"
 #include "serveradaptor.h"
+#include "../morgothdaemon.h"
 #include "../servercoordinator.h"
 #include <QtCore>
 #include <QtDBus>
@@ -23,11 +24,9 @@ namespace morgoth { namespace dbus {
 
 ServerManagerAdaptor::ServerManagerAdaptor(ServerManager* serverManager) :
     QDBusAbstractAdaptor(serverManager),
-    m_serverManager(serverManager),
-    m_morgothDaemon(qApp->property("daemon").value<MorgothDaemon*>())
+    m_serverManager(serverManager)
 {
-    Q_ASSERT(m_morgothDaemon);
-    m_morgothDaemon->dbusConnection().registerObject("/servers", serverManager);
+    qApp->dbusConnection()->registerObject("/servers", serverManager);
 
     connect(m_serverManager, &ServerManager::serverAdded, this, &ServerManagerAdaptor::handleNewServer);
 }

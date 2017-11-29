@@ -16,7 +16,7 @@
 #ifndef MORGOTHADAPTOR_H
 #define MORGOTHADAPTOR_H
 
-#include <QtCore/QCoreApplication>
+#include "../morgothdaemon.h"
 #include <QtDBus/QDBusAbstractAdaptor>
 
 namespace morgoth { namespace dbus {
@@ -28,18 +28,20 @@ namespace morgoth { namespace dbus {
 class MorgothAdaptor : public QDBusAbstractAdaptor {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.morgoth.Morgoth")
-    Q_PROPERTY(QString version READ version)
+    Q_PROPERTY(QString name READ name CONSTANT)
+    Q_PROPERTY(QString version READ version CONSTANT)
 
 public:
-    explicit MorgothAdaptor(QCoreApplication* app);
+    explicit MorgothAdaptor(MorgothDaemon* daemon);
 
+    QString name() const;
     QString version() const;
 
 public slots:
     Q_NOREPLY void quit();
 
 private:
-    QCoreApplication* m_app;
+    MorgothDaemon* m_daemon;
 
 };
 
