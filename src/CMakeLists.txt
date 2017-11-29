@@ -1,4 +1,4 @@
-find_package (Qt5 5.8 REQUIRED COMPONENTS Core Sql)
+find_package (Qt5 5.8 REQUIRED COMPONENTS Core DBus Sql)
 
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
@@ -8,7 +8,6 @@ set (CMAKE_AUTOMOC ON)
 
 set (morgoth_INCLUDES
     configuration.h
-    consoleinterface.h
     eventhandler.h
     loglistener.h
     mapchangeevent.h
@@ -19,13 +18,11 @@ set (morgoth_INCLUDES
     servermanager.h
     serverstartedevent.h
     serverstoppedevent.h
-    stdinreader.h
     tmuxsessionwrapper.h
 )
 
 set (morgoth_SOURCES
     configuration.cpp
-    consoleinterface.cpp
     eventhandler.cpp
     loglistener.cpp
     mapchangeevent.cpp
@@ -36,22 +33,32 @@ set (morgoth_SOURCES
     servermanager.cpp
     serverstartedevent.cpp
     serverstoppedevent.cpp
-    stdinreader.cpp
     tmuxsessionwrapper.cpp
 )
 
+set (morgoth_DBUSIFACES
+    server.xml
+    servercoordinator.xml
+    servermanager.xml
+)
+
+qt5_add_dbus_adaptor(morgoth_SOURCES
+    server.xml server.h morgoth::Server)
+qt5_add_dbus_adaptor(morgoth_SOURCES
+    servercoordinator.xml servercoordinator.h morgoth::ServerCoordinator)
+qt5_add_dbus_adaptor(morgoth_SOURCES
+    servermanager.xml servermanager.h morgoth::ServerManager)
+
 add_executable (morgoth
-    ${morgoth_INCLUDES} ${morgoth_SOURCES}
+    ${morgoth_INCLUDES} ${morgoth_SOURCES} ${morgoth_DBUSIFACES}
     config.h.in
+    dbus.conf
     main.cpp
     morgoth.conf
     morgoth.service.in
 )
 
-add_subdirectory (dbus)
-target_link_libraries (morgoth dbus)
-
-target_link_libraries (morgoth Qt5::Core Qt5::Sql)
+target_link_libraries (morgoth Qt5::Core Qt5::DBus Qt5::Sql)
 
 install (TARGETS morgoth
     DESTINATION bin
@@ -69,4 +76,9 @@ install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/morgoth.conf
     DESTINATION /etc
     COMPONENT configs)
 install (DIRECTORY
-    DESTINATION /var/lib/morgoth)
+    DESTINATION /var/lib/morgoth
+    COMPONENT configs)
+install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/dbus.conf
+    DESTINATION /etc/dbus-1/system.d
+    RENAME morgoth.conf
+    COMPONENT configs)

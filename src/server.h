@@ -38,6 +38,7 @@ class ServerCoordinator;
  */
 class Server : public QObject {
     Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.morgoth.Server")
 
     /**
      * Name of this server.
@@ -50,11 +51,19 @@ class Server : public QObject {
     Q_PROPERTY(QUrl path READ path CONSTANT)
 
     /**
+     * Specifies whether this server is valid.
+     */
+    Q_PROPERTY(bool valid READ isValid CONSTANT)
+
+    /**
      * This server's coordinator instance.
      */
     Q_PROPERTY(ServerCoordinator* coordinator READ coordinator CONSTANT)
 
-
+    /**
+     * This server's launch arguments.
+     */
+    Q_PROPERTY(morgoth::ServerLaunchArguments launchArguments READ launchArguments WRITE setLaunchArguments)
 
 public:
     /**
@@ -74,12 +83,6 @@ public:
     virtual ~Server();
 
     /**
-     * \brief Specifies whether this server is valid and therefore
-     *  \ref coordinator is functional.
-     */
-    bool isValid() const { return m_valid; }
-
-    /**
      * \brief Returns path to the srcds_run script.
      * \note This function returns an empty string if \ref isValid() is \c false.
      */
@@ -87,6 +90,7 @@ public:
 
     const QString& name() const { return m_name; }
     const QUrl& path() const { return m_path; }
+    bool isValid() const { return m_valid; }
     ServerCoordinator* coordinator() { return m_coordinator; }
     const  ServerCoordinator* coordinator() const { return m_coordinator; }
     const ServerLaunchArguments& launchArguments() const { return m_launchArguments; }
@@ -100,7 +104,7 @@ private:
     ServerLaunchArguments m_launchArguments;
     bool m_valid;
     QString m_srcdsExec;
-    ServerCoordinator* m_coordinator;
+    ServerCoordinator* m_coordinator = nullptr;
 
 };
 

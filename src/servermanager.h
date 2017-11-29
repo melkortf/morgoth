@@ -29,6 +29,12 @@ namespace morgoth {
  */
 class ServerManager : public QObject {
     Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.morgoth.ServerManager")
+
+    /**
+     * Holds names of all servers managed by this class.
+     */
+    Q_PROPERTY(QStringList servers READ serverNames)
 
 signals:
     /**
@@ -67,6 +73,8 @@ public:
      * \brief Gives direct access to all installed servers.
      */
     const QList<Server*>& servers() const { return m_servers; }
+
+    QStringList serverNames() const;
 
 private:
     void initializeServers();

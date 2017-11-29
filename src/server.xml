@@ -1,0 +1,11 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.morgoth.Server">
+    <property name="name" type="s" access="read"/>
+    <property name="path" type="s" access="read"/>
+    <property name="valid" type="b" access="read"/>
+    <property name="launchArguments" type="a{ss}" access="readwrite">
+        <annotation name="org.qtproject.QtDBus.QtTypeName" value="morgoth::ServerLaunchArguments"/>
+    </property>
+  </interface>
+</node>

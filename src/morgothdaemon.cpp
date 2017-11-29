@@ -15,7 +15,6 @@
 
 #include "morgothdaemon.h"
 #include "configuration.h"
-#include "dbus/morgothadaptor.h"
 #include <QtCore>
 #include <csignal>
 #include <unistd.h>
@@ -105,8 +104,8 @@ MorgothDaemon::MorgothDaemon(int& argc, char** argv) :
     
     m_dbusConnection = new QDBusConnection(QDBusConnection::sessionBus());
 
-    new dbus::MorgothAdaptor(this);
-    m_dbusConnection->registerObject("/daemon", this);
+//    new dbus::MorgothAdaptor(this);
+//    m_dbusConnection->registerObject("/daemon", this);
 }
 
 void MorgothDaemon::parseArguments()

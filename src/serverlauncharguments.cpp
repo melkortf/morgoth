@@ -15,6 +15,7 @@
 
 #include "serverlauncharguments.h"
 #include <QtCore>
+#include <QtDBus>
 
 namespace morgoth {
 
@@ -120,9 +121,51 @@ QDebug operator<<(QDebug dbg, const morgoth::ServerLaunchArguments launchArgumen
     return dbg.maybeSpace();
 }
 
-static void registerMetaType()
+QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerLaunchArguments& launchArgs)
 {
-    qRegisterMetaType<morgoth::ServerLaunchArguments>();
+    argument.beginMap(QVariant::String, QVariant::String);
+
+    argument.beginMapEntry();
+    argument << QStringLiteral("secured") << (launchArgs.isSecured() ? QString("true") : QString("false"));
+    argument.endMapEntry();
+
+    argument.beginMapEntry();
+    argument << QStringLiteral("port") << QString::number(launchArgs.port());
+    argument.endMapEntry();
+
+    argument.beginMapEntry();
+    argument << QStringLiteral("map") << launchArgs.initialMap();
+    argument.endMapEntry();
+
+    argument.endMap();
+    return argument;
 }
 
+const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerLaunchArguments& launchArgs)
+{
+    argument.beginMap();
+    while (!argument.atEnd()) {
+        QString key, value;
+        argument.beginMapEntry();
+        argument >> key >> value;
+        argument.endMapEntry();
+
+        if (key == QStringLiteral("secured")) {
+            launchArgs.setSecured(value == QStringLiteral("true"));
+        } else if (key == QStringLiteral("port")) {
+            launchArgs.setPort(value.toUInt());
+        } else if (key == QStringLiteral("map")) {
+            launchArgs.setInitialMap(value);
+        }
+    }
+
+    argument.endMap();
+    return argument;
+}
+
+static void registerMetaType()
+{
+    qRegisterMetaType<morgoth::ServerLaunchArguments>("morgoth::ServerLaunchArguments");
+    qDBusRegisterMetaType<morgoth::ServerLaunchArguments>();
+}
 Q_COREAPP_STARTUP_FUNCTION(registerMetaType)

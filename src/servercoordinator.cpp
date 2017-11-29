@@ -16,8 +16,10 @@
 #include "servercoordinator.h"
 #include "loglistener.h"
 #include "mapchangeevent.h"
+#include "morgothdaemon.h"
 #include "serverstartedevent.h"
 #include "serverstoppedevent.h"
+#include "servercoordinatoradaptor.h"
 #include <QtCore>
 #include <functional>
 #include <unistd.h>
@@ -39,6 +41,10 @@ ServerCoordinator::ServerCoordinator(const Server* server) :
     ServerStoppedEvent* serverStopped = new ServerStoppedEvent;
     connect(serverStopped, &EventHandler::activated, this, &ServerCoordinator::handleServerStopped);
     installEventHandler(serverStopped);
+
+    new ServerCoordinatorAdaptor(this);
+    QString dbusPath = QStringLiteral("/servers/%1/coordinator").arg(server->name());
+    qApp->dbusConnection()->registerObject(dbusPath, this);
 }
 
 ServerCoordinator::~ServerCoordinator()
@@ -165,3 +171,33 @@ void ServerCoordinator::stopSync()
 }
 
 } // namespace Morgoth
+
+QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::Status& status)
+{
+    QString strStatus = QMetaEnum::fromType<morgoth::ServerCoordinator::Status>().valueToKey(status);
+
+    argument.beginStructure();
+    argument << strStatus;
+    argument.endStructure();
+
+    return argument;
+}
+
+const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::Status& status)
+{
+    QString strStatus;
+
+    argument.beginStructure();
+    argument >> strStatus;
+    argument.endStructure();
+
+    int value = QMetaEnum::fromType<morgoth::ServerCoordinator::Status>().keyToValue(strStatus.toLocal8Bit().constData());
+    status = static_cast<morgoth::ServerCoordinator::Status>(value);
+    return argument;
+}
+
+static void registerMetaType()
+{
+    qDBusRegisterMetaType<morgoth::ServerCoordinator::Status>();
+}
+Q_COREAPP_STARTUP_FUNCTION(registerMetaType)

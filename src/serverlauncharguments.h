@@ -19,6 +19,7 @@
 #include <QtCore/QMetaType>
 #include <QtCore/QSharedData>
 #include <QtCore/QString>
+#include <QtDBus/QDBusArgument>
 
 namespace morgoth {
 
@@ -106,6 +107,8 @@ private:
 } // namespace morgoth
 
 QDebug operator<<(QDebug dbg, const morgoth::ServerLaunchArguments launchArguments);
+QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerLaunchArguments& launchArgs);
+const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerLaunchArguments& launchArgs);
 
 Q_DECLARE_METATYPE(morgoth::ServerLaunchArguments)
 Q_DECLARE_TYPEINFO(morgoth::ServerLaunchArguments, Q_MOVABLE_TYPE);

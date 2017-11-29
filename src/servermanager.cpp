@@ -15,7 +15,8 @@
 
 #include "servermanager.h"
 #include "configuration.h"
-#include "dbus/servermanageradaptor.h"
+#include "morgothdaemon.h"
+#include "servermanageradaptor.h"
 #include <QtCore>
 #include <QtSql>
 #include <algorithm>
@@ -37,7 +38,8 @@ ServerManager::ServerManager(QObject* parent) :
 
     initializeServers();
 
-    new dbus::ServerManagerAdaptor(this);
+    new ServerManagerAdaptor(this);
+    qApp->dbusConnection()->registerObject("/serverManager", this);
 }
 
 Server* ServerManager::find(const QString& name) const
@@ -53,6 +55,11 @@ Server* ServerManager::add(const QUrl& path, const QString& name)
     if (find(name) != nullptr) {
         qWarning("Could not add server \"%s\": name already exists", qPrintable(name));
         return nullptr;
+    }
+
+    QUrl fixedPath(path);
+    if (!QFile::exists(fixedPath.toString())) {
+        fixedPath = QUrl::fromLocalFile(fixedPath.toString());
     }
 
     Server* s = new Server(path, name, this);
@@ -77,6 +84,16 @@ Server* ServerManager::add(const QUrl& path, const QString& name)
     emit serverAdded(s);
 
     return s;
+}
+
+QStringList ServerManager::serverNames() const
+{
+    QStringList result;
+    std::for_each(m_servers.begin(), m_servers.end(), [&result](const Server* s) {
+        result.append(s->name());
+    });
+
+    return result;
 }
 
 void ServerManager::initializeServers()

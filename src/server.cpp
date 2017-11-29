@@ -14,8 +14,9 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "server.h"
+#include "morgothdaemon.h"
 #include "servercoordinator.h"
-#include "dbus/serveradaptor.h"
+#include "serveradaptor.h"
 #include <QtCore>
 
 namespace morgoth {
@@ -23,11 +24,17 @@ namespace morgoth {
 Server::Server(const QUrl& path, const QString& name, QObject* parent) :
     QObject(parent),
     m_name(name),
-    m_path(path),
-    m_coordinator(new ServerCoordinator(this))
+    m_path(path)
 {
     discover();
-    new dbus::ServerAdaptor(this);
+
+    new ServerAdaptor(this);
+
+    QString dbusPath = QStringLiteral("/servers/%1").arg(name);
+    qApp->dbusConnection()->registerObject(dbusPath, this);
+
+    if (isValid())
+        m_coordinator = new ServerCoordinator(this);
 }
 
 Server::~Server() {}

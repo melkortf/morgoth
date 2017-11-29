@@ -20,6 +20,7 @@
 #include "server.h"
 #include "tmuxsessionwrapper.h"
 #include <QtCore/QObject>
+#include <QtDBus/QDBusArgument>
 
 namespace morgoth {
 
@@ -30,11 +31,12 @@ class LogListener;
  */
 class ServerCoordinator : public QObject {
     Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.morgoth.ServerCoordinator")
 
     /**
      * The server process status.
      */
-    Q_PROPERTY(ServerCoordinator::Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(morgoth::ServerCoordinator::Status status READ status NOTIFY statusChanged)
 
     /**
      * The server instance.
@@ -56,7 +58,7 @@ public:
     Q_ENUM(Status)
 
 signals:
-    void statusChanged(ServerCoordinator::Status status);
+    void statusChanged(morgoth::ServerCoordinator::Status newStatus);
 
 public:
     /**
@@ -127,5 +129,8 @@ private:
 };
 
 } // namespace Morgoth
+
+QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::Status& status);
+const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::Status& status);
 
 #endif // SERVERCOORDINATOR_H
