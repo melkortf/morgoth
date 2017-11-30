@@ -16,6 +16,7 @@
 #ifndef TMUXSESSIONWRAPPER_H
 #define TMUXSESSIONWRAPPER_H
 
+#include "morgoth_export.h"
 #include <QtCore/QString>
 
 namespace morgoth {
@@ -24,7 +25,7 @@ namespace morgoth {
  * \brief The TmuxSessionWrapper class wraps all tmux-oriented tasks morgoth
  *  needs.
  */
-class TmuxSessionWrapper {
+class MORGOTH_EXPORT TmuxSessionWrapper {
 public:
     /**
      * \brief Creates a new TmuxSessionWrapper instance.

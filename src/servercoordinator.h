@@ -17,6 +17,7 @@
 #define SERVERCOORDINATOR_H
 
 #include "eventhandler.h"
+#include "morgoth_export.h"
 #include "server.h"
 #include "tmuxsessionwrapper.h"
 #include <QtCore/QObject>
@@ -29,7 +30,7 @@ class LogListener;
 /**
  * \brief The ServerCoordinator class supervises the server running process.
  */
-class ServerCoordinator : public QObject {
+class MORGOTH_EXPORT ServerCoordinator : public QObject {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.morgoth.ServerCoordinator")
 
@@ -130,7 +131,7 @@ private:
 
 } // namespace Morgoth
 
-QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::Status& status);
-const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::Status& status);
+MORGOTH_EXPORT QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::Status& status);
+MORGOTH_EXPORT const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::Status& status);
 
 #endif // SERVERCOORDINATOR_H

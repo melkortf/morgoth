@@ -49,36 +49,23 @@ qt5_add_dbus_adaptor(morgoth_SOURCES
 qt5_add_dbus_adaptor(morgoth_SOURCES
     servermanager.xml servermanager.h morgoth::ServerManager)
 
-add_executable (morgoth
+add_library (morgoth SHARED
     ${morgoth_INCLUDES} ${morgoth_SOURCES} ${morgoth_DBUSIFACES}
     config.h.in
-    dbus.conf
-    main.cpp
-    morgoth.conf
-    morgoth.service.in
 )
-
 target_link_libraries (morgoth Qt5::Core Qt5::DBus Qt5::Sql)
-
-install (TARGETS morgoth
-    DESTINATION bin
-    COMPONENT binaries)
-
-configure_file (
-    ${CMAKE_CURRENT_SOURCE_DIR}/morgoth.service.in
-    ${CMAKE_CURRENT_BINARY_DIR}/morgoth.service
+set_target_properties (morgoth PROPERTIES
+    VERSION ${morgoth_VERSION}
+    SOVERSION 1
+    CXX_VISIBILITY_PRESET hidden
 )
 
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/morgoth.service
-    DESTINATION lib/systemd/system
-    COMPONENT configs)
-install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/morgoth.conf
-    DESTINATION /etc
-    COMPONENT configs)
-install (DIRECTORY
-    DESTINATION /var/lib/morgoth
-    COMPONENT configs)
-install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/dbus.conf
-    DESTINATION /etc/dbus-1/system.d
-    RENAME morgoth.conf
-    COMPONENT configs)
+include (GenerateExportHeader)
+generate_export_header (morgoth)
+
+include (GNUInstallDirs)
+install (TARGETS morgoth
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+add_subdirectory (morgothd)

@@ -17,6 +17,7 @@
 #define MORGOTHDAEMON_H
 
 #include "configuration.h"
+#include "morgoth_export.h"
 #include <QtCore/QCoreApplication>
 #include <QtCore/QSocketNotifier>
 #include <QtDBus/QDBusConnection>
@@ -27,7 +28,7 @@ namespace morgoth {
  * \brief The MorgothDaemon class makes morgoth a proper posix daemon out of
  *  a regular \c QCoreApplication.
  */
-class MorgothDaemon : public QCoreApplication {
+class MORGOTH_EXPORT MorgothDaemon : public QCoreApplication {
     Q_OBJECT
 
 public:

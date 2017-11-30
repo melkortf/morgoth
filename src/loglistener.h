@@ -17,6 +17,7 @@
 #define LOGLISTENER_H
 
 #include "eventhandler.h"
+#include "morgoth_export.h"
 #include <QtCore/QList>
 #include <QtCore/QMutex>
 #include <QtCore/QThread>
@@ -28,7 +29,7 @@ namespace morgoth {
  * \note The log file is supposed to be a fifo one.
  * \sa EventHandler.
  */
-class LogListener : public QThread {
+class MORGOTH_EXPORT LogListener : public QThread {
     Q_OBJECT
 
 public:

@@ -16,6 +16,7 @@
 #ifndef SERVERLAUNCHARGUMENTS_H
 #define SERVERLAUNCHARGUMENTS_H
 
+#include "morgoth_export.h"
 #include <QtCore/QMetaType>
 #include <QtCore/QSharedData>
 #include <QtCore/QString>
@@ -29,7 +30,7 @@ class ServerLaunchArgumentsData;
  * \brief The ServerLaunchArguments class describes arguments that are passeed
  *  to the server launch command.
  */
-class ServerLaunchArguments {
+class MORGOTH_EXPORT ServerLaunchArguments {
 public:
     /**
      * \brief Uses default arguments.
@@ -106,9 +107,9 @@ private:
 
 } // namespace morgoth
 
-QDebug operator<<(QDebug dbg, const morgoth::ServerLaunchArguments launchArguments);
-QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerLaunchArguments& launchArgs);
-const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerLaunchArguments& launchArgs);
+MORGOTH_EXPORT QDebug operator<<(QDebug dbg, const morgoth::ServerLaunchArguments launchArguments);
+MORGOTH_EXPORT QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerLaunchArguments& launchArgs);
+MORGOTH_EXPORT const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerLaunchArguments& launchArgs);
 
 Q_DECLARE_METATYPE(morgoth::ServerLaunchArguments)
 Q_DECLARE_TYPEINFO(morgoth::ServerLaunchArguments, Q_MOVABLE_TYPE);

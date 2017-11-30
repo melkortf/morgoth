@@ -17,10 +17,11 @@
 #define MAPCHANGEEVENT_H
 
 #include "eventhandler.h"
+#include "morgoth_export.h"
 
 namespace morgoth {
 
-class MapChangeEvent : public EventHandler {
+class MORGOTH_EXPORT MapChangeEvent : public EventHandler {
     Q_OBJECT
 
 public:

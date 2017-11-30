@@ -16,6 +16,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
+#include "morgoth_export.h"
 #include <QtCore/QObject>
 #include <QtCore/QMap>
 #include <QtCore/QVariant>
@@ -24,7 +25,7 @@ namespace morgoth {
 
 class MorgothDaemon;
 
-class Configuration : public QObject {
+class MORGOTH_EXPORT Configuration : public QObject {
     Q_OBJECT
 
 signals:

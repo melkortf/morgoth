@@ -16,6 +16,7 @@
 #ifndef EVENTHANDLER_H
 #define EVENTHANDLER_H
 
+#include "morgoth_export.h"
 #include <QtCore/QObject>
 #include <QtCore/QRegularExpression>
 
@@ -28,7 +29,7 @@ class LogListener;
  *  server's log.
  * \sa ServerCoordinator.
  */
-class EventHandler : public QObject {
+class MORGOTH_EXPORT EventHandler : public QObject {
     Q_OBJECT
 
 signals:

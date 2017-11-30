@@ -17,10 +17,11 @@
 #define SERVERSTARTEDEVENT_H
 
 #include "eventhandler.h"
+#include "morgoth_export.h"
 
 namespace morgoth {
 
-class ServerStartedEvent : public EventHandler {
+class MORGOTH_EXPORT ServerStartedEvent : public EventHandler {
     Q_OBJECT
 
 public:
