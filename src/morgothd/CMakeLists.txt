@@ -1,13 +1,13 @@
-configure_file (
-    ${CMAKE_CURRENT_SOURCE_DIR}/morgoth.service.in
-    ${CMAKE_CURRENT_BINARY_DIR}/morgoth.service
-)
-
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/..)
 
 add_executable (morgothd main.cpp)
 target_link_libraries (morgothd morgoth)
+
+configure_file (
+    ${CMAKE_CURRENT_SOURCE_DIR}/morgoth.service.in
+    ${CMAKE_CURRENT_BINARY_DIR}/morgoth.service
+)
 
 include (GNUInstallDirs)
 install (TARGETS morgothd

@@ -58,16 +58,16 @@ Server* ServerManager::add(const QUrl& path, const QString& name)
     }
 
     QUrl fixedPath(path);
-    if (!QFile::exists(fixedPath.toString())) {
+    if (QFile::exists(fixedPath.toString())) {
         fixedPath = QUrl::fromLocalFile(fixedPath.toString());
     }
 
-    Server* s = new Server(path, name, this);
+    Server* s = new Server(fixedPath, name, this);
 
     QSqlRecord record = m_model.record();
     record.setGenerated("id", true);
     record.setValue("name", name);
-    record.setValue("path", path);
+    record.setValue("path", fixedPath);
 
     ServerLaunchArguments launchArguments;
     record.setValue("launchArguments", launchArguments.asSrcdsArguments());

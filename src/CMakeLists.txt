@@ -69,3 +69,4 @@ install (TARGETS morgoth
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 add_subdirectory (morgothd)
+add_subdirectory (morgothctl)
