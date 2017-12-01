@@ -14,13 +14,14 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "config.h"
+#include "morgothdaemon.h"
 #include "serverinterface.h"
 #include "servercoordinatorinterface.h"
 #include "servermanagerinterface.h"
 #include <cstdio>
 #include <QtCore>
 
-static const QString morgothService = QStringLiteral("org.morgoth");
+static const QString morgothService = morgoth::MorgothDaemon::dbusServiceName();
 static QDBusConnection dbus = QDBusConnection::sessionBus();
 static QTextStream qstdout(stdout);
 static org::morgoth::ServerManager* serverManager;

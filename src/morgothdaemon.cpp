@@ -140,7 +140,7 @@ void MorgothDaemon::handleSignal()
 
         case SIGHUP: {
             qInfo("-- SIGHUP --");
-            qApp->configuration()->readConfig();
+            morgothd->configuration()->readConfig();
             break;
         }
 

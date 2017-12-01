@@ -51,6 +51,8 @@ public:
     Configuration* configuration() { return m_configuration; }
     /** @} */
 
+    static inline const char* dbusServiceName() { return "org.morgoth"; }
+
 private:
     void parseArguments();
 
@@ -66,7 +68,6 @@ private:
 
 } // namespace morgoth
 
-#undef qApp
-#define qApp qobject_cast<morgoth::MorgothDaemon*>(QCoreApplication::instance())
+#define morgothd qobject_cast<morgoth::MorgothDaemon*>(QCoreApplication::instance())
 
 #endif // MORGOTHDAEMON_H

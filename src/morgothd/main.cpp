@@ -31,7 +31,7 @@ int main(int argc, char** argv)
     app.setProperty("serverManager", QVariant::fromValue(sm));
 
     QDBusConnection dbus = app.dbusConnection();
-    if (!dbus.registerService("org.morgoth"))
+    if (!dbus.registerService(MorgothDaemon::dbusServiceName()))
         qFatal("Error registering service in the system bus: %s", qPrintable(dbus.lastError().message()));
 
     return app.exec();

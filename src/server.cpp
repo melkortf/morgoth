@@ -31,7 +31,7 @@ Server::Server(const QUrl& path, const QString& name, QObject* parent) :
     new ServerAdaptor(this);
 
     QString dbusPath = QStringLiteral("/servers/%1").arg(name);
-    qApp->dbusConnection().registerObject(dbusPath, this);
+    morgothd->dbusConnection().registerObject(dbusPath, this);
 
     if (isValid())
         m_coordinator = new ServerCoordinator(this);

@@ -1,6 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// generated from the VERSION file
 #define MORGOTH_VERSION "${morgoth_VERSION}"
 
 #endif // CONFIG_H
