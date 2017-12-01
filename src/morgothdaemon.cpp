@@ -92,7 +92,8 @@ void installMessageHandler()
 namespace morgoth {
 
 MorgothDaemon::MorgothDaemon(int& argc, char** argv) :
-    QCoreApplication(argc, argv)
+    QCoreApplication(argc, argv),
+    m_dbusConnection(QDBusConnection::sessionBus())
 {
     ::installMessageHandler();
     ::setupSignalHandlers();
@@ -101,11 +102,13 @@ MorgothDaemon::MorgothDaemon(int& argc, char** argv) :
     connect(m_signal, &QSocketNotifier::activated, this, &MorgothDaemon::handleSignal);
 
     parseArguments();
-    
-    m_dbusConnection = new QDBusConnection(QDBusConnection::sessionBus());
 
-//    new dbus::MorgothAdaptor(this);
-//    m_dbusConnection->registerObject("/daemon", this);
+    // switch to system bus if the config says so
+    QString dbus = configuration()->value("dbus", "session").toString();
+    if (dbus == QStringLiteral("system"))
+        m_dbusConnection = QDBusConnection::systemBus();
+
+    // TODO reflect changes in config
 }
 
 void MorgothDaemon::parseArguments()
@@ -137,8 +140,7 @@ void MorgothDaemon::handleSignal()
 
         case SIGHUP: {
             qInfo("-- SIGHUP --");
-            Configuration* config = qApp->property("configuration").value<Configuration*>();
-            config->readConfig();
+            qApp->configuration()->readConfig();
             break;
         }
 

@@ -39,7 +39,7 @@ ServerManager::ServerManager(QObject* parent) :
     initializeServers();
 
     new ServerManagerAdaptor(this);
-    qApp->dbusConnection()->registerObject("/serverManager", this);
+    qApp->dbusConnection().registerObject("/serverManager", this);
 }
 
 Server* ServerManager::find(const QString& name) const

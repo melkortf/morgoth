@@ -1,3 +1,18 @@
+// This file is part of morgoth.
+
+// morgoth is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #include "config.h"
 #include "serverinterface.h"
 #include "servercoordinatorinterface.h"
@@ -27,7 +42,7 @@ void list()
             status = QMetaEnum::fromType<morgoth::ServerCoordinator::Status>().valueToKey(coordinator->status());
         }
 
-        qstdout << server->name() << " (" << server->path() << "): " << status << endl;
+        qstdout << server->name() << ": " << status << endl;
     }
 }
 
@@ -73,6 +88,23 @@ int stop(const QString& serverName)
     return 0;
 }
 
+bool findServerManager()
+{
+    // try to connect to the service on the session bus first, then on the system one
+    serverManager = new org::morgoth::ServerManager(morgothService, "/serverManager", dbus, qApp);
+    if (!serverManager->isValid()) {
+        delete serverManager;
+
+        dbus = QDBusConnection::systemBus();
+        serverManager = new org::morgoth::ServerManager(morgothService, "/serverManager", dbus, qApp);
+
+        if (!serverManager->isValid())
+            return false;
+    }
+
+    return true;
+}
+
 int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
@@ -91,8 +123,7 @@ int main(int argc, char** argv)
     if (args.isEmpty())
         parser.showHelp();
 
-    serverManager = new org::morgoth::ServerManager(morgothService, "/serverManager", dbus, qApp);
-    if (!serverManager->isValid()) {
+    if (!findServerManager()) {
         qstdout << "Couldn't access morgoth daemon over its D-Bus interface; is morgothd running?" << endl;
         return 1;
     }

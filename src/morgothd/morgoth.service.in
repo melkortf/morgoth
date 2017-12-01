@@ -3,7 +3,7 @@ Description=Morgoth Daemon
 
 [Service]
 Type=dbus
-ExecStart=${CMAKE_INSTALL_PREFIX}/bin/morgoth --config /etc/morgoth.conf
+ExecStart=${CMAKE_INSTALL_PREFIX}/bin/morgothd --config /etc/morgoth.conf
 Restart=always
 BusName=org.morgoth
 StandardOutput=inherit

@@ -21,3 +21,8 @@ qt5_add_dbus_interface(morgothctl_SOURCES ../servermanager.xml servermanagerinte
 
 add_executable (morgothctl ${morgothctl_SOURCES})
 target_link_libraries (morgothctl Qt5::Core Qt5::DBus morgoth)
+
+include (GNUInstallDirs)
+install (TARGETS morgothctl
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    COMPONENT binaries)

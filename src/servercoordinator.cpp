@@ -44,7 +44,7 @@ ServerCoordinator::ServerCoordinator(const Server* server) :
 
     new ServerCoordinatorAdaptor(this);
     QString dbusPath = QStringLiteral("/servers/%1/coordinator").arg(server->name());
-    qApp->dbusConnection()->registerObject(dbusPath, this);
+    qApp->dbusConnection().registerObject(dbusPath, this);
 }
 
 ServerCoordinator::~ServerCoordinator()

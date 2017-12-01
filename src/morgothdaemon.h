@@ -41,7 +41,7 @@ public:
     /**
      * \brief Returns application-wide dbus connection.
      */
-    QDBusConnection* dbusConnection() const { return m_dbusConnection; }
+    QDBusConnection dbusConnection() const { return m_dbusConnection; }
 
     /**
      * \brief Returns the configuration of the application.
@@ -60,7 +60,7 @@ private slots:
 private:
     QSocketNotifier* m_signal;
     Configuration* m_configuration;
-    QDBusConnection* m_dbusConnection;
+    QDBusConnection m_dbusConnection;
 
 };
 
