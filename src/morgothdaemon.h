@@ -16,7 +16,6 @@
 #ifndef MORGOTHDAEMON_H
 #define MORGOTHDAEMON_H
 
-#include "configuration.h"
 #include "morgoth_export.h"
 #include <QtCore/QCoreApplication>
 #include <QtCore/QSocketNotifier>
@@ -31,6 +30,9 @@ namespace morgoth {
 class MORGOTH_EXPORT MorgothDaemon : public QCoreApplication {
     Q_OBJECT
 
+signals:
+    void configRead();
+
 public:
     /**
      * \brief Creates a new \c MorgothDaemon instance, takes control over
@@ -44,25 +46,25 @@ public:
     QDBusConnection dbusConnection() const { return m_dbusConnection; }
 
     /**
-     * \brief Returns the configuration of the application.
-     * @{
+     * \brief Returns daemon config.
      */
-    const Configuration* configuration() const { return m_configuration; }
-    Configuration* configuration() { return m_configuration; }
-    /** @} */
+    const QVariantMap& config() const { return m_config; }
 
     static inline const char* dbusServiceName() { return "org.morgoth"; }
 
 private:
     void parseArguments();
+    void loadDefaults();
+    void readConfig();
 
 private slots:
     void handleSignal();
 
 private:
     QSocketNotifier* m_signal;
-    Configuration* m_configuration;
     QDBusConnection m_dbusConnection;
+    QString m_configFileName;
+    QVariantMap m_config;
 
 };
 

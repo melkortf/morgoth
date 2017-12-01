@@ -20,6 +20,7 @@
 #include "serverstartedevent.h"
 #include "serverstoppedevent.h"
 #include "servercoordinatoradaptor.h"
+#include "updatenotificationevent.h"
 #include <QtCore>
 #include <functional>
 #include <unistd.h>
@@ -41,6 +42,10 @@ ServerCoordinator::ServerCoordinator(const Server* server) :
     ServerStoppedEvent* serverStopped = new ServerStoppedEvent;
     connect(serverStopped, &EventHandler::activated, this, &ServerCoordinator::handleServerStopped);
     installEventHandler(serverStopped);
+
+    UpdateNotificationEvent* update = new UpdateNotificationEvent;
+    connect(update, &EventHandler::activated, [server]() { qInfo("%s: update available", qPrintable(server->name())); });
+    installEventHandler(update);
 
     new ServerCoordinatorAdaptor(this);
     QString dbusPath = QStringLiteral("/servers/%1/coordinator").arg(server->name());
@@ -117,7 +122,7 @@ bool ServerCoordinator::start()
     qDebug() << server()->name() << server()->launchArguments();
 
     QString arguments = server()->launchArguments().asSrcdsArguments();
-    QString cmd = QString("%1/srcds_run %2").arg(server()->path().toLocalFile(), arguments);
+    QString cmd = QString("%1/srcds_run %2 +map cp_badlands").arg(server()->path().toLocalFile(), arguments);
     if (!m_tmux.sendKeys(cmd)) {
         qWarning("%s: could not start the server", qPrintable(server()->name()));
         m_tmux.kill();

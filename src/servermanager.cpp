@@ -14,7 +14,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "servermanager.h"
-#include "configuration.h"
 #include "morgothdaemon.h"
 #include "servermanageradaptor.h"
 #include <QtCore>
@@ -28,8 +27,7 @@ ServerManager::ServerManager(QObject* parent) :
     QObject(parent),
     m_database(QSqlDatabase::addDatabase("QSQLITE"))
 {
-    Configuration* config = qApp->property("configuration").value<Configuration*>();
-    QString databaseFile = config->value("database", "morgoth.sqlite").toString();
+    QString databaseFile = morgothd->config().value("database", "morgoth.sqlite").toString();
     qDebug("Using database file: %s", qPrintable(databaseFile));
     m_database.setDatabaseName(databaseFile);
     if (!m_database.open()) {

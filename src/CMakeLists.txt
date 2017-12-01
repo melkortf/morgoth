@@ -7,7 +7,6 @@ set (CMAKE_INCLUDE_CURRENT_DIR ON)
 set (CMAKE_AUTOMOC ON)
 
 set (morgoth_INCLUDES
-    configuration.h
     eventhandler.h
     loglistener.h
     mapchangeevent.h
@@ -19,10 +18,10 @@ set (morgoth_INCLUDES
     serverstartedevent.h
     serverstoppedevent.h
     tmuxsessionwrapper.h
+    updatenotificationevent.h
 )
 
 set (morgoth_SOURCES
-    configuration.cpp
     eventhandler.cpp
     loglistener.cpp
     mapchangeevent.cpp
@@ -34,6 +33,7 @@ set (morgoth_SOURCES
     serverstartedevent.cpp
     serverstoppedevent.cpp
     tmuxsessionwrapper.cpp
+    updatenotificationevent.cpp
 )
 
 qt5_add_dbus_adaptor(morgoth_SOURCES

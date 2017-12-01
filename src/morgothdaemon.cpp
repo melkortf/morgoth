@@ -14,7 +14,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "morgothdaemon.h"
-#include "configuration.h"
 #include <QtCore>
 #include <csignal>
 #include <unistd.h>
@@ -102,9 +101,11 @@ MorgothDaemon::MorgothDaemon(int& argc, char** argv) :
     connect(m_signal, &QSocketNotifier::activated, this, &MorgothDaemon::handleSignal);
 
     parseArguments();
+    loadDefaults();
+    readConfig();
 
     // switch to system bus if the config says so
-    QString dbus = configuration()->value("dbus", "session").toString();
+    QString dbus = m_config.value("dbus", "session").toString();
     if (dbus == QStringLiteral("system"))
         m_dbusConnection = QDBusConnection::systemBus();
 
@@ -121,9 +122,35 @@ void MorgothDaemon::parseArguments()
 
     parser.process(*this);
 
-    QString configFile = parser.isSet(configFileOption) ? parser.value(configFileOption) : QString();
-    m_configuration = new Configuration(configFile);
-    setProperty("configuration", QVariant::fromValue(m_configuration));
+    m_configFileName = parser.isSet(configFileOption) ? parser.value(configFileOption) : QString();
+}
+
+void MorgothDaemon::loadDefaults()
+{
+    m_config.insert("dbus", "session");
+    m_config.insert("database", "morgoth.sqlite");
+}
+
+void MorgothDaemon::readConfig()
+{
+    if (m_configFileName.isEmpty())
+        return;
+
+    QSettings s(m_configFileName, QSettings::IniFormat);
+    if (s.status() == QSettings::NoError) {
+        QStringList keys = s.allKeys();
+        for (const QString& key: qAsConst(keys)) {
+            QVariant value = s.value(key);
+            Q_ASSERT(!value.isNull());
+
+            m_config.insert(key, value);
+        }
+
+        qDebug("%s loaded.", qPrintable(m_configFileName));
+        emit configRead();
+    } else {
+        qWarning() << m_configFileName << ": " << s.status();
+    }
 }
 
 void MorgothDaemon::handleSignal()
@@ -135,12 +162,12 @@ void MorgothDaemon::handleSignal()
     switch (signal) {
         case SIGTERM:
             qInfo("-- SIGTERM --");
-            QCoreApplication::quit();
+            quit();
             break;
 
         case SIGHUP: {
             qInfo("-- SIGHUP --");
-            morgothd->configuration()->readConfig();
+            readConfig();
             break;
         }
 
