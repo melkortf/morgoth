@@ -22,7 +22,6 @@
 #include "servercoordinatoradaptor.h"
 #include "updatenotificationevent.h"
 #include <QtCore>
-#include <functional>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -119,9 +118,8 @@ bool ServerCoordinator::start()
         return false;
     }
 
-    qDebug() << server()->name() << server()->launchArguments();
-
-    QString arguments = server()->launchArguments().asSrcdsArguments();
+    // TODO store launch arguments in ServerConfiguration
+    QString arguments = "-port 27015 -secured +map cp_badlands";
     QString cmd = QString("%1/srcds_run %2 +map cp_badlands").arg(server()->path().toLocalFile(), arguments);
     if (!m_tmux.sendKeys(cmd)) {
         qWarning("%s: could not start the server", qPrintable(server()->name()));

@@ -4,8 +4,5 @@
     <property name="name" type="s" access="read"/>
     <property name="path" type="s" access="read"/>
     <property name="valid" type="b" access="read"/>
-    <property name="launchArguments" type="a{ss}" access="readwrite">
-        <annotation name="org.qtproject.QtDBus.QtTypeName" value="morgoth::ServerLaunchArguments"/>
-    </property>
   </interface>
 </node>

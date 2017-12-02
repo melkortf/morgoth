@@ -39,11 +39,6 @@ Server::Server(const QUrl& path, const QString& name, QObject* parent) :
 
 Server::~Server() {}
 
-void Server::setLaunchArguments(const ServerLaunchArguments& launchArguments)
-{
-    m_launchArguments = launchArguments;
-}
-
 void Server::discover()
 {
     m_valid = false;

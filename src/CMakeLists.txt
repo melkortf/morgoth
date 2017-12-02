@@ -14,7 +14,6 @@ set (morgoth_INCLUDES
     persistor.h
     server.h
     servercoordinator.h
-    serverlauncharguments.h
     servermanager.h
     serverstartedevent.h
     serverstoppedevent.h
@@ -30,7 +29,6 @@ set (morgoth_SOURCES
     persistor.cpp
     server.cpp
     servercoordinator.cpp
-    serverlauncharguments.cpp
     servermanager.cpp
     serverstartedevent.cpp
     serverstoppedevent.cpp

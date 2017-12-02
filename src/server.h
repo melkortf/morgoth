@@ -17,7 +17,6 @@
 #define SERVER_H
 
 #include "morgoth_export.h"
-#include "serverlauncharguments.h"
 #include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtCore/QUrl>
@@ -61,11 +60,6 @@ class MORGOTH_EXPORT Server : public QObject {
      */
     Q_PROPERTY(ServerCoordinator* coordinator READ coordinator CONSTANT)
 
-    /**
-     * This server's launch arguments.
-     */
-    Q_PROPERTY(morgoth::ServerLaunchArguments launchArguments READ launchArguments WRITE setLaunchArguments)
-
 public:
     /**
      * \brief Creates the new \c Server instance.
@@ -94,15 +88,12 @@ public:
     bool isValid() const { return m_valid; }
     ServerCoordinator* coordinator() { return m_coordinator; }
     const  ServerCoordinator* coordinator() const { return m_coordinator; }
-    const ServerLaunchArguments& launchArguments() const { return m_launchArguments; }
-    void setLaunchArguments(const ServerLaunchArguments& launchArguments);
 
 private:
     void discover();
 
     QString m_name;
     QUrl m_path;
-    ServerLaunchArguments m_launchArguments;
     bool m_valid;
     QString m_srcdsExec;
     ServerCoordinator* m_coordinator = nullptr;
