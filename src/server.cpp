@@ -33,6 +33,8 @@ Server::Server(const QUrl& path, const QString& name, QObject* parent) :
     QString dbusPath = QStringLiteral("/servers/%1").arg(name);
     morgothd->dbusConnection().registerObject(dbusPath, this);
 
+    initializeDefaultConfiguration();
+
     if (isValid())
         m_coordinator = new ServerCoordinator(this);
 }
@@ -56,6 +58,12 @@ void Server::discover()
     }
 
     m_valid = true;
+}
+
+void Server::initializeDefaultConfiguration()
+{
+    m_configuration = new ServerConfiguration(this);
+    m_configuration->setValue("org.morgoth.Server.launchArguments", "-port 27015 -secured +map cp_badlands");
 }
 
 } // namespace Morgoth

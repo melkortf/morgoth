@@ -1,0 +1,18 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.morgoth.ServerConfiguration">
+    <property name="keys" type="as" access="read"/>
+    <signal name="valueChanged">
+      <arg name="key" type="s" direction="out"/>
+      <arg name="newValue" type="s" direction="out"/>
+    </signal>
+    <method name="setValue">
+      <arg name="key" type="s" direction="in"/>
+      <arg name="value" type="s" direction="in"/>
+    </method>
+    <method name="value">
+      <arg type="s" direction="out"/>
+      <arg name="key" type="s" direction="in"/>
+    </method>
+  </interface>
+</node>

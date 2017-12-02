@@ -67,7 +67,7 @@ public:
      *  \c server process.
      * \param server The \c Server instance to operate on.
      */
-    explicit ServerCoordinator(const Server* server);
+    explicit ServerCoordinator(Server* server);
 
     /**
      * \brief Stops the server immediately and destroys this
@@ -120,7 +120,7 @@ private slots:
     void stopSync();
 
 private:
-    const Server* m_server;
+    Server* m_server;
     Status m_status = Status::Offline;
     TmuxSessionWrapper m_tmux;
     QString m_logFileName;

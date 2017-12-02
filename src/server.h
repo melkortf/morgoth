@@ -17,6 +17,7 @@
 #define SERVER_H
 
 #include "morgoth_export.h"
+#include "serverconfiguration.h"
 #include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtCore/QUrl>
@@ -60,6 +61,11 @@ class MORGOTH_EXPORT Server : public QObject {
      */
     Q_PROPERTY(ServerCoordinator* coordinator READ coordinator CONSTANT)
 
+    /**
+     * This server's configuration.
+     */
+    Q_PROPERTY(ServerConfiguration* configuration READ configuration CONSTANT)
+
 public:
     /**
      * \brief Creates the new \c Server instance.
@@ -87,16 +93,20 @@ public:
     const QUrl& path() const { return m_path; }
     bool isValid() const { return m_valid; }
     ServerCoordinator* coordinator() { return m_coordinator; }
-    const  ServerCoordinator* coordinator() const { return m_coordinator; }
+    const ServerCoordinator* coordinator() const { return m_coordinator; }
+    ServerConfiguration* configuration() { return m_configuration; }
+    const ServerConfiguration* configuration() const { return m_configuration; }
 
 private:
     void discover();
+    void initializeDefaultConfiguration();
 
     QString m_name;
     QUrl m_path;
     bool m_valid;
     QString m_srcdsExec;
     ServerCoordinator* m_coordinator = nullptr;
+    ServerConfiguration* m_configuration = nullptr;
 
 };
 

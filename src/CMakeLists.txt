@@ -13,6 +13,7 @@ set (morgoth_INCLUDES
     morgothdaemon.h
     persistor.h
     server.h
+    serverconfiguration.h
     servercoordinator.h
     servermanager.h
     serverstartedevent.h
@@ -28,6 +29,7 @@ set (morgoth_SOURCES
     morgothdaemon.cpp
     persistor.cpp
     server.cpp
+    serverconfiguration.cpp
     servercoordinator.cpp
     servermanager.cpp
     serverstartedevent.cpp
@@ -38,6 +40,8 @@ set (morgoth_SOURCES
 
 qt5_add_dbus_adaptor(morgoth_SOURCES
     interfaces/org.morgoth.Server.xml server.h morgoth::Server)
+qt5_add_dbus_adaptor(morgoth_SOURCES
+    interfaces/org.morgoth.ServerConfiguration.xml serverconfiguration.h morgoth::ServerConfiguration)
 qt5_add_dbus_adaptor(morgoth_SOURCES
     interfaces/org.morgoth.ServerCoordinator.xml servercoordinator.h morgoth::ServerCoordinator)
 qt5_add_dbus_adaptor(morgoth_SOURCES

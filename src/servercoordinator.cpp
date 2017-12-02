@@ -17,6 +17,7 @@
 #include "loglistener.h"
 #include "mapchangeevent.h"
 #include "morgothdaemon.h"
+#include "serverconfiguration.h"
 #include "serverstartedevent.h"
 #include "serverstoppedevent.h"
 #include "servercoordinatoradaptor.h"
@@ -28,10 +29,10 @@
 
 namespace morgoth {
 
-ServerCoordinator::ServerCoordinator(const Server* server) :
+ServerCoordinator::ServerCoordinator(Server* server) :
+    QObject(server),
     m_server(server)
 {
-    connect(qApp, &QCoreApplication::aboutToQuit, this, &ServerCoordinator::stopSync);
     installEventHandler(new MapChangeEvent);
 
     ServerStartedEvent* serverStarted = new ServerStartedEvent;
@@ -118,9 +119,9 @@ bool ServerCoordinator::start()
         return false;
     }
 
-    // TODO store launch arguments in ServerConfiguration
-    QString arguments = "-port 27015 -secured +map cp_badlands";
-    QString cmd = QString("%1/srcds_run %2 +map cp_badlands").arg(server()->path().toLocalFile(), arguments);
+    Q_ASSERT(server()->configuration());
+    QString arguments = server()->configuration()->value("org.morgoth.Server.launchArguments");
+    QString cmd = QString("%1/srcds_run %2").arg(server()->path().toLocalFile(), arguments);
     if (!m_tmux.sendKeys(cmd)) {
         qWarning("%s: could not start the server", qPrintable(server()->name()));
         m_tmux.kill();

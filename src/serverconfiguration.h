@@ -13,39 +13,43 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef PERSISTOR_H
-#define PERSISTOR_H
+#ifndef SERVERCONFIGURATION_H
+#define SERVERCONFIGURATION_H
 
 #include "morgoth_export.h"
-#include "servermanager.h"
-#include <QtSql/QSqlDatabase>
+#include <QtCore/QObject>
+#include <QtCore/QMap>
 
 namespace morgoth {
 
-/**
- * \brief The Persistor class is responsible for storing all servers and their
- *  configs.
- */
-class Persistor : public QObject {
+class Server;
+
+class MORGOTH_EXPORT ServerConfiguration : public QObject {
     Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.morgoth.ServerConfiguration")
+
+    Q_PROPERTY(QStringList keys READ keys)
+
+signals:
+    void valueChanged(QString key, QString newValue);
 
 public:
-    explicit Persistor(ServerManager* serverManager = nullptr);
+    explicit ServerConfiguration(Server* server);
+
+    QStringList keys() const { return m_values.keys(); }
+
+    const Server* server() const { return m_server; }
+
+public slots:
+    void setValue(const QString& key, const QString& value);
+    QString value(const QString& key) const;
 
 private:
-    void initializeDatabase();
-    void restoreServers();
-
-private slots:
-    void storeServer(Server* server);
-    void storeConfigurationEntry(const QString& key, const QString& value);
-
-private:
-    ServerManager* m_serverManager;
-    QSqlDatabase m_database;
+    const Server* m_server;
+    QMap<QString, QString> m_values;
 
 };
 
 } // namespace morgoth
 
-#endif // PERSISTOR_H
+#endif // SERVERCONFIGURATION_H
