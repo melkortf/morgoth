@@ -15,29 +15,21 @@
 
 #include "servermanager.h"
 #include "morgothdaemon.h"
+#include "persistor.h"
 #include "servermanageradaptor.h"
 #include <QtCore>
-#include <QtSql>
 #include <algorithm>
 #include <iostream>
 
 namespace morgoth {
 
 ServerManager::ServerManager(QObject* parent) :
-    QObject(parent),
-    m_database(QSqlDatabase::addDatabase("QSQLITE"))
+    QObject(parent)
 {
-    QString databaseFile = morgothd->config().value("database", "morgoth.sqlite").toString();
-    qDebug("Using database file: %s", qPrintable(databaseFile));
-    m_database.setDatabaseName(databaseFile);
-    if (!m_database.open()) {
-        qFatal("Could not connect to database; exiting...");
-    }
-
-    initializeServers();
-
     new ServerManagerAdaptor(this);
     morgothd->dbusConnection().registerObject("/serverManager", this);
+
+    new Persistor(this);
 }
 
 Server* ServerManager::find(const QString& name) const
@@ -61,26 +53,8 @@ Server* ServerManager::add(const QUrl& path, const QString& name)
     }
 
     Server* s = new Server(fixedPath, name, this);
-
-    QSqlRecord record = m_model.record();
-    record.setGenerated("id", true);
-    record.setValue("name", name);
-    record.setValue("path", fixedPath);
-
-    ServerLaunchArguments launchArguments;
-    record.setValue("launchArguments", launchArguments.asSrcdsArguments());
-
-    bool ret = m_model.insertRecord(-1, record);
-    if (!ret) {
-        QSqlError error = m_database.lastError();
-        qWarning("Error adding \"%s\": %s", qPrintable(name), qPrintable(error.text()));
-        delete s;
-        return nullptr;
-    }
-
     m_servers.append(s);
     emit serverAdded(s);
-
     return s;
 }
 
@@ -92,29 +66,6 @@ QStringList ServerManager::serverNames() const
     });
 
     return result;
-}
-
-void ServerManager::initializeServers()
-{
-    m_database.exec("CREATE TABLE IF NOT EXISTS servers(id integer primary key autoincrement, path text, name text, launchArguments text)");
-
-    m_model.setTable("servers");
-    m_model.select();
-
-    for (int i = 0; i < m_model.rowCount(); ++i) {
-        QSqlRecord record = m_model.record(i);
-        QUrl path = record.value("path").toUrl();
-        QString name = record.value("name").toString();
-        QString launchArguments = record.value("launchArguments").toString();
-
-        Server* s = new Server(path, name, this);
-        s->setLaunchArguments(ServerLaunchArguments::fromSrcdsArguments(launchArguments));
-        m_servers.append(s);
-    }
-
-    std::for_each(m_servers.begin(), m_servers.end(), [](auto s) {
-        qInfo("%s: %s", qPrintable(s->name()), (s->isValid() ? qPrintable(s->path().toString()) : "NOT FOUND"));
-    });
 }
 
 } // namespace Morgoth

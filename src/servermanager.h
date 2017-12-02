@@ -19,8 +19,6 @@
 #include "morgoth_export.h"
 #include "server.h"
 #include <QtCore/QObject>
-#include <QtSql/QSqlDatabase>
-#include <QtSql/QSqlTableModel>
 
 namespace morgoth {
 
@@ -78,11 +76,7 @@ public:
     QStringList serverNames() const;
 
 private:
-    void initializeServers();
-
     QList<Server*> m_servers;
-    QSqlDatabase m_database;
-    QSqlTableModel m_model;
 
 };
 

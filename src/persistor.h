@@ -13,26 +13,38 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef UPDATENOTIFICATIONEVENT_H
-#define UPDATENOTIFICATIONEVENT_H
+#ifndef PERSISTOR_H
+#define PERSISTOR_H
 
 #include "morgoth_export.h"
-#include "eventhandler.h"
+#include "servermanager.h"
+#include <QtSql/QSqlDatabase>
 
 namespace morgoth {
 
-class MORGOTH_EXPORT UpdateNotificationEvent : public EventHandler {
+/**
+ * \brief The Persistor class is responsible for storing all servers and their
+ *  configs.
+ */
+class Persistor : public QObject {
     Q_OBJECT
 
 public:
-    explicit UpdateNotificationEvent(QObject *parent = nullptr);
+    explicit Persistor(ServerManager* serverManager = nullptr);
 
-    QRegularExpression regex() const override;
+private:
+    void initializeDatabase();
+    void restoreServers();
 
-    static auto constexpr Name = "updatenotification";
+private slots:
+    void storeServer(Server* server);
+
+private:
+    ServerManager* m_serverManager;
+    QSqlDatabase m_database;
 
 };
 
 } // namespace morgoth
 
-#endif // UPDATENOTIFICATIONEVENT_H
+#endif // PERSISTOR_H

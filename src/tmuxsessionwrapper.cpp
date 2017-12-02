@@ -112,8 +112,6 @@ void TmuxSessionWrapper::findTmuxExec()
 
     if (m_tmuxExec.isEmpty())
         qFatal("Could not find tmux executable; exiting.");
-
-    qDebug("Using tmux executable: %s", qPrintable(m_tmuxExec));
 }
 
 void TmuxSessionWrapper::generateRandomName()

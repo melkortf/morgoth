@@ -11,6 +11,7 @@ set (morgoth_INCLUDES
     loglistener.h
     mapchangeevent.h
     morgothdaemon.h
+    persistor.h
     server.h
     servercoordinator.h
     serverlauncharguments.h
@@ -26,6 +27,7 @@ set (morgoth_SOURCES
     loglistener.cpp
     mapchangeevent.cpp
     morgothdaemon.cpp
+    persistor.cpp
     server.cpp
     servercoordinator.cpp
     serverlauncharguments.cpp
