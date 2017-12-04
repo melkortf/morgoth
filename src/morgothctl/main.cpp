@@ -16,18 +16,22 @@
 #include "config.h"
 #include "morgothdaemon.h"
 #include "serverinterface.h"
+#include "serverconfigurationinterface.h"
 #include "servercoordinatorinterface.h"
 #include "servermanagerinterface.h"
-#include <cstdio>
 #include <QtCore>
+#include <algorithm>
+#include <cstdio>
 
 static const QString morgothService = morgoth::MorgothDaemon::dbusServiceName();
 static QDBusConnection dbus = QDBusConnection::sessionBus();
 static QTextStream qstdout(stdout);
 static org::morgoth::ServerManager* serverManager;
 
-void list()
+void list(const QStringList& args)
 {
+    Q_UNUSED(args);
+
     QStringList servers = serverManager->servers();
     for (const QString& s: qAsConst(servers)) {
         QString path = QStringLiteral("/servers/%1").arg(s);
@@ -47,45 +51,125 @@ void list()
     }
 }
 
-int start(const QString& serverName)
+int start(const QStringList& arguments)
 {
+    QCommandLineParser parser;
+    parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsPositionalArguments);
+    parser.setApplicationDescription("start - start a server");
+    parser.addHelpOption();
+    parser.addPositionalArgument("name", "The server name");
+    parser.process(arguments);
+
+    QStringList args = parser.positionalArguments();
+    if (args.isEmpty())
+        parser.showHelp();
+
     QStringList servers = serverManager->servers();
-    if (!servers.contains(serverName)) {
-        qstdout << "Server \"" << serverName << "\" does not exist" << endl;
-        return 1;
+    int val = 0;
+    for (const QString& serverName: qAsConst(args)) {
+        if (!servers.contains(serverName)) {
+            qstdout << "Server \"" << serverName << "\" does not exist" << endl;
+            val += 1;
+            continue;
+        }
+
+        QString path = QStringLiteral("/servers/%1").arg(serverName);
+        org::morgoth::Server* server = new org::morgoth::Server(morgothService, path, dbus, qApp);
+        if (!server->valid()) {
+            qstdout << "Server \"" << serverName << "\" is invalid" << endl;
+            val += 1;
+            continue;
+        }
+
+        org::morgoth::ServerCoordinator* coordinator =
+                new org::morgoth::ServerCoordinator(morgothService, path + "/coordinator", dbus, qApp);
+        bool ret = coordinator->start();
+        val += ret ? 0 : 1;
     }
 
-    QString path = QStringLiteral("/servers/%1").arg(serverName);
-    org::morgoth::Server* server = new org::morgoth::Server(morgothService, path, dbus, qApp);
-    if (!server->valid()) {
-        qstdout << "Server \"" << serverName << "\" is invalid" << endl;
-        return 1;
-    }
-
-    org::morgoth::ServerCoordinator* coordinator =
-            new org::morgoth::ServerCoordinator(morgothService, path + "/coordinator", dbus, qApp);
-    bool ret = coordinator->start();
-    return ret ? 0 : 2;
+    return val;
 }
 
-int stop(const QString& serverName)
+int stop(const QStringList& arguments)
 {
+    QCommandLineParser parser;
+    parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsPositionalArguments);
+    parser.setApplicationDescription("stop - stop a server");
+    parser.addHelpOption();
+    parser.addPositionalArgument("name", "The server name");
+    parser.process(arguments);
+
+    QStringList args = parser.positionalArguments();
+    if (args.isEmpty())
+        parser.showHelp();
+
     QStringList servers = serverManager->servers();
-    if (!servers.contains(serverName)) {
-        qstdout << "Server \"" << serverName << "\" does not exist" << endl;
+    int val = 0;
+    for (const QString& serverName: qAsConst(args)) {
+        if (!servers.contains(serverName)) {
+            qstdout << "Server \"" << serverName << "\" does not exist" << endl;
+            val += 1;
+            continue;
+        }
+
+        QString path = QStringLiteral("/servers/%1").arg(serverName);
+        org::morgoth::Server* server = new org::morgoth::Server(morgothService, path, dbus, qApp);
+        if (!server->valid()) {
+            qstdout << "Server \"" << serverName << "\" is invalid" << endl;
+            val += 1;
+            continue;
+        }
+
+        org::morgoth::ServerCoordinator* coordinator =
+                new org::morgoth::ServerCoordinator(morgothService, path + "/coordinator", dbus, qApp);
+        coordinator->stop();
+    }
+
+    return val;
+}
+
+int config(const QStringList& arguments)
+{
+    QCommandLineParser parser;
+    parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsPositionalArguments);
+    parser.setApplicationDescription("config - set/get a server's configuration");
+    parser.addHelpOption();
+    parser.addPositionalArgument("name", "The server name");
+    parser.addPositionalArgument("key", "The config key");
+    parser.addPositionalArgument("value", "The config value");
+    parser.process(arguments);
+
+    QStringList args = parser.positionalArguments();
+    if (args.isEmpty())
+        parser.showHelp();
+
+    QString server = args.at(0);
+    if  (!serverManager->servers().contains(server)) {
+        qstdout << "Server \"" << server << "\" does not exist" << endl;
         return 1;
     }
 
-    QString path = QStringLiteral("/servers/%1").arg(serverName);
-    org::morgoth::Server* server = new org::morgoth::Server(morgothService, path, dbus, qApp);
-    if (!server->valid()) {
-        qstdout << "Server \"" << serverName << "\" is invalid" << endl;
-        return 1;
+    QString path = QStringLiteral("/servers/%1/configuration").arg(server);
+    org::morgoth::ServerConfiguration* configuration =
+            new org::morgoth::ServerConfiguration(morgothService, path, dbus, qApp);
+
+    QStringList keys = configuration->keys();
+
+    if (args.size() == 1) {
+        // list the whole configuration
+        int padding = std::max_element(keys.begin(), keys.end(), [](auto a, auto b) { return a.size() < b.size(); })->size();
+        for (const QString& key: qAsConst(keys)) {
+            qstdout << qSetFieldWidth(padding) << right << key << qSetFieldWidth(0) << ": " << left << configuration->value(key) << endl;
+        }
+    } else if (args.size() == 2) {
+        QString key = args.at(1);
+        qstdout << configuration->value(key) << endl;
+    } else {
+        QString key = args.at(1);
+        QString value = args.at(2);
+        configuration->setValue(key, value);
     }
 
-    org::morgoth::ServerCoordinator* coordinator =
-            new org::morgoth::ServerCoordinator(morgothService, path + "/coordinator", dbus, qApp);
-    coordinator->stop();
     return 0;
 }
 
@@ -120,7 +204,7 @@ int main(int argc, char** argv)
     parser.addPositionalArgument("command", "A command to run");
     parser.process(app);
 
-    const QStringList args = parser.positionalArguments();
+    QStringList args = parser.positionalArguments();
     if (args.isEmpty())
         parser.showHelp();
 
@@ -131,20 +215,15 @@ int main(int argc, char** argv)
 
     int ret = 0;
     QString cmd = args.at(0);
+
     if (cmd == "list") {
-        list();
+        list(args);
     } if (cmd == "start") {
-        if (args.size() < 2)
-            parser.showHelp(1);
-
-        QString serverName = args.at(1);
-        ret = start(serverName);
+        ret = start(args);
     } if (cmd == "stop") {
-        if (args.size() < 2)
-            parser.showHelp(1);
-
-        QString serverName = args.at(1);
-        ret = stop(serverName);
+        ret = stop(args);
+    } if  (cmd == "config") {
+        ret = config(args);
     }
 
     return ret;

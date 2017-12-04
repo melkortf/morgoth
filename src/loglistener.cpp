@@ -45,6 +45,8 @@ void LogListener::run()
         return;
     }
 
+    QRegularExpression quitRx("Server Quit$");
+
     std::string line;
     while (!isInterruptionRequested() && std::getline(fifo, line)) {
         QString qtline = QString::fromStdString(line).trimmed();
@@ -57,8 +59,8 @@ void LogListener::run()
                 e->maybeActivated(qtline, match);
         }
 
-        QRegularExpression rx("Server Quit$");
-        if (rx.match(qtline).hasMatch())
+
+        if (quitRx.match(qtline).hasMatch())
             break;
     }
 }

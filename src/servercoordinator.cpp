@@ -33,6 +33,7 @@ ServerCoordinator::ServerCoordinator(Server* server) :
     QObject(server),
     m_server(server)
 {
+    connect(qApp, &QCoreApplication::aboutToQuit, this, &ServerCoordinator::stopSync);
     installEventHandler(new MapChangeEvent);
 
     ServerStartedEvent* serverStarted = new ServerStartedEvent;
@@ -54,7 +55,8 @@ ServerCoordinator::ServerCoordinator(Server* server) :
 
 ServerCoordinator::~ServerCoordinator()
 {
-    stopSync();
+    // stopSync() cannot be used here, as the parent Server instance
+    // is already destroyed and we relay on its existence
 }
 
 void ServerCoordinator::installEventHandler(EventHandler* handler)
@@ -168,6 +170,7 @@ void ServerCoordinator::stopSync()
 
     if (m_logListener) {
         m_logListener->wait();
+        m_logListener = nullptr;
     }
 
     m_tmux.kill();
