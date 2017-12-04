@@ -42,7 +42,7 @@ void list(const QStringList& args)
         QString status = QStringLiteral("<< invalid >>");
         if (server->valid()) {
             org::morgoth::ServerCoordinator* coordinator =
-                    new org::morgoth::ServerCoordinator(morgothService, path + "/coordinator", dbus, qApp);
+                    new org::morgoth::ServerCoordinator(morgothService, server->coordinatorPath().path(), dbus, qApp);
 
             status = QMetaEnum::fromType<morgoth::ServerCoordinator::Status>().valueToKey(coordinator->status());
         }
@@ -82,7 +82,7 @@ int start(const QStringList& arguments)
         }
 
         org::morgoth::ServerCoordinator* coordinator =
-                new org::morgoth::ServerCoordinator(morgothService, path + "/coordinator", dbus, qApp);
+                new org::morgoth::ServerCoordinator(morgothService, server->coordinatorPath().path(), dbus, qApp);
         bool ret = coordinator->start();
         val += ret ? 0 : 1;
     }
@@ -121,7 +121,7 @@ int stop(const QStringList& arguments)
         }
 
         org::morgoth::ServerCoordinator* coordinator =
-                new org::morgoth::ServerCoordinator(morgothService, path + "/coordinator", dbus, qApp);
+                new org::morgoth::ServerCoordinator(morgothService, server->coordinatorPath().path(), dbus, qApp);
         coordinator->stop();
     }
 
@@ -143,15 +143,16 @@ int config(const QStringList& arguments)
     if (args.isEmpty())
         parser.showHelp();
 
-    QString server = args.at(0);
-    if  (!serverManager->servers().contains(server)) {
-        qstdout << "Server \"" << server << "\" does not exist" << endl;
+    QString serverName = args.at(0);
+    if  (!serverManager->servers().contains(serverName)) {
+        qstdout << "Server \"" << serverName << "\" does not exist" << endl;
         return 1;
     }
 
-    QString path = QStringLiteral("/servers/%1/configuration").arg(server);
+    QString path = QStringLiteral("/servers/%1").arg(serverName);
+    org::morgoth::Server* server = new org::morgoth::Server(morgothService, path, dbus, qApp);
     org::morgoth::ServerConfiguration* configuration =
-            new org::morgoth::ServerConfiguration(morgothService, path, dbus, qApp);
+            new org::morgoth::ServerConfiguration(morgothService, server->configurationPath().path(), dbus, qApp);
 
     QStringList keys = configuration->keys();
 

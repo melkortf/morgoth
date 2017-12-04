@@ -25,9 +25,7 @@ ServerConfiguration::ServerConfiguration(Server* server) :
     m_server(server)
 {
     new ServerConfigurationAdaptor(this);
-
-    QString dbusPath = QStringLiteral("/servers/%1/configuration").arg(server->name());
-    morgothd->dbusConnection().registerObject(dbusPath, this);
+    morgothd->dbusConnection().registerObject(server->configurationPath().path(), this);
 }
 
 void ServerConfiguration::setValue(const QString& key, const QString& value)

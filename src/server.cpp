@@ -33,10 +33,13 @@ Server::Server(const QUrl& path, const QString& name, QObject* parent) :
     QString dbusPath = QStringLiteral("/servers/%1").arg(name);
     morgothd->dbusConnection().registerObject(dbusPath, this);
 
+    m_configurationPath.setPath(QStringLiteral("/servers/%1/configuration").arg(name));
     initializeDefaultConfiguration();
 
-    if (isValid())
+    if (isValid()) {
+        m_coordinatorPath.setPath(QStringLiteral("/servers/%1/coordinator").arg(name));
         m_coordinator = new ServerCoordinator(this);
+    }
 }
 
 Server::~Server() {}

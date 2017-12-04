@@ -49,8 +49,7 @@ ServerCoordinator::ServerCoordinator(Server* server) :
     installEventHandler(update);
 
     new ServerCoordinatorAdaptor(this);
-    QString dbusPath = QStringLiteral("/servers/%1/coordinator").arg(server->name());
-    morgothd->dbusConnection().registerObject(dbusPath, this);
+    morgothd->dbusConnection().registerObject(server->coordinatorPath().path(), this);
 }
 
 ServerCoordinator::~ServerCoordinator()

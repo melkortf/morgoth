@@ -21,6 +21,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtCore/QUrl>
+#include <QtDBus/QDBusObjectPath>
 
 namespace morgoth {
 
@@ -62,9 +63,19 @@ class MORGOTH_EXPORT Server : public QObject {
     Q_PROPERTY(ServerCoordinator* coordinator READ coordinator CONSTANT)
 
     /**
+     * This server's coordinator D-Bus path.
+     */
+    Q_PROPERTY(QDBusObjectPath coordinatorPath READ coordinatorPath CONSTANT)
+
+    /**
      * This server's configuration.
      */
     Q_PROPERTY(ServerConfiguration* configuration READ configuration CONSTANT)
+
+    /**
+     * This server's configuration D-Bus path.
+     */
+    Q_PROPERTY(QDBusObjectPath configurationPath READ configurationPath CONSTANT)
 
 public:
     /**
@@ -94,8 +105,10 @@ public:
     bool isValid() const { return m_valid; }
     ServerCoordinator* coordinator() { return m_coordinator; }
     const ServerCoordinator* coordinator() const { return m_coordinator; }
+    const QDBusObjectPath& coordinatorPath() const { return m_coordinatorPath; }
     ServerConfiguration* configuration() { return m_configuration; }
     const ServerConfiguration* configuration() const { return m_configuration; }
+    const QDBusObjectPath& configurationPath() const { return m_configurationPath; }
 
 private:
     void discover();
@@ -106,7 +119,9 @@ private:
     bool m_valid;
     QString m_srcdsExec;
     ServerCoordinator* m_coordinator = nullptr;
+    QDBusObjectPath m_coordinatorPath;
     ServerConfiguration* m_configuration = nullptr;
+    QDBusObjectPath m_configurationPath;
 
 };
 

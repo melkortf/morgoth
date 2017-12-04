@@ -4,5 +4,7 @@
     <property name="name" type="s" access="read"/>
     <property name="path" type="s" access="read"/>
     <property name="valid" type="b" access="read"/>
+    <property name="coordinatorPath" type="o" access="read"/>
+    <property name="configurationPath" type="o" access="read"/>
   </interface>
 </node>
