@@ -173,6 +173,26 @@ int config(const QStringList& arguments)
     return 0;
 }
 
+int add(const QStringList& arguments)
+{
+    QCommandLineParser parser;
+    parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsPositionalArguments);
+    parser.setApplicationDescription("add - add a new server instance");
+    parser.addHelpOption();
+    parser.addPositionalArgument("path", "The server installation path");
+    parser.addPositionalArgument("name", "The new server's name");
+    parser.process(arguments);
+
+    QStringList args = parser.positionalArguments();
+    if (args.size() != 2)
+        parser.showHelp();
+
+    QString path = args.at(0);
+    QString name = args.at(1);
+    bool ret = serverManager->add(path, name);
+    return ret ? 0 : 1;
+}
+
 bool findServerManager()
 {
     // try to connect to the service on the session bus first, then on the system one
@@ -218,12 +238,14 @@ int main(int argc, char** argv)
 
     if (cmd == "list") {
         list(args);
-    } if (cmd == "start") {
+    } else if (cmd == "start") {
         ret = start(args);
-    } if (cmd == "stop") {
+    } else if (cmd == "stop") {
         ret = stop(args);
-    } if  (cmd == "config") {
+    } else if (cmd == "config") {
         ret = config(args);
+    } else if (cmd == "add") {
+        ret = add(args);
     }
 
     return ret;
