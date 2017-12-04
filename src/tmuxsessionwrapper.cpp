@@ -78,7 +78,7 @@ bool TmuxSessionWrapper::sendKeys(const QString& keys)
 bool TmuxSessionWrapper::kill()
 {
     if (!exists())
-        return false;
+        return true;
 
     int ret = QProcess::execute(m_tmuxExec, {
         "kill-session",
@@ -90,12 +90,14 @@ bool TmuxSessionWrapper::kill()
 
 bool TmuxSessionWrapper::exists() const
 {
-    int ret = QProcess::execute(m_tmuxExec, {
+    QProcess tmux;
+    tmux.start(m_tmuxExec, {
         "has-session",
         "-t", name()
     });
 
-    return ret == 0;
+    tmux.waitForFinished();
+    return tmux.exitCode() == 0;
 }
 
 void TmuxSessionWrapper::findTmuxExec()
