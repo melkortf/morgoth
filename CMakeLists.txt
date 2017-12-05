@@ -1,5 +1,5 @@
-project(libsftclient)
-cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
+cmake_minimum_required (VERSION 3.9 FATAL_ERROR)
+project (morgoth)
 set (CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)

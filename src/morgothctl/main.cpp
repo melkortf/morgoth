@@ -35,19 +35,17 @@ void list(const QStringList& args)
     QStringList servers = serverManager->servers();
     for (const QString& s: qAsConst(servers)) {
         QString path = QStringLiteral("/servers/%1").arg(s);
-        org::morgoth::Server* server = new org::morgoth::Server(morgothService, path, dbus, qApp);
-        if (!server->isValid())
+        org::morgoth::Server server(morgothService, path, dbus);
+        if (!server.isValid())
             continue;
 
         QString status = QStringLiteral("<< invalid >>");
-        if (server->valid()) {
-            org::morgoth::ServerCoordinator* coordinator =
-                    new org::morgoth::ServerCoordinator(morgothService, server->coordinatorPath().path(), dbus, qApp);
-
-            status = QMetaEnum::fromType<morgoth::ServerCoordinator::Status>().valueToKey(coordinator->status());
+        if (server.valid()) {
+            org::morgoth::ServerCoordinator coordinator(morgothService, server.coordinatorPath().path(), dbus);
+            status = QMetaEnum::fromType<morgoth::ServerCoordinator::Status>().valueToKey(coordinator.status());
         }
 
-        qstdout << server->name() << ": " << status << endl;
+        qstdout << server.name() << ": " << status << endl;
     }
 }
 
@@ -74,16 +72,15 @@ int start(const QStringList& arguments)
         }
 
         QString path = QStringLiteral("/servers/%1").arg(serverName);
-        org::morgoth::Server* server = new org::morgoth::Server(morgothService, path, dbus, qApp);
-        if (!server->valid()) {
+        org::morgoth::Server server(morgothService, path, dbus);
+        if (!server.valid()) {
             qstdout << "Server \"" << serverName << "\" is invalid" << endl;
             val += 1;
             continue;
         }
 
-        org::morgoth::ServerCoordinator* coordinator =
-                new org::morgoth::ServerCoordinator(morgothService, server->coordinatorPath().path(), dbus, qApp);
-        bool ret = coordinator->start();
+        org::morgoth::ServerCoordinator coordinator(morgothService, server.coordinatorPath().path(), dbus);
+        bool ret = coordinator.start();
         val += ret ? 0 : 1;
     }
 
@@ -113,16 +110,15 @@ int stop(const QStringList& arguments)
         }
 
         QString path = QStringLiteral("/servers/%1").arg(serverName);
-        org::morgoth::Server* server = new org::morgoth::Server(morgothService, path, dbus, qApp);
-        if (!server->valid()) {
+        org::morgoth::Server server(morgothService, path, dbus);
+        if (!server.valid()) {
             qstdout << "Server \"" << serverName << "\" is invalid" << endl;
             val += 1;
             continue;
         }
 
-        org::morgoth::ServerCoordinator* coordinator =
-                new org::morgoth::ServerCoordinator(morgothService, server->coordinatorPath().path(), dbus, qApp);
-        coordinator->stop();
+        org::morgoth::ServerCoordinator coordinator(morgothService, server.coordinatorPath().path(), dbus);
+        coordinator.stop();
     }
 
     return val;
@@ -150,25 +146,25 @@ int config(const QStringList& arguments)
     }
 
     QString path = QStringLiteral("/servers/%1").arg(serverName);
-    org::morgoth::Server* server = new org::morgoth::Server(morgothService, path, dbus, qApp);
-    org::morgoth::ServerConfiguration* configuration =
-            new org::morgoth::ServerConfiguration(morgothService, server->configurationPath().path(), dbus, qApp);
-
-    QStringList keys = configuration->keys();
+    org::morgoth::Server server(morgothService, path, dbus);
+    org::morgoth::ServerConfiguration configuration(morgothService, server.configurationPath().path(), dbus);
+    QStringList keys = configuration.keys();
 
     if (args.size() == 1) {
         // list the whole configuration
         int padding = std::max_element(keys.begin(), keys.end(), [](auto a, auto b) { return a.size() < b.size(); })->size();
         for (const QString& key: qAsConst(keys)) {
-            qstdout << qSetFieldWidth(padding) << right << key << qSetFieldWidth(0) << ": " << left << configuration->value(key) << endl;
+            qstdout << qSetFieldWidth(padding) << right << key
+                    << qSetFieldWidth(0) << ": " << left
+                    << configuration.value(key) << endl;
         }
     } else if (args.size() == 2) {
         QString key = args.at(1);
-        qstdout << configuration->value(key) << endl;
+        qstdout << configuration.value(key) << endl;
     } else {
         QString key = args.at(1);
         QString value = args.at(2);
-        configuration->setValue(key, value);
+        configuration.setValue(key, value);
     }
 
     return 0;

@@ -51,7 +51,10 @@ add_library (morgoth SHARED
     ${morgoth_INCLUDES}
     ${morgoth_SOURCES}
 )
-target_link_libraries (morgoth Qt5::Core Qt5::DBus Qt5::Sql)
+target_link_libraries (morgoth
+    PUBLIC Qt5::Core
+    PRIVATE Qt5::DBus Qt5::Sql
+)
 set_target_properties (morgoth PROPERTIES
     VERSION ${morgoth_VERSION}
     SOVERSION 1

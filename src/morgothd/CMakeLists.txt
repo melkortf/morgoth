@@ -1,8 +1,10 @@
+find_package (Qt5 5.8 REQUIRED COMPONENTS Core DBus)
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 include_directories (${CMAKE_CURRENT_BINARY_DIR}/..)
 
 add_executable (morgothd main.cpp)
-target_link_libraries (morgothd morgoth)
+target_link_libraries (morgothd morgoth Qt5::Core Qt5::DBus)
 
 configure_file (
     ${CMAKE_CURRENT_SOURCE_DIR}/morgoth.service.in
