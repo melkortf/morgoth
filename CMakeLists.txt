@@ -23,20 +23,22 @@ if (NOT morgoth_VERSION)
     endif ()
 endif ()
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g -ggdb -Wall -Wextra -Wpedantic")
-set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+set (CMAKE_CXX_FLAGS_DEBUG "-g -ggdb -Wall -Wextra -Wpedantic")
+set (CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined -Wl,--exclude-libs,ALL")
+    set (CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined -Wl,--exclude-libs,ALL")
 else ()
-    set(CMAKE_SHARED_LINKER_FLAGS "-Wl,-undefined,error")
+    set (CMAKE_SHARED_LINKER_FLAGS "-Wl,-undefined,error")
 endif ()
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_CXX_VISIBILITY_PRESET hidden)
+set (CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
-add_subdirectory(src)
+add_subdirectory (src)
+add_subdirectory (morgothd)
+add_subdirectory (morgothctl)
 
 # uninstall target
 configure_file (

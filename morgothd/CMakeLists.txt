@@ -1,23 +1,17 @@
 find_package (Qt5 5.8 REQUIRED COMPONENTS Core DBus)
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
-include_directories (${CMAKE_CURRENT_BINARY_DIR}/..)
-
 add_executable (morgothd main.cpp)
 target_link_libraries (morgothd morgoth Qt5::Core Qt5::DBus)
 
-configure_file (
-    ${CMAKE_CURRENT_SOURCE_DIR}/morgoth.service.in
-    ${CMAKE_CURRENT_BINARY_DIR}/morgoth.service
-)
-
 include (GNUInstallDirs)
+set (CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
 
 # install morgoth daemon
 install (TARGETS morgothd
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 # install systemd service file
+configure_file (morgoth.service.in morgoth.service)
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/morgoth.service
     DESTINATION /usr/lib/systemd/system
     COMPONENT configs)
