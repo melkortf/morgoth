@@ -7,3 +7,6 @@ add_executable (testserver testserver.cpp)
 target_link_libraries (testserver morgoth Qt5::Test)
 add_test (NAME TestServer COMMAND testserver)
 
+add_executable (testtmuxsessionwrapper testtmuxsessionwrapper.cpp)
+target_link_libraries (testtmuxsessionwrapper morgoth Qt5::Test)
+add_test (NAME TestTmuxSessionWrapper COMMAND testtmuxsessionwrapper)
