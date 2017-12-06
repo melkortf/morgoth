@@ -18,6 +18,11 @@ add_executable (morgothctl ${morgothctl_SOURCES})
 target_link_libraries (morgothctl Qt5::Core Qt5::DBus morgoth)
 
 include (GNUInstallDirs)
+
+set_target_properties (morgothctl PROPERTIES
+    INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+)
+
 install (TARGETS morgothctl
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     COMPONENT binaries

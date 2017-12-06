@@ -64,6 +64,7 @@ set_target_properties (morgoth PROPERTIES
     VERSION ${morgoth_VERSION}
     SOVERSION 1
     CXX_VISIBILITY_PRESET hidden
+    PUBLIC_HEADER "${morgoth_INCLUDES}"
 )
 
 include (GenerateExportHeader)
@@ -71,5 +72,11 @@ generate_export_header (morgoth)
 
 include (GNUInstallDirs)
 install (TARGETS morgoth
+    EXPORT morgoth-config
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/morgoth)
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/morgoth
+)
+
+install (EXPORT morgoth-config
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/morgoth/cmake
+)

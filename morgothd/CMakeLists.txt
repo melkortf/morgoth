@@ -4,7 +4,9 @@ add_executable (morgothd main.cpp)
 target_link_libraries (morgothd morgoth Qt5::Core Qt5::DBus)
 
 include (GNUInstallDirs)
-set (CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+set_target_properties (morgothd PROPERTIES
+    INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+)
 
 # install morgoth daemon
 install (TARGETS morgothd
