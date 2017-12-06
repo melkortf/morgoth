@@ -49,7 +49,9 @@ ServerCoordinator::ServerCoordinator(Server* server) :
     installEventHandler(update);
 
     new ServerCoordinatorAdaptor(this);
-    morgothd->dbusConnection().registerObject(server->coordinatorPath().path(), this);
+
+    if (morgothd)
+        morgothd->dbusConnection().registerObject(server->coordinatorPath().path(), this);
 }
 
 ServerCoordinator::~ServerCoordinator()

@@ -30,8 +30,10 @@ Server::Server(const QUrl& path, const QString& name, QObject* parent) :
 
     new ServerAdaptor(this);
 
-    QString dbusPath = QStringLiteral("/servers/%1").arg(name);
-    morgothd->dbusConnection().registerObject(dbusPath, this);
+    if (morgothd) {
+        QString dbusPath = QStringLiteral("/servers/%1").arg(name);
+        morgothd->dbusConnection().registerObject(dbusPath, this);
+    }
 
     m_configurationPath.setPath(QStringLiteral("/servers/%1/configuration").arg(name));
     initializeDefaultConfiguration();

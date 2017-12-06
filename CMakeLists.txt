@@ -40,6 +40,9 @@ add_subdirectory (src)
 add_subdirectory (morgothd)
 add_subdirectory (morgothctl)
 
+enable_testing ()
+add_subdirectory (test)
+
 # uninstall target
 configure_file (
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
