@@ -60,11 +60,16 @@ target_link_libraries (morgoth
     PRIVATE Qt5::DBus Qt5::Sql
 )
 
+set (morgoth_GENERATED_HEADERS
+    ${CMAKE_CURRENT_BINARY_DIR}/config.h
+    ${CMAKE_CURRENT_BINARY_DIR}/morgoth_export.h
+)
+
 set_target_properties (morgoth PROPERTIES
     VERSION ${morgoth_VERSION}
     SOVERSION 1
     CXX_VISIBILITY_PRESET hidden
-    PUBLIC_HEADER "${morgoth_INCLUDES}"
+    PUBLIC_HEADER "${morgoth_INCLUDES};${morgoth_GENERATED_HEADERS}"
 )
 
 include (GenerateExportHeader)
