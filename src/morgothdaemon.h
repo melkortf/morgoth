@@ -50,6 +50,9 @@ public:
      */
     const QVariantMap& config() const { return m_config; }
 
+    /**
+     * Name of the service which morgothd should register.
+     */
     static inline const char* dbusServiceName() { return "org.morgoth"; }
 
 private:

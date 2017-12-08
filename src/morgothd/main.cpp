@@ -34,5 +34,10 @@ int main(int argc, char** argv)
     if (!dbus.registerService(MorgothDaemon::dbusServiceName()))
         qFatal("Error registering service in the system bus: %s", qPrintable(dbus.lastError().message()));
 
+    QPluginLoader* pl = new QPluginLoader("/home/garapich/Coding/melkor/build-morgoth-Desktop-Debug/plugins/update-notifier/libupdatenotifier.so", &app);
+    if (!pl->load()) {
+        qWarning() << pl->errorString();
+    }
+
     return app.exec();
 }

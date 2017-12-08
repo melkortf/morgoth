@@ -8,6 +8,7 @@ set (morgoth_INCLUDES
     loglistener.h
     mapchangeevent.h
     morgothdaemon.h
+    morgothplugin.h
     persistor.h
     server.h
     serverconfiguration.h
