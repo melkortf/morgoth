@@ -80,3 +80,6 @@ install (TARGETS morgoth
 install (EXPORT morgoth-config
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/morgoth/cmake
 )
+
+add_subdirectory (morgothd)
+add_subdirectory (morgothctl)
