@@ -16,12 +16,11 @@
 #ifndef UPDATENOTIFICATIONEVENT_H
 #define UPDATENOTIFICATIONEVENT_H
 
-#include "morgoth_export.h"
 #include "eventhandler.h"
 
 namespace morgoth {
 
-class MORGOTH_EXPORT UpdateNotificationEvent : public EventHandler {
+class UpdateNotificationEvent : public EventHandler {
     Q_OBJECT
 
 public:

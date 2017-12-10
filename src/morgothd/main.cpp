@@ -14,6 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "morgothdaemon.h"
+#include "pluginmanager.h"
 #include "servermanager.h"
 #include "config.h"
 #include <QtCore>
@@ -28,16 +29,17 @@ int main(int argc, char** argv)
     app.setApplicationVersion(QString(MORGOTH_VERSION));
 
     ServerManager* sm = new ServerManager(&app);
-    app.setProperty("serverManager", QVariant::fromValue(sm));
+    app.setProperty("servers", QVariant::fromValue(sm));
 
     QDBusConnection dbus = app.dbusConnection();
     if (!dbus.registerService(MorgothDaemon::dbusServiceName()))
         qFatal("Error registering service in the system bus: %s", qPrintable(dbus.lastError().message()));
 
-    QPluginLoader* pl = new QPluginLoader("/home/garapich/Coding/melkor/build-morgoth-Desktop-Debug/plugins/update-notifier/libupdatenotifier.so", &app);
-    if (!pl->load()) {
-        qWarning() << pl->errorString();
-    }
+    PluginManager* plugins = new PluginManager(&app);
+    app.setProperty("plugins", QVariant::fromValue(plugins));
+
+    // load all plugins from the build directory
+    plugins->addPluginsDir(MORGOTH_BUILD_DIR);
 
     return app.exec();
 }

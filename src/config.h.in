@@ -4,4 +4,7 @@
 // generated from the VERSION file
 #define MORGOTH_VERSION "${morgoth_VERSION}"
 
+// build directory
+#define MORGOTH_BUILD_DIR "${CMAKE_BINARY_DIR}"
+
 #endif // CONFIG_H
