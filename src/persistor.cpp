@@ -48,7 +48,9 @@ void Persistor::initializeDatabase()
                         "serverid integer, "
                         "key string, "
                         "value string)");
-        m_database.exec("CREATE TABLE IF NOT EXISTS plugins(id integer primary  key autoincrement, name text, enabled integer)");
+        m_database.exec("CREATE TABLE IF NOT EXISTS plugins(id integer primary key autoincrement, "
+                        "name text unique not null, "
+                        "enabled integer)");
     }
 }
 
@@ -86,6 +88,7 @@ void Persistor::restorePlugins()
 
     while (q.next()) {
         QString name = q.value(0).toString();
+        m_pluginManager->setPluginStatus(name, true);
     }
 }
 
@@ -97,6 +100,7 @@ void Persistor::initialize()
     connect(m_serverManager, &ServerManager::serverAdded, this, &Persistor::storeServer);
 
     restorePlugins();
+    connect(m_pluginManager, &PluginManager::pluginStatusChanged, this, &Persistor::storePluginState);
 
     emit initialized();
 }
@@ -172,6 +176,18 @@ void Persistor::storeConfigurationEntry(const QString& key, const QString& value
                                     "), '%2', '%3')").arg(configuration->server()->name(), key, value));
     }
 
+    if (!res) {
+        qCritical() << q.lastQuery();
+        qCritical() << q.lastError();
+    }
+}
+
+void Persistor::storePluginState(const QString& pluginName, bool enabled)
+{
+    int value = enabled ? 1 : 0;
+    QSqlQuery q;
+    bool res = q.exec(QStringLiteral("REPLACE INTO plugins(name, enabled) VALUES ('%1', '%2')")
+                      .arg(pluginName, QString::number(value)));
     if (!res) {
         qCritical() << q.lastQuery();
         qCritical() << q.lastError();

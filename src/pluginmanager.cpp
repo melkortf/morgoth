@@ -92,6 +92,7 @@ void PluginManager::loadPlugin(const QString& name)
             loader->unload();
         } else {
             qInfo("Plugin %s loaded.", qPrintable(name));
+            emit pluginStatusChanged(name, true);
         }
     } else {
         qWarning("Plugin %s does not exist", qPrintable(name));
@@ -113,6 +114,7 @@ void PluginManager::unloadPlugin(const QString& name)
 
         if (it->loader->unload()) {
             qInfo("Plugin %s unloaded.", qPrintable(name));
+            emit pluginStatusChanged(name, false);
         } else {
             qWarning("Could not unload %s", qPrintable(name));
         }

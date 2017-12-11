@@ -193,12 +193,12 @@ int add(const QStringList& arguments)
 bool findServerManager()
 {
     // try to connect to the service on the session bus first, then on the system one
-    serverManager = new org::morgoth::ServerManager(morgothService, "/serverManager", dbus, qApp);
+    serverManager = new org::morgoth::ServerManager(morgothService, "/servers", dbus, qApp);
     if (!serverManager->isValid()) {
         delete serverManager;
 
         dbus = QDBusConnection::systemBus();
-        serverManager = new org::morgoth::ServerManager(morgothService, "/serverManager", dbus, qApp);
+        serverManager = new org::morgoth::ServerManager(morgothService, "/servers", dbus, qApp);
 
         if (!serverManager->isValid())
             return false;

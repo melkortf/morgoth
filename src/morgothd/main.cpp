@@ -30,10 +30,6 @@ int main(int argc, char** argv)
     morgoth::ServerManager* servers = new morgoth::ServerManager(&app);
     app.setProperty("servers", QVariant::fromValue(servers));
 
-    QDBusConnection dbus = app.dbusConnection();
-    if (!dbus.registerService(app.dbusServiceName()))
-        qFatal("Error registering service in the system bus: %s", qPrintable(dbus.lastError().message()));
-
     morgoth::PluginManager* plugins = new morgoth::PluginManager(&app);
     app.setProperty("plugins", QVariant::fromValue(plugins));
 
@@ -43,6 +39,11 @@ int main(int argc, char** argv)
     // handle database
     morgoth::Persistor* persistor = new morgoth::Persistor(servers, plugins, &app);
     app.setProperty("persistor", QVariant::fromValue(persistor));
+
+    // create dbus service
+    QDBusConnection dbus = app.dbusConnection();
+    if (!dbus.registerService(app.dbusServiceName()))
+        qFatal("Error registering service in the system bus: %s", qPrintable(dbus.lastError().message()));
 
     return app.exec();
 }
