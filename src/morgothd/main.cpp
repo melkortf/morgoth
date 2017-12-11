@@ -14,32 +14,35 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "morgothdaemon.h"
+#include "persistor.h"
 #include "pluginmanager.h"
 #include "servermanager.h"
 #include "config.h"
 #include <QtCore>
 #include <QtDBus>
 
-using namespace morgoth;
-
 int main(int argc, char** argv)
 {
-    MorgothDaemon app(argc, argv);
+    morgoth::MorgothDaemon app(argc, argv);
     app.setApplicationName(QStringLiteral("morgoth"));
     app.setApplicationVersion(QString(MORGOTH_VERSION));
 
-    ServerManager* sm = new ServerManager(&app);
-    app.setProperty("servers", QVariant::fromValue(sm));
+    morgoth::ServerManager* servers = new morgoth::ServerManager(&app);
+    app.setProperty("servers", QVariant::fromValue(servers));
 
     QDBusConnection dbus = app.dbusConnection();
-    if (!dbus.registerService(MorgothDaemon::dbusServiceName()))
+    if (!dbus.registerService(app.dbusServiceName()))
         qFatal("Error registering service in the system bus: %s", qPrintable(dbus.lastError().message()));
 
-    PluginManager* plugins = new PluginManager(&app);
+    morgoth::PluginManager* plugins = new morgoth::PluginManager(&app);
     app.setProperty("plugins", QVariant::fromValue(plugins));
 
     // load all plugins from the build directory
     plugins->addPluginsDir(MORGOTH_BUILD_DIR);
+
+    // handle database
+    morgoth::Persistor* persistor = new morgoth::Persistor(servers, plugins, &app);
+    app.setProperty("persistor", QVariant::fromValue(persistor));
 
     return app.exec();
 }

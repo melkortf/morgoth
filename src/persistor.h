@@ -17,6 +17,7 @@
 #define PERSISTOR_H
 
 #include "morgoth_export.h"
+#include "pluginmanager.h"
 #include "servermanager.h"
 #include <QtSql/QSqlDatabase>
 
@@ -26,22 +27,32 @@ namespace morgoth {
  * \brief The Persistor class is responsible for storing all servers and their
  *  configs.
  */
-class Persistor : public QObject {
+class MORGOTH_EXPORT Persistor : public QObject {
     Q_OBJECT
 
+signals:
+    /**
+     * \brief Emitted when the persistor has been initialized.
+     */
+    void initialized();
+
 public:
-    explicit Persistor(ServerManager* serverManager = nullptr);
+    explicit Persistor(ServerManager* serverManager, PluginManager* pluginManager,
+                       QObject* parent = nullptr);
 
 private:
     void initializeDatabase();
     void restoreServers();
+    void restorePlugins();
 
 private slots:
+    void initialize();
     void storeServer(Server* server);
     void storeConfigurationEntry(const QString& key, const QString& value);
 
 private:
     ServerManager* m_serverManager;
+    PluginManager* m_pluginManager;
     QSqlDatabase m_database;
 
 };

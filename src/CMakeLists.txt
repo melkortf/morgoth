@@ -36,13 +36,15 @@ set (morgoth_SOURCES
     tmuxsessionwrapper.cpp
 )
 
-qt5_add_dbus_adaptor(morgoth_SOURCES
+qt5_add_dbus_adaptor (morgoth_SOURCES
+    interfaces/org.morgoth.PluginManager.xml pluginmanager.h morgoth::PluginManager)
+qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.Server.xml server.h morgoth::Server)
-qt5_add_dbus_adaptor(morgoth_SOURCES
+qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.ServerConfiguration.xml serverconfiguration.h morgoth::ServerConfiguration)
-qt5_add_dbus_adaptor(morgoth_SOURCES
+qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.ServerCoordinator.xml servercoordinator.h morgoth::ServerCoordinator)
-qt5_add_dbus_adaptor(morgoth_SOURCES
+qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.ServerManager.xml servermanager.h morgoth::ServerManager)
 
 add_library (morgoth SHARED

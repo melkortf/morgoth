@@ -15,7 +15,6 @@
 
 #include "servermanager.h"
 #include "morgothdaemon.h"
-#include "persistor.h"
 #include "servermanageradaptor.h"
 #include <QtCore>
 #include <algorithm>
@@ -27,9 +26,7 @@ ServerManager::ServerManager(QObject* parent) :
     QObject(parent)
 {
     new ServerManagerAdaptor(this);
-    morgothd->dbusConnection().registerObject("/serverManager", this);
-
-    new Persistor(this);
+    morgothd->dbusConnection().registerObject("/servers", this);
 }
 
 Server* ServerManager::find(const QString& name) const

@@ -20,15 +20,14 @@
 
 namespace morgoth {
 
-Persistor::Persistor(ServerManager* serverManager) :
-    QObject(serverManager),
+Persistor::Persistor(ServerManager* serverManager, PluginManager* pluginManager, QObject* parent) :
+    QObject(parent),
     m_serverManager(serverManager),
+    m_pluginManager(pluginManager),
     m_database(QSqlDatabase::addDatabase("QSQLITE"))
 {
-    initializeDatabase();
-    restoreServers();
-
-    connect(serverManager, &ServerManager::serverAdded, this, &Persistor::storeServer);
+    // initialize Persistor the moment the event loop starts
+    QTimer::singleShot(0, this, &Persistor::initialize);
 }
 
 void Persistor::initializeDatabase()
@@ -49,6 +48,7 @@ void Persistor::initializeDatabase()
                         "serverid integer, "
                         "key string, "
                         "value string)");
+        m_database.exec("CREATE TABLE IF NOT EXISTS plugins(id integer primary  key autoincrement, name text, enabled integer)");
     }
 }
 
@@ -77,6 +77,28 @@ void Persistor::restoreServers() {
 
         connect(configuration, &ServerConfiguration::valueChanged, this, &Persistor::storeConfigurationEntry);
     }
+}
+
+void Persistor::restorePlugins()
+{
+    QSqlQuery q;
+    q.exec("SELECT name FROM plugins WHERE enabled=1");
+
+    while (q.next()) {
+        QString name = q.value(0).toString();
+    }
+}
+
+void Persistor::initialize()
+{
+    initializeDatabase();
+
+    restoreServers();
+    connect(m_serverManager, &ServerManager::serverAdded, this, &Persistor::storeServer);
+
+    restorePlugins();
+
+    emit initialized();
 }
 
 void Persistor::storeServer(Server* server)
