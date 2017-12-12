@@ -16,6 +16,7 @@
 #ifndef LOGCOLLECTOR_H
 #define LOGCOLLECTOR_H
 
+#include "morgoth_export.h"
 #include <QtCore/QByteArray>
 #include <QtCore/QMutex>
 #include <QtCore/QObject>
@@ -25,7 +26,7 @@ namespace morgoth {
 /**
  * \brief The LogCollector class is responsible for saving all servers' logs.
  */
-class LogCollector : public QObject {
+class MORGOTH_EXPORT LogCollector : public QObject {
     Q_OBJECT
 
     /**
