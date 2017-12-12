@@ -8,7 +8,9 @@ set (morgoth_INCLUDES
     loglistener.h
     mapchangeevent.h
     morgothdaemon.h
+    morgothplugin.h
     persistor.h
+    pluginmanager.h
     server.h
     serverconfiguration.h
     servercoordinator.h
@@ -16,7 +18,6 @@ set (morgoth_INCLUDES
     serverstartedevent.h
     serverstoppedevent.h
     tmuxsessionwrapper.h
-    updatenotificationevent.h
 )
 
 set (morgoth_SOURCES
@@ -25,6 +26,7 @@ set (morgoth_SOURCES
     mapchangeevent.cpp
     morgothdaemon.cpp
     persistor.cpp
+    pluginmanager.cpp
     server.cpp
     serverconfiguration.cpp
     servercoordinator.cpp
@@ -32,16 +34,17 @@ set (morgoth_SOURCES
     serverstartedevent.cpp
     serverstoppedevent.cpp
     tmuxsessionwrapper.cpp
-    updatenotificationevent.cpp
 )
 
-qt5_add_dbus_adaptor(morgoth_SOURCES
+qt5_add_dbus_adaptor (morgoth_SOURCES
+    interfaces/org.morgoth.PluginManager.xml pluginmanager.h morgoth::PluginManager)
+qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.Server.xml server.h morgoth::Server)
-qt5_add_dbus_adaptor(morgoth_SOURCES
+qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.ServerConfiguration.xml serverconfiguration.h morgoth::ServerConfiguration)
-qt5_add_dbus_adaptor(morgoth_SOURCES
+qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.ServerCoordinator.xml servercoordinator.h morgoth::ServerCoordinator)
-qt5_add_dbus_adaptor(morgoth_SOURCES
+qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.ServerManager.xml servermanager.h morgoth::ServerManager)
 
 add_library (morgoth SHARED
@@ -61,7 +64,6 @@ target_link_libraries (morgoth
 )
 
 set (morgoth_GENERATED_HEADERS
-    ${CMAKE_CURRENT_BINARY_DIR}/config.h
     ${CMAKE_CURRENT_BINARY_DIR}/morgoth_export.h
 )
 

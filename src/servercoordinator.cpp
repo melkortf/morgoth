@@ -21,7 +21,6 @@
 #include "serverstartedevent.h"
 #include "serverstoppedevent.h"
 #include "servercoordinatoradaptor.h"
-#include "updatenotificationevent.h"
 #include <QtCore>
 #include <unistd.h>
 #include <sys/types.h>
@@ -43,10 +42,6 @@ ServerCoordinator::ServerCoordinator(Server* server) :
     ServerStoppedEvent* serverStopped = new ServerStoppedEvent;
     connect(serverStopped, &EventHandler::activated, this, &ServerCoordinator::handleServerStopped);
     installEventHandler(serverStopped);
-
-    UpdateNotificationEvent* update = new UpdateNotificationEvent;
-    connect(update, &EventHandler::activated, [server]() { qInfo("%s: update available", qPrintable(server->name())); });
-    installEventHandler(update);
 
     new ServerCoordinatorAdaptor(this);
 

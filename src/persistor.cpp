@@ -20,15 +20,14 @@
 
 namespace morgoth {
 
-Persistor::Persistor(ServerManager* serverManager) :
-    QObject(serverManager),
+Persistor::Persistor(ServerManager* serverManager, PluginManager* pluginManager, QObject* parent) :
+    QObject(parent),
     m_serverManager(serverManager),
+    m_pluginManager(pluginManager),
     m_database(QSqlDatabase::addDatabase("QSQLITE"))
 {
-    initializeDatabase();
-    restoreServers();
-
-    connect(serverManager, &ServerManager::serverAdded, this, &Persistor::storeServer);
+    // initialize Persistor the moment the event loop starts
+    QTimer::singleShot(0, this, &Persistor::initialize);
 }
 
 void Persistor::initializeDatabase()
@@ -49,6 +48,9 @@ void Persistor::initializeDatabase()
                         "serverid integer, "
                         "key string, "
                         "value string)");
+        m_database.exec("CREATE TABLE IF NOT EXISTS plugins(id integer primary key autoincrement, "
+                        "name text unique not null, "
+                        "enabled integer)");
     }
 }
 
@@ -77,6 +79,30 @@ void Persistor::restoreServers() {
 
         connect(configuration, &ServerConfiguration::valueChanged, this, &Persistor::storeConfigurationEntry);
     }
+}
+
+void Persistor::restorePlugins()
+{
+    QSqlQuery q;
+    q.exec("SELECT name FROM plugins WHERE enabled=1");
+
+    while (q.next()) {
+        QString name = q.value(0).toString();
+        m_pluginManager->setPluginStatus(name, true);
+    }
+}
+
+void Persistor::initialize()
+{
+    initializeDatabase();
+
+    restoreServers();
+    connect(m_serverManager, &ServerManager::serverAdded, this, &Persistor::storeServer);
+
+    restorePlugins();
+    connect(m_pluginManager, &PluginManager::pluginStatusChanged, this, &Persistor::storePluginState);
+
+    emit initialized();
 }
 
 void Persistor::storeServer(Server* server)
@@ -150,6 +176,18 @@ void Persistor::storeConfigurationEntry(const QString& key, const QString& value
                                     "), '%2', '%3')").arg(configuration->server()->name(), key, value));
     }
 
+    if (!res) {
+        qCritical() << q.lastQuery();
+        qCritical() << q.lastError();
+    }
+}
+
+void Persistor::storePluginState(const QString& pluginName, bool enabled)
+{
+    int value = enabled ? 1 : 0;
+    QSqlQuery q;
+    bool res = q.exec(QStringLiteral("REPLACE INTO plugins(name, enabled) VALUES ('%1', '%2')")
+                      .arg(pluginName, QString::number(value)));
     if (!res) {
         qCritical() << q.lastQuery();
         qCritical() << q.lastError();
