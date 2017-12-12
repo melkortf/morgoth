@@ -38,7 +38,10 @@ public:
      */
     explicit PluginManager(QObject *parent = nullptr);
 
-    virtual ~PluginManager() = default;
+    /**
+     * \brief Destroys this \c PluginManager instance.
+     */
+    virtual ~PluginManager();
 
     QStringList availablePlugins() const;
 
@@ -49,7 +52,8 @@ public slots:
      * The \c path is scanned recursively for existing plugins. When a plugin
      * is found, it is added to the list of available ones. No plugin is
      * enabled by default.
-     *
+     * \todo Watch the directory for changes and reload plugins if necessary.
+     * \todo Check plugins signatures.
      * \param path The directory to scan.
      */
     void addPluginsDir(const QString& path);

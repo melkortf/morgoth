@@ -18,3 +18,14 @@ target_compile_definitions (updatenotifier
 )
 
 target_link_libraries (updatenotifier morgoth)
+
+include (GNUInstallDirs)
+
+set_target_properties (updatenotifier PROPERTIES
+    INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}
+)
+
+install (TARGETS updatenotifier
+    LIBRARY DESTINATION ${CMAKE_INSTALL_DATADIR}/morgoth/plugins
+    COMPONENT plugins
+)

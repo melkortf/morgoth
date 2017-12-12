@@ -22,6 +22,10 @@
 
 namespace morgoth {
 
+/**
+ * \brief The UpdateNotifier plugin notifies user if there's an update
+ *  available for any of the servers.
+ */
 class UpdateNotifier : public QObject, public MorgothPlugin {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.morgoth.MorgothPlugin" FILE "updatenotifier.json")

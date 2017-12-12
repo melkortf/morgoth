@@ -12,6 +12,8 @@ PluginManager::PluginManager(QObject *parent) :
     morgothd->dbusConnection().registerObject("/plugins", this);
 }
 
+PluginManager::~PluginManager() {}
+
 QStringList PluginManager::availablePlugins() const
 {
     QStringList res;
