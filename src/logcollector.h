@@ -42,7 +42,7 @@ public:
      * \brief Appends a single line of log.
      * \note This method is thread-safe.
      */
-    void log(const QString& line);
+    virtual void log(const QString& line);
 
     void setDirectory(const QString& directory);
     const QString& directory() const { return m_directory; }
@@ -60,10 +60,11 @@ public slots:
      */
     void save();
 
-private:
+protected:
     bool isLogDirWritable();
-    QString logFileName();
+    virtual QString logFileName();
 
+private:
     QMutex m_mutex;
     QString m_directory;
     QByteArray m_data;
