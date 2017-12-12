@@ -14,6 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "servercoordinator.h"
+#include "logcollector.h"
 #include "loglistener.h"
 #include "mapchangeevent.h"
 #include "morgothdaemon.h"
@@ -32,6 +33,13 @@ ServerCoordinator::ServerCoordinator(Server* server) :
     QObject(server),
     m_server(server)
 {
+    QString logDirectory = server->configuration()->value("org.morgoth.Server.logDirectory");
+    if (QDir::isRelativePath(logDirectory))
+        logDirectory.prepend(server->path().toLocalFile() + QDir::separator());
+
+    m_logCollector = new LogCollector(QDir::cleanPath(logDirectory), this);
+    connect(this, &ServerCoordinator::statusChanged, m_logCollector, &LogCollector::save);
+
     connect(qApp, &QCoreApplication::aboutToQuit, this, &ServerCoordinator::stopSync);
     installEventHandler(new MapChangeEvent);
 
@@ -94,25 +102,26 @@ bool ServerCoordinator::start()
         return false;
     }
 
-    m_logFileName = QString("/tmp/%1-tmux").arg(m_tmux.name());
-    int ret = mkfifo(m_logFileName.toLocal8Bit().constData(), 0666);
+    m_outputFileName = QString("/tmp/%1-tmux").arg(m_tmux.name());
+    int ret = mkfifo(m_outputFileName.toLocal8Bit().constData(), 0666);
     if (ret) {
-        qWarning("%s: could not create fifo at %s", qPrintable(server()->name()), qPrintable(m_logFileName));
+        qWarning("%s: could not create fifo at %s", qPrintable(server()->name()), qPrintable(m_outputFileName));
         m_tmux.kill();
         setStatus(Crashed);
         return false;
     }
 
-    m_logListener = new LogListener(m_logFileName, this);
+    m_logListener = new LogListener(m_outputFileName, this);
+    m_logListener->setLogCollector(m_logCollector);
     m_logListener->start();
 
     std::for_each(m_eventHandlers.begin(), m_eventHandlers.end(),
                   std::bind(&LogListener::installEventHandler, m_logListener, std::placeholders::_1));
 
-    if (!m_tmux.redirectOutput(m_logFileName)) {
-        qWarning("%s: could not redirect output to %s", qPrintable(server()->name()), qPrintable(m_logFileName));
+    if (!m_tmux.redirectOutput(m_outputFileName)) {
+        qWarning("%s: could not redirect output to %s", qPrintable(server()->name()), qPrintable(m_outputFileName));
         m_tmux.kill();
-        unlink(m_logFileName.toLocal8Bit().constData());
+        unlink(m_outputFileName.toLocal8Bit().constData());
         setStatus(Crashed);
         return false;
     }
@@ -123,7 +132,7 @@ bool ServerCoordinator::start()
     if (!m_tmux.sendKeys(cmd)) {
         qWarning("%s: could not start the server", qPrintable(server()->name()));
         m_tmux.kill();
-        unlink(m_logFileName.toLocal8Bit().constData());
+        unlink(m_outputFileName.toLocal8Bit().constData());
         setStatus(Crashed);
         return false;
     }
@@ -140,6 +149,11 @@ void ServerCoordinator::stop()
     }
 }
 
+void ServerCoordinator::flushLogs()
+{
+    m_logCollector->save();
+}
+
 void ServerCoordinator::handleServerStarted()
 {
     ServerStartedEvent* e = qobject_cast<ServerStartedEvent*>(sender());
@@ -152,7 +166,7 @@ void ServerCoordinator::handleServerStopped()
     Q_ASSERT(m_logListener);
     m_logListener->requestInterruption();
     m_logListener = nullptr;
-    unlink(m_logFileName.toLocal8Bit().constData());
+    unlink(m_outputFileName.toLocal8Bit().constData());
     m_tmux.kill();
     Q_ASSERT(status() == ShuttingDown);
     setStatus(Offline);
@@ -170,7 +184,7 @@ void ServerCoordinator::stopSync()
     }
 
     m_tmux.kill();
-    unlink(m_logFileName.toLocal8Bit().constData());
+    unlink(m_outputFileName.toLocal8Bit().constData());
 }
 
 } // namespace Morgoth

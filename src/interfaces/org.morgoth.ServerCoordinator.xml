@@ -13,5 +13,7 @@
         <arg name="newStatus" type="(s)" direction="out"/>
         <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="morgoth::ServerCoordinator::Status"/>
     </signal>
+    <method name="flushLogs">
+    </method>
   </interface>
 </node>

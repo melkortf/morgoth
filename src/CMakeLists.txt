@@ -5,6 +5,7 @@ set (CMAKE_AUTOMOC ON)
 
 set (morgoth_INCLUDES
     eventhandler.h
+    logcollector.h
     loglistener.h
     mapchangeevent.h
     morgothdaemon.h
@@ -22,6 +23,7 @@ set (morgoth_INCLUDES
 
 set (morgoth_SOURCES
     eventhandler.cpp
+    logcollector.cpp
     loglistener.cpp
     mapchangeevent.cpp
     morgothdaemon.cpp

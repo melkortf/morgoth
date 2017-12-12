@@ -17,6 +17,7 @@
 #define LOGLISTENER_H
 
 #include "eventhandler.h"
+#include "logcollector.h"
 #include "morgoth_export.h"
 #include <QtCore/QList>
 #include <QtCore/QMutex>
@@ -51,6 +52,11 @@ public:
      */
     const QString& filePath() const { return m_filePath; }
 
+    /**
+     * \brief Sets the LogCollector instance.
+     */
+    void setLogCollector(LogCollector* logCollector);
+
 protected:
     /**
      * \copydoc QThread::run()
@@ -62,6 +68,7 @@ private:
     bool m_isFinished = false;
     QList<EventHandler*> m_events;
     QMutex m_eventListMutex;
+    LogCollector* m_logCollector = nullptr;
 
 };
 

@@ -25,6 +25,7 @@
 
 namespace morgoth {
 
+class LogCollector;
 class LogListener;
 
 /**
@@ -113,6 +114,11 @@ public slots:
      */
     void stop();
 
+    /**
+     * \brief Saves all unsaved logs immediately.
+     */
+    void flushLogs();
+
 private slots:
     void setStatus(Status status);
     void handleServerStarted();
@@ -123,9 +129,10 @@ private:
     Server* m_server;
     Status m_status = Status::Offline;
     TmuxSessionWrapper m_tmux;
-    QString m_logFileName;
+    QString m_outputFileName;
     LogListener* m_logListener = nullptr;
     QMap<QString, EventHandler*> m_eventHandlers;
+    LogCollector* m_logCollector;
 
 };
 

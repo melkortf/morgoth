@@ -32,6 +32,11 @@ void LogListener::installEventHandler(EventHandler *handler)
     m_events.append(handler);
 }
 
+void LogListener::setLogCollector(LogCollector* logCollector)
+{
+    m_logCollector = logCollector;
+}
+
 void LogListener::run()
 {
     /* We don't use Qt's API when it comes to using fifo files, due to
@@ -45,11 +50,13 @@ void LogListener::run()
         return;
     }
 
-    QRegularExpression quitRx("Server Quit$");
+    static QRegularExpression quitRx("Server Quit$");
 
     std::string line;
     while (!isInterruptionRequested() && std::getline(fifo, line)) {
         QString qtline = QString::fromStdString(line).trimmed();
+        if (m_logCollector)
+            m_logCollector->log(qtline);
 
         QMutexLocker ml(&m_eventListMutex);
         for (auto e: m_events) {

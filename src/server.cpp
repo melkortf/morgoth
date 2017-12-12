@@ -69,6 +69,7 @@ void Server::initializeDefaultConfiguration()
 {
     m_configuration = new ServerConfiguration(this);
     m_configuration->setValue("org.morgoth.Server.launchArguments", "-port 27015 -secured +map cp_badlands");
+    m_configuration->setValue("org.morgoth.Server.logDirectory", "logs"); // relative to path
 }
 
 } // namespace Morgoth
