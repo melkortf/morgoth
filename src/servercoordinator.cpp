@@ -96,6 +96,13 @@ bool ServerCoordinator::start()
     qInfo("%s: starting...", qPrintable(server()->name()));
     setStatus(Starting);
 
+    QString user = server()->configuration()->value("org.morgoth.Server.user");
+    if (user.isEmpty() && morgothd) {
+        user = morgothd->config().value("user").toString();
+    }
+
+    m_tmux.setUser(user);
+
     if (!m_tmux.create()) {
         qWarning("%s: could not create a tmux session", qPrintable(server()->name()));
         setStatus(Crashed);

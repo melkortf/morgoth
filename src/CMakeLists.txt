@@ -19,6 +19,7 @@ set (morgoth_INCLUDES
     serverstartedevent.h
     serverstoppedevent.h
     tmuxsessionwrapper.h
+    userprocess.h
 )
 
 set (morgoth_SOURCES
@@ -36,6 +37,7 @@ set (morgoth_SOURCES
     serverstartedevent.cpp
     serverstoppedevent.cpp
     tmuxsessionwrapper.cpp
+    userprocess.cpp
 )
 
 qt5_add_dbus_adaptor (morgoth_SOURCES

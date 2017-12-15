@@ -75,6 +75,9 @@ public:
      */
     bool exists() const;
 
+    const QString user() const { return m_user; }
+    void setUser(const QString& user);
+
     /**
      * \brief Returns \c true if this session exists.
      */
@@ -85,6 +88,7 @@ private:
 
     QSharedPointer<TmuxProcessFactory> m_tmuxFactory;
     QString m_name;
+    QString m_user;
 
 };
 

@@ -14,10 +14,13 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "tmuxsessionwrapper.h"
+#include "userprocess.h"
 #include <QtCore>
 #include <algorithm>
 #include <random>
 #include <memory>
+#include <pwd.h>
+#include <sys/types.h>
 
 namespace morgoth {
 
@@ -46,10 +49,11 @@ private:
     }
 
 public:
-    std::unique_ptr<QProcess> create()
+    std::unique_ptr<UserProcess> create(const QString& user)
     {
-        std::unique_ptr<QProcess> process = std::make_unique<QProcess>();
+        std::unique_ptr<UserProcess> process = std::make_unique<UserProcess>();
         process->setProgram(tmuxExec());
+        process->setUser(user);
         return process;
     }
 };
@@ -73,7 +77,7 @@ bool TmuxSessionWrapper::create()
         return false;
     }
 
-    auto tmux = m_tmuxFactory->create();
+    auto tmux = m_tmuxFactory->create(m_user);
     tmux->setArguments({
         "new-session",
         "-d", // detached
@@ -93,7 +97,7 @@ bool TmuxSessionWrapper::redirectOutput(const QString& dest)
         return false;
     }
 
-    auto tmux = m_tmuxFactory->create();
+    auto tmux = m_tmuxFactory->create(m_user);
     tmux->setArguments({
         "pipe-pane",
         "-t", name(), // session name
@@ -113,7 +117,7 @@ bool TmuxSessionWrapper::sendKeys(const QString& keys)
         return false;
     }
 
-    auto tmux = m_tmuxFactory->create();
+    auto tmux = m_tmuxFactory->create(m_user);
     tmux->setArguments({
         "send-keys",
         "-t", name(),
@@ -131,7 +135,7 @@ bool TmuxSessionWrapper::kill()
     if (!exists())
         return true;
 
-    auto tmux = m_tmuxFactory->create();
+    auto tmux = m_tmuxFactory->create(m_user);
     tmux->setArguments({
         "kill-session",
         "-t", name()
@@ -145,7 +149,7 @@ bool TmuxSessionWrapper::kill()
 
 bool TmuxSessionWrapper::exists() const
 {
-    auto tmux = m_tmuxFactory->create();
+    auto tmux = m_tmuxFactory->create(m_user);
     tmux->setArguments({
         "has-session",
         "-t", name()
@@ -155,6 +159,18 @@ bool TmuxSessionWrapper::exists() const
     return tmux->waitForFinished()
             && tmux->exitStatus() == QProcess::ExitStatus::NormalExit
             && tmux->exitCode() == 0;
+}
+
+void TmuxSessionWrapper::setUser(const QString& user)
+{
+    if (user != m_user) {
+        if (exists()) {
+            qWarning("%s: cannot change the user while the session is running", Q_FUNC_INFO);
+            return;
+        }
+
+        m_user = user;
+    }
 }
 
 void TmuxSessionWrapper::generateRandomName()
