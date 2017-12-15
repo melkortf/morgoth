@@ -17,9 +17,12 @@
 #define TMUXSESSIONWRAPPER_H
 
 #include "morgoth_export.h"
+#include <QtCore/QSharedPointer>
 #include <QtCore/QString>
 
 namespace morgoth {
+
+class TmuxProcessFactory;
 
 /**
  * \brief The TmuxSessionWrapper class wraps all tmux-oriented tasks morgoth
@@ -78,10 +81,9 @@ public:
     operator bool() const { return exists(); }
 
 private:
-    void findTmuxExec();
     void generateRandomName();
 
-    QString m_tmuxExec;
+    QSharedPointer<TmuxProcessFactory> m_tmuxFactory;
     QString m_name;
 
 };

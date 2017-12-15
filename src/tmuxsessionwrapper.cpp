@@ -17,14 +17,47 @@
 #include <QtCore>
 #include <algorithm>
 #include <random>
+#include <memory>
 
 namespace morgoth {
 
-constexpr auto TmuxExec = "tmux";
+class TmuxProcessFactory {
+private:
+    static QString tmuxExec() {
+        constexpr auto TmuxExec = "tmux";
+        static QString tmuxBin;
 
-TmuxSessionWrapper::TmuxSessionWrapper()
+        if (tmuxBin.isEmpty()) {
+            QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+            QStringList path = env.value("PATH").split(QDir::listSeparator());
+            for (const QString& p: qAsConst(path)) {
+                QString maybe = QDir::cleanPath(p + QDir::separator() + TmuxExec);
+                if (QFile::exists(maybe)) {
+                    tmuxBin = maybe;
+                    break;
+                }
+            }
+
+            if (tmuxBin.isEmpty())
+                qFatal("Could not find tmux executable; exiting.");
+        }
+
+        return tmuxBin;
+    }
+
+public:
+    std::unique_ptr<QProcess> create()
+    {
+        std::unique_ptr<QProcess> process = std::make_unique<QProcess>();
+        process->setProgram(tmuxExec());
+        return process;
+    }
+};
+
+
+TmuxSessionWrapper::TmuxSessionWrapper() :
+    m_tmuxFactory(new TmuxProcessFactory)
 {
-    findTmuxExec();
     generateRandomName();
 }
 
@@ -36,43 +69,61 @@ TmuxSessionWrapper::~TmuxSessionWrapper()
 bool TmuxSessionWrapper::create()
 {
     if (exists()) {
-        qWarning("TmuxSessionWrapper::create(): the session is already created");
+        qWarning("%s: the session is already created", Q_FUNC_INFO);
         return false;
     }
 
-    int ret = QProcess::execute(m_tmuxExec, {
+    auto tmux = m_tmuxFactory->create();
+    tmux->setArguments({
         "new-session",
         "-d", // detached
         "-s", name() // session name
     });
 
-    return !ret;
+    tmux->start();
+    return tmux->waitForFinished()
+            && tmux->exitStatus() == QProcess::ExitStatus::NormalExit
+            && tmux->exitCode() == 0;
 }
 
 bool TmuxSessionWrapper::redirectOutput(const QString& dest)
 {
-    if (!exists())
+    if (!exists()) {
+        qWarning("%s: the session is not created", Q_FUNC_INFO);
         return false;
+    }
 
-    int ret = QProcess::execute(m_tmuxExec, {
+    auto tmux = m_tmuxFactory->create();
+    tmux->setArguments({
         "pipe-pane",
         "-t", name(), // session name
         QString("/usr/bin/cat > %1").arg(dest) // redirect output to cat and cat output to dest
     });
-    return !ret;
+
+    tmux->start();
+    return tmux->waitForFinished()
+            && tmux->exitStatus() == QProcess::ExitStatus::NormalExit
+            && tmux->exitCode() == 0;
 }
 
 bool TmuxSessionWrapper::sendKeys(const QString& keys)
 {
-    if (!exists())
+    if (!exists()) {
+        qWarning("%s: the session is not created", Q_FUNC_INFO);
         return false;
+    }
 
-    int ret = QProcess::execute(m_tmuxExec, {
+    auto tmux = m_tmuxFactory->create();
+    tmux->setArguments({
         "send-keys",
         "-t", name(),
         keys, "C-m"
     });
-    return !ret;
+
+    tmux->start();
+    return tmux->waitForFinished()
+            && tmux->exitStatus() == QProcess::ExitStatus::NormalExit
+            && tmux->exitCode() == 0;
 }
 
 bool TmuxSessionWrapper::kill()
@@ -80,40 +131,30 @@ bool TmuxSessionWrapper::kill()
     if (!exists())
         return true;
 
-    int ret = QProcess::execute(m_tmuxExec, {
+    auto tmux = m_tmuxFactory->create();
+    tmux->setArguments({
         "kill-session",
         "-t", name()
     });
 
-    return !ret;
+    tmux->start();
+    return tmux->waitForFinished()
+            && tmux->exitStatus() == QProcess::ExitStatus::NormalExit
+            && tmux->exitCode() == 0;
 }
 
 bool TmuxSessionWrapper::exists() const
 {
-    QProcess tmux;
-    tmux.start(m_tmuxExec, {
+    auto tmux = m_tmuxFactory->create();
+    tmux->setArguments({
         "has-session",
         "-t", name()
     });
 
-    tmux.waitForFinished();
-    return tmux.exitCode() == 0;
-}
-
-void TmuxSessionWrapper::findTmuxExec()
-{
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    QStringList path = env.value("PATH").split(QDir::listSeparator());
-    for (const QString& p: qAsConst(path)) {
-        QString maybe = QDir::cleanPath(p + QDir::separator() + TmuxExec);
-        if (QFile::exists(maybe)) {
-            m_tmuxExec = maybe;
-            break;
-        }
-    }
-
-    if (m_tmuxExec.isEmpty())
-        qFatal("Could not find tmux executable; exiting.");
+    tmux->start();
+    return tmux->waitForFinished()
+            && tmux->exitStatus() == QProcess::ExitStatus::NormalExit
+            && tmux->exitCode() == 0;
 }
 
 void TmuxSessionWrapper::generateRandomName()
