@@ -49,8 +49,13 @@ protected:
      */
     void setupChildProcess() override;
 
+    virtual void resolveGidAndUid();
+
 private:
     QString m_user;
+    bool m_userResolved = false;
+    unsigned int m_gid = 0;
+    unsigned int m_uid = 0;
 
 };
 

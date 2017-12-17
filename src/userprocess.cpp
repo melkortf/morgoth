@@ -27,21 +27,33 @@ UserProcess::UserProcess(QObject *parent) :
 
 void UserProcess::setUser(const QString& user)
 {
-    m_user = user;
+    if (m_user != user) {
+        m_user = user;
+        resolveGidAndUid();
+    }
 }
 
 void UserProcess::setupChildProcess()
 {
+    if (m_userResolved) {
+        ::setgroups(0, nullptr);
+        ::setgid(m_gid);
+        ::setuid(m_uid);
+    }
+}
+
+void UserProcess::resolveGidAndUid()
+{
     if (!m_user.isEmpty()) {
         passwd* pwd = ::getpwnam(m_user.toLocal8Bit().constData());
         if (!pwd) {
-            emit finished(-1);
-            ::exit(-1);
+            char* error = ::strerror(errno);
+            qCritical("Error retrieving uid and gid of user %s (%s)", qPrintable(user()), error);
+        } else {
+            m_gid = pwd->pw_gid;
+            m_uid = pwd->pw_uid;
+            m_userResolved = true;
         }
-
-        ::setgroups(0, nullptr);
-        ::setgid(pwd->pw_gid);
-        ::setuid(pwd->pw_uid);
     }
 }
 
