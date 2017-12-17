@@ -21,18 +21,32 @@
 
 namespace morgoth {
 
+/**
+ * \brief The UserProcess class executes process as a specified
+ *  user.
+ */
 class MORGOTH_EXPORT UserProcess : public QProcess {
     Q_OBJECT
 
+    /**
+     * The user that this process is started as.
+     */
     Q_PROPERTY(QString user READ user WRITE setUser)
 
 public:
+    /**
+     * \brief Creates a new UserProcess instance.
+     * \param parent Passed to QObject.
+     */
     explicit UserProcess(QObject* parent = nullptr);
 
     void setUser(const QString& user);
     const QString& user() const { return m_user; }
 
 protected:
+    /**
+     * \copydoc QProcess::setupChildProcess()
+     */
     void setupChildProcess() override;
 
 private:

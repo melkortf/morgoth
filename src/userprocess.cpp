@@ -32,16 +32,13 @@ void UserProcess::setUser(const QString& user)
 
 void UserProcess::setupChildProcess()
 {
-    qDebug() << Q_FUNC_INFO;
-
     if (!m_user.isEmpty()) {
         passwd* pwd = ::getpwnam(m_user.toLocal8Bit().constData());
         if (!pwd) {
-            qWarning("%s; getpwnam failed", Q_FUNC_INFO);
-            return;
+            emit finished(-1);
+            ::exit(-1);
         }
 
-        qDebug("%s: running as %s (uid=%d, gid=%d)", Q_FUNC_INFO, qPrintable(m_user), pwd->pw_uid, pwd->pw_gid);
         ::setgroups(0, nullptr);
         ::setgid(pwd->pw_gid);
         ::setuid(pwd->pw_uid);
