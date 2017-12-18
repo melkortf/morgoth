@@ -22,6 +22,8 @@
 #include <pwd.h>
 #include <sys/types.h>
 
+static constexpr int TmuxProcessTimeout = 1000; // 1 second
+
 namespace morgoth {
 
 class TmuxProcessFactory {
@@ -85,9 +87,16 @@ bool TmuxSessionWrapper::create()
     });
 
     tmux->start();
-    return tmux->waitForFinished()
+    bool result = tmux->waitForFinished(TmuxProcessTimeout)
             && tmux->exitStatus() == QProcess::ExitStatus::NormalExit
             && tmux->exitCode() == 0;
+
+    if (!result) {
+        qWarning() << Q_FUNC_INFO << tmux->readAllStandardOutput();
+        qWarning() << Q_FUNC_INFO << tmux->readAllStandardError();
+    }
+
+    return result;
 }
 
 bool TmuxSessionWrapper::redirectOutput(const QString& dest)
@@ -105,9 +114,16 @@ bool TmuxSessionWrapper::redirectOutput(const QString& dest)
     });
 
     tmux->start();
-    return tmux->waitForFinished()
+    bool result = tmux->waitForFinished(TmuxProcessTimeout)
             && tmux->exitStatus() == QProcess::ExitStatus::NormalExit
             && tmux->exitCode() == 0;
+
+    if (!result) {
+        qWarning() << Q_FUNC_INFO << tmux->readAllStandardOutput();
+        qWarning() << Q_FUNC_INFO << tmux->readAllStandardError();
+    }
+
+    return result;
 }
 
 bool TmuxSessionWrapper::sendKeys(const QString& keys)
@@ -125,9 +141,16 @@ bool TmuxSessionWrapper::sendKeys(const QString& keys)
     });
 
     tmux->start();
-    return tmux->waitForFinished()
+    bool result = tmux->waitForFinished(TmuxProcessTimeout)
             && tmux->exitStatus() == QProcess::ExitStatus::NormalExit
             && tmux->exitCode() == 0;
+
+    if (!result) {
+        qWarning() << Q_FUNC_INFO << tmux->readAllStandardOutput();
+        qWarning() << Q_FUNC_INFO << tmux->readAllStandardError();
+    }
+
+    return result;
 }
 
 bool TmuxSessionWrapper::kill()
@@ -142,9 +165,16 @@ bool TmuxSessionWrapper::kill()
     });
 
     tmux->start();
-    return tmux->waitForFinished()
+    bool result = tmux->waitForFinished(TmuxProcessTimeout)
             && tmux->exitStatus() == QProcess::ExitStatus::NormalExit
             && tmux->exitCode() == 0;
+
+    if (!result) {
+        qWarning() << Q_FUNC_INFO << tmux->readAllStandardOutput();
+        qWarning() << Q_FUNC_INFO << tmux->readAllStandardError();
+    }
+
+    return result;
 }
 
 bool TmuxSessionWrapper::exists() const
@@ -156,9 +186,16 @@ bool TmuxSessionWrapper::exists() const
     });
 
     tmux->start();
-    return tmux->waitForFinished()
+    bool result = tmux->waitForFinished(TmuxProcessTimeout)
             && tmux->exitStatus() == QProcess::ExitStatus::NormalExit
             && tmux->exitCode() == 0;
+
+    if (!result) {
+        qWarning() << Q_FUNC_INFO << tmux->readAllStandardOutput();
+        qWarning() << Q_FUNC_INFO << tmux->readAllStandardError();
+    }
+
+    return result;
 }
 
 void TmuxSessionWrapper::setUser(const QString& user)
