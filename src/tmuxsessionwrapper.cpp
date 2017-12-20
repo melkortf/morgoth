@@ -186,16 +186,14 @@ bool TmuxSessionWrapper::exists() const
     });
 
     tmux->start();
-    bool result = tmux->waitForFinished(TmuxProcessTimeout)
-            && tmux->exitStatus() == QProcess::ExitStatus::NormalExit
-            && tmux->exitCode() == 0;
 
-    if (!result) {
+    if (!tmux->waitForFinished(TmuxProcessTimeout)) {
         qWarning() << Q_FUNC_INFO << tmux->readAllStandardOutput();
         qWarning() << Q_FUNC_INFO << tmux->readAllStandardError();
     }
 
-    return result;
+    return tmux->exitStatus() == QProcess::ExitStatus::NormalExit
+            && tmux->exitCode() == 0;
 }
 
 void TmuxSessionWrapper::setUser(const QString& user)
