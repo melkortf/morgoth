@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <pwd.h>
 
 namespace morgoth {
 
@@ -116,6 +117,20 @@ bool ServerCoordinator::start()
         m_tmux.kill();
         setStatus(Crashed);
         return false;
+    }
+
+    if (!user.isEmpty()) {
+        passwd* pwd = ::getpwnam(user.toLocal8Bit().constData());
+        if (!pwd) {
+            char* error = ::strerror(errno);
+            qWarning("Error retrieving uid and gid of user %s (%s)", qPrintable(user), error);
+            unlink(m_outputFileName.toLocal8Bit().constData());
+            m_tmux.kill();
+            setStatus(Crashed);
+            return false;
+        } else {
+            ::chown(m_outputFileName.toLocal8Bit().constData(), pwd->pw_uid, pwd->pw_gid);
+        }
     }
 
     m_logListener = new LogListener(m_outputFileName, this);
