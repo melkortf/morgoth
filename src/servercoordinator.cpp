@@ -84,6 +84,8 @@ void ServerCoordinator::setStatus(ServerCoordinator::Status status)
 
 bool ServerCoordinator::start()
 {
+    Q_ASSERT(server()->configuration());
+
     if (!server()->isValid()) {
         qWarning("%s is not installed properly", qPrintable(server()->name()));
         return false;
@@ -98,9 +100,8 @@ bool ServerCoordinator::start()
     setStatus(Starting);
 
     QString user = server()->configuration()->value("org.morgoth.Server.user");
-    if (user.isEmpty() && morgothd) {
+    if (user.isEmpty() && morgothd)
         user = morgothd->config().value("user").toString();
-    }
 
     m_tmux.setUser(user);
 
@@ -111,26 +112,10 @@ bool ServerCoordinator::start()
     }
 
     m_outputFileName = QString("/tmp/%1-tmux").arg(m_tmux.name());
-    int ret = mkfifo(m_outputFileName.toLocal8Bit().constData(), 0666);
-    if (ret) {
-        qWarning("%s: could not create fifo at %s", qPrintable(server()->name()), qPrintable(m_outputFileName));
+    if (!createFifo(m_outputFileName, user)) {
         m_tmux.kill();
         setStatus(Crashed);
         return false;
-    }
-
-    if (!user.isEmpty()) {
-        passwd* pwd = ::getpwnam(user.toLocal8Bit().constData());
-        if (!pwd) {
-            char* error = ::strerror(errno);
-            qWarning("Error retrieving uid and gid of user %s (%s)", qPrintable(user), error);
-            unlink(m_outputFileName.toLocal8Bit().constData());
-            m_tmux.kill();
-            setStatus(Crashed);
-            return false;
-        } else {
-            ::chown(m_outputFileName.toLocal8Bit().constData(), pwd->pw_uid, pwd->pw_gid);
-        }
     }
 
     m_logListener = new LogListener(m_outputFileName, this);
@@ -148,7 +133,6 @@ bool ServerCoordinator::start()
         return false;
     }
 
-    Q_ASSERT(server()->configuration());
     QString arguments = server()->configuration()->value("org.morgoth.Server.launchArguments");
     QString cmd = QString("%1/srcds_run %2").arg(server()->path().toLocalFile(), arguments);
     if (!m_tmux.sendKeys(cmd)) {
@@ -174,6 +158,29 @@ void ServerCoordinator::stop()
 void ServerCoordinator::flushLogs()
 {
     m_logCollector->save();
+}
+
+bool ServerCoordinator::createFifo(const QString& fileName, const QString& owner)
+{
+    int ret = ::mkfifo(fileName.toLocal8Bit().constData(), 0666);
+    if (ret) {
+        qWarning("%s: could not create fifo at %s", qPrintable(server()->name()), qPrintable(fileName));
+        return false;
+    }
+
+    if (!owner.isEmpty()) {
+        passwd* pwd = ::getpwnam(owner.toLocal8Bit().constData());
+        if (!pwd) {
+            char* error = ::strerror(errno);
+            qWarning("Error retrieving uid and gid of user %s (%s)", qPrintable(owner), error);
+            unlink(fileName.toLocal8Bit().constData());
+            return false;
+        } else {
+            ::chown(m_outputFileName.toLocal8Bit().constData(), pwd->pw_uid, pwd->pw_gid);
+        }
+    }
+
+    return true;
 }
 
 void ServerCoordinator::handleServerStarted()

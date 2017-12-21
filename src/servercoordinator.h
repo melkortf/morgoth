@@ -119,6 +119,9 @@ public slots:
      */
     void flushLogs();
 
+private:
+    bool createFifo(const QString& fileName, const QString& owner);
+
 private slots:
     void setStatus(Status status);
     void handleServerStarted();
