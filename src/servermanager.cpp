@@ -55,6 +55,15 @@ Server* ServerManager::add(const QUrl& path, const QString& name)
     return s;
 }
 
+QDBusObjectPath ServerManager::serverPath(const QString& serverName) const
+{
+    Server* server = find(serverName);
+    if (server)
+        return QDBusObjectPath(QStringLiteral("/servers/%1").arg(server->name()));
+    else
+        return QDBusObjectPath();
+}
+
 QStringList ServerManager::serverNames() const
 {
     QStringList result;

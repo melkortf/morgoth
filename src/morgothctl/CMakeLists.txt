@@ -3,7 +3,22 @@ find_package (Qt5 5.8 REQUIRED COMPONENTS Core DBus)
 set (CMAKE_AUTOMOC ON)
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set (morgothctl_SOURCES main.cpp)
+set (morgothctl_SOURCES
+    main.cpp
+    morgothctlplugin.h
+
+    configcommand.h
+    listcommand.h
+    startcommand.h
+    statuscommand.h
+    stopcommand.h
+
+    configcommand.cpp
+    listcommand.cpp
+    startcommand.cpp
+    statuscommand.cpp
+    stopcommand.cpp
+)
 set (morgoth_IFACES_DIR ${PROJECT_SOURCE_DIR}/src/interfaces)
 
 set (servercoordinator_IFACE_XML ${morgoth_IFACES_DIR}/org.morgoth.ServerCoordinator.xml)

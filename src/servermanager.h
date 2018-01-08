@@ -69,6 +69,11 @@ public:
     Server* add(const QUrl& path, const QString& name);
 
     /**
+     * \brief Returns the D-Bus path the given server is registered under.
+     */
+    QDBusObjectPath serverPath(const QString& serverName) const;
+
+    /**
      * \brief Gives direct access to all installed servers.
      */
     const QList<Server*>& servers() const { return m_servers; }

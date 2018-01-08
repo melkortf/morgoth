@@ -7,5 +7,9 @@
         <arg name="path" type="s" direction="in"/>
         <arg name="name" type="s" direction="in"/>
     </method>
+    <method name="serverPath">
+        <arg type="o" direction="out"/>
+        <arg name="serverName" type="s" direction="in"/>
+    </method>
   </interface>
 </node>
