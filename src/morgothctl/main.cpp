@@ -14,6 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "config.h"
+#include "addcommand.h"
 #include "configcommand.h"
 #include "listcommand.h"
 #include "morgothdaemon.h"
@@ -56,6 +57,7 @@ int main(int argc, char** argv)
 
     QList<morgoth::MorgothCtlPlugin*> commands({
         new ListCommand,
+        new AddCommand,
         new StartCommand,
         new StopCommand,
         new StatusCommand,

@@ -7,12 +7,14 @@ set (morgothctl_SOURCES
     main.cpp
     morgothctlplugin.h
 
+    addcommand.h
     configcommand.h
     listcommand.h
     startcommand.h
     statuscommand.h
     stopcommand.h
 
+    addcommand.cpp
     configcommand.cpp
     listcommand.cpp
     startcommand.cpp

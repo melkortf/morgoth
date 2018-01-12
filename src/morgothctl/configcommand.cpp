@@ -26,9 +26,9 @@ int ConfigCommand::execute(QDBusConnection dbus, const QStringList& arguments, Q
     parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsPositionalArguments);
     parser.setApplicationDescription("config - set/get a server's configuration");
     parser.addHelpOption();
-    parser.addPositionalArgument("name", "The server name");
-    parser.addPositionalArgument("key", "The config key");
-    parser.addPositionalArgument("value", "The config value");
+    parser.addPositionalArgument("name", "The server name.", QStringLiteral("%1 <name>").arg(command()));
+    parser.addPositionalArgument("key", "The config key.", "[key]");
+    parser.addPositionalArgument("value", "The config value.", "[value]");
     parser.process(arguments);
 
     QStringList args = parser.positionalArguments();
