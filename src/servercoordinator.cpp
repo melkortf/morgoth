@@ -28,12 +28,40 @@
 #include <sys/stat.h>
 #include <pwd.h>
 
+namespace {
+class PlayersInfoEvent : public morgoth::EventHandler {
+    Q_OBJECT
+
+public:
+    PlayersInfoEvent(QObject* parent = nullptr) : morgoth::EventHandler("status.playersinfo", parent) {}
+
+    QRegularExpression regex() const override
+    {
+        return QRegularExpression("^players\\s+\\:\\s+(\\d+)\\shumans,\\s(\\d+)\\sbots\\s\\((\\d+)\\smax\\)$");
+    }
+
+    int players;
+    int maxPlayers;
+
+protected:
+    void maybeActivated(const QString& line, const QRegularExpressionMatch& match) override
+    {
+        Q_UNUSED(line);
+        players = match.captured(1).toInt();
+        maxPlayers = match.captured(3).toInt();
+        emit activated();
+    }
+};
+}
+
 namespace morgoth {
 
 ServerCoordinator::ServerCoordinator(Server* server) :
     QObject(server),
     m_server(server)
 {
+    Q_ASSERT(server->isValid());
+
     QString logDirectory = server->configuration()->value("org.morgoth.Server.logDirectory");
     if (QDir::isRelativePath(logDirectory))
         logDirectory.prepend(server->path().toLocalFile() + QDir::separator());
@@ -51,6 +79,13 @@ ServerCoordinator::ServerCoordinator(Server* server) :
     ServerStoppedEvent* serverStopped = new ServerStoppedEvent;
     connect(serverStopped, &EventHandler::activated, this, &ServerCoordinator::handleServerStopped);
     installEventHandler(serverStopped);
+
+    PlayersInfoEvent* pi = new PlayersInfoEvent;
+    connect(pi, &EventHandler::activated, [pi, this]() {
+        setPlayerCount(pi->players);
+        setMaxPlayers(pi->maxPlayers);
+    });
+    installEventHandler(pi);
 
     new ServerCoordinatorAdaptor(this);
 
@@ -183,11 +218,31 @@ bool ServerCoordinator::createFifo(const QString& fileName, const QString& owner
     return true;
 }
 
+void ServerCoordinator::setPlayerCount(int playerCount)
+{
+    m_playerCount = playerCount;
+    emit playerCountChanged(m_playerCount);
+}
+
+void ServerCoordinator::setMaxPlayers(int maxPlayers)
+{
+    m_maxPlayers = maxPlayers;
+    emit maxPlayersChanged(m_maxPlayers);
+}
+
+void ServerCoordinator::setCurrentMap(const QString& currentMap)
+{
+    m_currentMap = currentMap;
+    emit currentMapChanged(m_currentMap);
+}
+
 void ServerCoordinator::handleServerStarted()
 {
     ServerStartedEvent* e = qobject_cast<ServerStartedEvent*>(sender());
     qInfo("%s: started %s", qPrintable(server()->name()), qPrintable(e->game()));
     setStatus(Running);
+
+    QTimer::singleShot(0, this, &ServerCoordinator::refreshRuntimeInfo);
 }
 
 void ServerCoordinator::handleServerStopped()
@@ -199,6 +254,8 @@ void ServerCoordinator::handleServerStopped()
     m_tmux.kill();
     Q_ASSERT(status() == ShuttingDown);
     setStatus(Offline);
+    setPlayerCount(0);
+    setMaxPlayers(0);
     qInfo("%s: stopped", qPrintable(server()->name()));
 }
 
@@ -214,6 +271,11 @@ void ServerCoordinator::stopSync()
 
     m_tmux.kill();
     unlink(m_outputFileName.toLocal8Bit().constData());
+}
+
+void ServerCoordinator::refreshRuntimeInfo()
+{
+    m_tmux.sendKeys("status");
 }
 
 } // namespace Morgoth
@@ -247,3 +309,4 @@ static void registerMetaType()
     qDBusRegisterMetaType<morgoth::ServerCoordinator::Status>();
 }
 Q_COREAPP_STARTUP_FUNCTION(registerMetaType)
+#include "servercoordinator.moc"

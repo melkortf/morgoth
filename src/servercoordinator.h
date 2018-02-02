@@ -45,6 +45,10 @@ class MORGOTH_EXPORT ServerCoordinator : public QObject {
      */
     Q_PROPERTY(const Server* server READ server CONSTANT)
 
+    Q_PROPERTY(int playerCount READ playerCount NOTIFY playerCountChanged)
+    Q_PROPERTY(int maxPlayers READ maxPlayers NOTIFY maxPlayersChanged)
+    Q_PROPERTY(QString currentMap READ currentMap NOTIFY currentMapChanged)
+
 public:
     /**
      * \brief The Status enum describes the status of the server's process.
@@ -61,6 +65,9 @@ public:
 
 signals:
     void statusChanged(morgoth::ServerCoordinator::Status newStatus);
+    void playerCountChanged(int playerCount);
+    void maxPlayersChanged(int maxPlayers);
+    void currentMapChanged(const QString& currentMap);
 
 public:
     /**
@@ -90,6 +97,10 @@ public:
 
     const Server* server() const { return m_server; }
     Status status() const { return m_status; }
+
+    int playerCount() const { return m_playerCount; }
+    int maxPlayers() const { return m_maxPlayers; }
+    const QString& currentMap() const { return m_currentMap; }
 
 public slots:
     /**
@@ -121,15 +132,22 @@ public slots:
 
 private:
     bool createFifo(const QString& fileName, const QString& owner);
+    void setPlayerCount(int playerCount);
+    void setMaxPlayers(int maxPlayers);
+    void setCurrentMap(const QString& currentMap);
 
 private slots:
     void setStatus(Status status);
     void handleServerStarted();
     void handleServerStopped();
     void stopSync();
+    void refreshRuntimeInfo();
 
 private:
     Server* m_server;
+    int m_playerCount = 0;
+    int m_maxPlayers = 0;
+    QString currentMap;
     Status m_status = Status::Offline;
     TmuxSessionWrapper m_tmux;
     QString m_outputFileName;
