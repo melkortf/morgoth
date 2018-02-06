@@ -138,6 +138,12 @@ EventHandler* ServerCoordinator::findEvent(const QString& name)
     return m_eventHandlers.value(name, nullptr);
 }
 
+void ServerCoordinator::sendCommand(const QString& command)
+{
+    if (state() == Running)
+        m_tmux.sendKeys(command);
+}
+
 void ServerCoordinator::setState(ServerCoordinator::State state)
 {
     m_state = state;

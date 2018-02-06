@@ -88,6 +88,13 @@ public:
      */
     EventHandler* findEvent(const QString& name);
 
+    /**
+     * \brief Sends the given \c command to the server.
+     * \note This method does nothing if the server is not running.
+     * \param command The command to be sent.
+     */
+    void sendCommand(const QString& command);
+
     const Server* server() const { return m_server; }
     State state() const { return m_state; }
 
