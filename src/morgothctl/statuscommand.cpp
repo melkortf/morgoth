@@ -46,24 +46,24 @@ int StatusCommand::execute(QDBusConnection dbus, const QStringList& arguments, Q
     org::morgoth::Server server(morgoth::MorgothDaemon::dbusServiceName(), serverManager.serverPath(serverName).value().path(), dbus);
     if (server.valid()) {
         org::morgoth::ServerCoordinator coordinator(morgoth::MorgothDaemon::dbusServiceName(), server.coordinatorPath().path(), dbus);
-        switch (coordinator.status()) {
-            case morgoth::ServerCoordinator::Status::Offline:
+        switch (coordinator.state()) {
+            case morgoth::ServerCoordinator::State::Offline:
                 status = "offline";
                 break;
 
-            case morgoth::ServerCoordinator::Status::Starting:
+            case morgoth::ServerCoordinator::State::Starting:
                 status = "starting";
                 break;
 
-            case morgoth::ServerCoordinator::Status::Running:
+            case morgoth::ServerCoordinator::State::Running:
                 status = "running";
                 break;
 
-            case morgoth::ServerCoordinator::Status::ShuttingDown:
+            case morgoth::ServerCoordinator::State::ShuttingDown:
                 status = "shutting down";
                 break;
 
-            case morgoth::ServerCoordinator::Status::Crashed:
+            case morgoth::ServerCoordinator::State::Crashed:
                 status = "crashed";
                 break;
         }

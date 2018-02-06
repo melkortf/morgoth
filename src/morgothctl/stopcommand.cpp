@@ -63,15 +63,15 @@ int StopCommand::execute(QDBusConnection dbus, const QStringList& arguments, QTe
         out << "Stopping \"" << serverName << "\"... " << flush;
 
         org::morgoth::ServerCoordinator coordinator(morgoth::MorgothDaemon::dbusServiceName(), server.coordinatorPath().path(), dbus);
-        switch (coordinator.status()) {
-            case morgoth::ServerCoordinator::Status::Offline:
-            case morgoth::ServerCoordinator::Status::Crashed:
+        switch (coordinator.state()) {
+            case morgoth::ServerCoordinator::State::Offline:
+            case morgoth::ServerCoordinator::State::Crashed:
                 out << "not running" << endl;
                 break;
 
-            case morgoth::ServerCoordinator::Status::Starting:
-            case morgoth::ServerCoordinator::Status::Running:
-            case morgoth::ServerCoordinator::Status::ShuttingDown:
+            case morgoth::ServerCoordinator::State::Starting:
+            case morgoth::ServerCoordinator::State::Running:
+            case morgoth::ServerCoordinator::State::ShuttingDown:
                 coordinator.stop();
                 out << endl;
                 break;

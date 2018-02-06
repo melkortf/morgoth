@@ -52,6 +52,28 @@ protected:
         emit activated();
     }
 };
+
+class MapInfoEvent : public morgoth::EventHandler {
+    Q_OBJECT
+
+public:
+    MapInfoEvent(QObject* parent = nullptr) : morgoth::EventHandler("status.mapinfo", parent) {}
+
+    QRegularExpression regex() const override
+    {
+        return QRegularExpression("^map\\s+\\:\\s+(\\w+).*$");
+    }
+
+    QString map;
+
+protected:
+    void maybeActivated(const QString& line, const QRegularExpressionMatch& match) override
+    {
+        Q_UNUSED(line);
+        map = match.captured(1);
+        emit activated();
+    }
+};
 }
 
 namespace morgoth {
@@ -67,7 +89,7 @@ ServerCoordinator::ServerCoordinator(Server* server) :
         logDirectory.prepend(server->path().toLocalFile() + QDir::separator());
 
     m_logCollector = new LogCollector(QDir::cleanPath(logDirectory), this);
-    connect(this, &ServerCoordinator::statusChanged, m_logCollector, &LogCollector::save);
+    connect(this, &ServerCoordinator::stateChanged, m_logCollector, &LogCollector::save);
 
     connect(qApp, &QCoreApplication::aboutToQuit, this, &ServerCoordinator::stopSync);
     installEventHandler(new MapChangeEvent);
@@ -82,10 +104,15 @@ ServerCoordinator::ServerCoordinator(Server* server) :
 
     PlayersInfoEvent* pi = new PlayersInfoEvent;
     connect(pi, &EventHandler::activated, [pi, this]() {
-        setPlayerCount(pi->players);
-        setMaxPlayers(pi->maxPlayers);
+
     });
     installEventHandler(pi);
+
+    MapInfoEvent* mi = new MapInfoEvent;
+    connect(mi, &EventHandler::activated, [mi, this]() {
+
+    });
+    installEventHandler(mi);
 
     new ServerCoordinatorAdaptor(this);
 
@@ -111,10 +138,10 @@ EventHandler* ServerCoordinator::findEvent(const QString& name)
     return m_eventHandlers.value(name, nullptr);
 }
 
-void ServerCoordinator::setStatus(ServerCoordinator::Status status)
+void ServerCoordinator::setState(ServerCoordinator::State state)
 {
-    m_status = status;
-    emit statusChanged(m_status);
+    m_state = state;
+    emit stateChanged(m_state);
 }
 
 bool ServerCoordinator::start()
@@ -126,13 +153,13 @@ bool ServerCoordinator::start()
         return false;
     }
 
-    if (status() != Offline) {
+    if (state() != Offline) {
         qWarning("%s is already running", qPrintable(server()->name()));
         return false;
     }
 
     qInfo("%s: starting...", qPrintable(server()->name()));
-    setStatus(Starting);
+    setState(Starting);
 
     QString user = server()->configuration()->value("org.morgoth.Server.user");
     if (user.isEmpty() && morgothd)
@@ -142,14 +169,14 @@ bool ServerCoordinator::start()
 
     if (!m_tmux.create()) {
         qWarning("%s: could not create a tmux session", qPrintable(server()->name()));
-        setStatus(Crashed);
+        setState(Crashed);
         return false;
     }
 
     m_outputFileName = QString("/tmp/%1-tmux").arg(m_tmux.name());
     if (!createFifo(m_outputFileName, user)) {
         m_tmux.kill();
-        setStatus(Crashed);
+        setState(Crashed);
         return false;
     }
 
@@ -164,7 +191,7 @@ bool ServerCoordinator::start()
         qWarning("%s: could not redirect output to %s", qPrintable(server()->name()), qPrintable(m_outputFileName));
         m_tmux.kill();
         unlink(m_outputFileName.toLocal8Bit().constData());
-        setStatus(Crashed);
+        setState(Crashed);
         return false;
     }
 
@@ -174,7 +201,7 @@ bool ServerCoordinator::start()
         qWarning("%s: could not start the server", qPrintable(server()->name()));
         m_tmux.kill();
         unlink(m_outputFileName.toLocal8Bit().constData());
-        setStatus(Crashed);
+        setState(Crashed);
         return false;
     }
 
@@ -183,9 +210,9 @@ bool ServerCoordinator::start()
 
 void ServerCoordinator::stop()
 {
-    if (status() == Running || status() == Starting) {
+    if (state() == Running || state() == Starting) {
         qDebug("%s: stopping...", qPrintable(server()->name()));
-        setStatus(ShuttingDown);
+        setState(ShuttingDown);
         m_tmux.sendKeys("quit");
     }
 }
@@ -218,29 +245,11 @@ bool ServerCoordinator::createFifo(const QString& fileName, const QString& owner
     return true;
 }
 
-void ServerCoordinator::setPlayerCount(int playerCount)
-{
-    m_playerCount = playerCount;
-    emit playerCountChanged(m_playerCount);
-}
-
-void ServerCoordinator::setMaxPlayers(int maxPlayers)
-{
-    m_maxPlayers = maxPlayers;
-    emit maxPlayersChanged(m_maxPlayers);
-}
-
-void ServerCoordinator::setCurrentMap(const QString& currentMap)
-{
-    m_currentMap = currentMap;
-    emit currentMapChanged(m_currentMap);
-}
-
 void ServerCoordinator::handleServerStarted()
 {
     ServerStartedEvent* e = qobject_cast<ServerStartedEvent*>(sender());
     qInfo("%s: started %s", qPrintable(server()->name()), qPrintable(e->game()));
-    setStatus(Running);
+    setState(Running);
 
     QTimer::singleShot(0, this, &ServerCoordinator::refreshRuntimeInfo);
 }
@@ -252,10 +261,8 @@ void ServerCoordinator::handleServerStopped()
     m_logListener = nullptr;
     unlink(m_outputFileName.toLocal8Bit().constData());
     m_tmux.kill();
-    Q_ASSERT(status() == ShuttingDown);
-    setStatus(Offline);
-    setPlayerCount(0);
-    setMaxPlayers(0);
+    Q_ASSERT(state() == ShuttingDown);
+    setState(Offline);
     qInfo("%s: stopped", qPrintable(server()->name()));
 }
 
@@ -280,9 +287,9 @@ void ServerCoordinator::refreshRuntimeInfo()
 
 } // namespace Morgoth
 
-QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::Status& status)
+QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::State& state)
 {
-    QString strStatus = QMetaEnum::fromType<morgoth::ServerCoordinator::Status>().valueToKey(status);
+    QString strStatus = QMetaEnum::fromType<morgoth::ServerCoordinator::State>().valueToKey(state);
 
     argument.beginStructure();
     argument << strStatus;
@@ -291,7 +298,7 @@ QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordina
     return argument;
 }
 
-const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::Status& status)
+const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::State& state)
 {
     QString strStatus;
 
@@ -299,14 +306,14 @@ const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCo
     argument >> strStatus;
     argument.endStructure();
 
-    int value = QMetaEnum::fromType<morgoth::ServerCoordinator::Status>().keyToValue(strStatus.toLocal8Bit().constData());
-    status = static_cast<morgoth::ServerCoordinator::Status>(value);
+    int value = QMetaEnum::fromType<morgoth::ServerCoordinator::State>().keyToValue(strStatus.toLocal8Bit().constData());
+    state = static_cast<morgoth::ServerCoordinator::State>(value);
     return argument;
 }
 
 static void registerMetaType()
 {
-    qDBusRegisterMetaType<morgoth::ServerCoordinator::Status>();
+    qDBusRegisterMetaType<morgoth::ServerCoordinator::State>();
 }
 Q_COREAPP_STARTUP_FUNCTION(registerMetaType)
 #include "servercoordinator.moc"

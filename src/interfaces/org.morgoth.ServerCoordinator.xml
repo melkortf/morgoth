@@ -6,20 +6,12 @@
     </method>
     <method name="stop">
     </method>
-    <property name="status" type="(s)" access="read">
-        <annotation name="org.qtproject.QtDBus.QtTypeName" value="morgoth::ServerCoordinator::Status"/>
+    <property name="state" type="(s)" access="read">
+        <annotation name="org.qtproject.QtDBus.QtTypeName" value="morgoth::ServerCoordinator::State"/>
     </property>
-    <property name="playerCount" type="i" access="read"/>
-    <property name="maxPlayers" type="i" access="read"/>
-    <signal name="statusChanged">
-        <arg name="newStatus" type="(s)" direction="out"/>
-        <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="morgoth::ServerCoordinator::Status"/>
-    </signal>
-    <signal name="playerCountChanged">
-        <arg name="playerCount" type="i" direction="out"/>
-    </signal>
-    <signal name="maxPlayersChanged">
-        <arg name="maxPlayers" type="i" direction="out"/>
+    <signal name="stateChanged">
+        <arg name="state" type="(s)" direction="out"/>
+        <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="morgoth::ServerCoordinator::State"/>
     </signal>
     <method name="flushLogs">
     </method>

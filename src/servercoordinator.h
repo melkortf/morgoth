@@ -38,22 +38,18 @@ class MORGOTH_EXPORT ServerCoordinator : public QObject {
     /**
      * The server process status.
      */
-    Q_PROPERTY(morgoth::ServerCoordinator::Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(morgoth::ServerCoordinator::State state READ state NOTIFY stateChanged)
 
     /**
      * The server instance.
      */
     Q_PROPERTY(const Server* server READ server CONSTANT)
 
-    Q_PROPERTY(int playerCount READ playerCount NOTIFY playerCountChanged)
-    Q_PROPERTY(int maxPlayers READ maxPlayers NOTIFY maxPlayersChanged)
-    Q_PROPERTY(QString currentMap READ currentMap NOTIFY currentMapChanged)
-
 public:
     /**
-     * \brief The Status enum describes the status of the server's process.
+     * \brief The State enum describes the state of the server's process.
      */
-    enum Status {
+    enum State {
         Offline         /**< The server is offline. */,
         Starting        /**< The server is booting up. */,
         Running         /**< The server is running. */,
@@ -61,13 +57,10 @@ public:
                             process has not exited yet. */,
         Crashed         /**< The server has crashed. */
     };
-    Q_ENUM(Status)
+    Q_ENUM(State)
 
 signals:
-    void statusChanged(morgoth::ServerCoordinator::Status newStatus);
-    void playerCountChanged(int playerCount);
-    void maxPlayersChanged(int maxPlayers);
-    void currentMapChanged(const QString& currentMap);
+    void stateChanged(morgoth::ServerCoordinator::State state);
 
 public:
     /**
@@ -96,11 +89,7 @@ public:
     EventHandler* findEvent(const QString& name);
 
     const Server* server() const { return m_server; }
-    Status status() const { return m_status; }
-
-    int playerCount() const { return m_playerCount; }
-    int maxPlayers() const { return m_maxPlayers; }
-    const QString& currentMap() const { return m_currentMap; }
+    State state() const { return m_state; }
 
 public slots:
     /**
@@ -132,12 +121,9 @@ public slots:
 
 private:
     bool createFifo(const QString& fileName, const QString& owner);
-    void setPlayerCount(int playerCount);
-    void setMaxPlayers(int maxPlayers);
-    void setCurrentMap(const QString& currentMap);
 
 private slots:
-    void setStatus(Status status);
+    void setState(State state);
     void handleServerStarted();
     void handleServerStopped();
     void stopSync();
@@ -145,10 +131,7 @@ private slots:
 
 private:
     Server* m_server;
-    int m_playerCount = 0;
-    int m_maxPlayers = 0;
-    QString currentMap;
-    Status m_status = Status::Offline;
+    State m_state = State::Offline;
     TmuxSessionWrapper m_tmux;
     QString m_outputFileName;
     LogListener* m_logListener = nullptr;
@@ -159,7 +142,7 @@ private:
 
 } // namespace Morgoth
 
-MORGOTH_EXPORT QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::Status& status);
-MORGOTH_EXPORT const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::Status& status);
+MORGOTH_EXPORT QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::State& state);
+MORGOTH_EXPORT const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::State& state);
 
 #endif // SERVERCOORDINATOR_H
