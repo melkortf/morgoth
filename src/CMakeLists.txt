@@ -17,6 +17,7 @@ set (morgoth_INCLUDES
     servercoordinator.h
     servermanager.h
     serverstartedevent.h
+    serverstatus.h
     serverstoppedevent.h
     tmuxsessionwrapper.h
     userprocess.h
@@ -35,6 +36,7 @@ set (morgoth_SOURCES
     servercoordinator.cpp
     servermanager.cpp
     serverstartedevent.cpp
+    serverstatus.cpp
     serverstoppedevent.cpp
     tmuxsessionwrapper.cpp
     userprocess.cpp
