@@ -14,12 +14,120 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "serverstatus.h"
+#include "eventhandler.h"
+#include <QtCore>
+
+namespace {
+class StatusPlayerLineEvent : public morgoth::EventHandler {
+    Q_OBJECT
+
+public:
+    StatusPlayerLineEvent(QObject* parent = nullptr) : morgoth::EventHandler("status.playersinfo", parent) {}
+
+    QRegularExpression regex() const override
+    {
+        return QRegularExpression("^players\\s+\\:\\s+(\\d+)\\shumans,\\s(\\d+)\\sbots\\s\\((\\d+)\\smax\\)$");
+    }
+
+    int players;
+    int maxPlayers;
+
+protected:
+    void maybeActivated(const QString& line, const QRegularExpressionMatch& match) override
+    {
+        Q_UNUSED(line);
+        players = match.captured(1).toInt();
+        maxPlayers = match.captured(3).toInt();
+        emit activated();
+    }
+};
+
+class StatusMapLineEvent : public morgoth::EventHandler {
+    Q_OBJECT
+
+public:
+    StatusMapLineEvent(QObject* parent = nullptr) : morgoth::EventHandler("status.mapinfo", parent) {}
+
+    QRegularExpression regex() const override
+    {
+        return QRegularExpression("^map\\s+\\:\\s+(\\w+).*$");
+    }
+
+    QString map;
+
+protected:
+    void maybeActivated(const QString& line, const QRegularExpressionMatch& match) override
+    {
+        Q_UNUSED(line);
+        map = match.captured(1);
+        emit activated();
+    }
+};
+}
 
 namespace morgoth {
 
-ServerStatus::ServerStatus(QObject *parent) : QObject(parent)
+ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
+    QObject(parent),
+    m_coordinator(coordinator)
 {
+    StatusPlayerLineEvent* playerLine = new StatusPlayerLineEvent;
+    connect(playerLine, &EventHandler::activated, [playerLine, this]() {
+        setPlayerCount(playerLine->players);
+        setMaxPlayers(playerLine->maxPlayers);
+    });
+    m_coordinator->installEventHandler(playerLine);
 
+    StatusMapLineEvent* mapLine = new StatusMapLineEvent;
+    connect(mapLine, &EventHandler::activated, [mapLine, this]() {
+        setMap(mapLine->map);
+    });
+    m_coordinator->installEventHandler(mapLine);
+}
+
+void ServerStatus::reset()
+{
+    setPlayerCount(0);
+    setMaxPlayers(0);
+    setMap(QString());
+}
+
+void ServerStatus::setPlayerCount(int playerCount)
+{
+    m_playerCount = playerCount;
+    emit playerCountChanged(m_playerCount);
+}
+
+void ServerStatus::setMaxPlayers(int maxPlayers)
+{
+    m_maxPlayers = maxPlayers;
+    emit maxPlayersChanged(m_maxPlayers);
+}
+
+void ServerStatus::setMap(const QString& map)
+{
+    m_map = map;
+    emit mapChanged(m_map);
+}
+
+void ServerStatus::handleStateChange(ServerCoordinator::State serverState)
+{
+    switch (serverState) {
+        case ServerCoordinator::State::Running:
+            QTimer::singleShot(0, this, &ServerStatus::refreshStatus);
+            break;
+
+        default:
+            reset();
+            break;
+    }
+}
+
+void ServerStatus::refreshStatus()
+{
+    m_coordinator->sendCommand("status");
 }
 
 } // namespace morgoth
+
+#include "serverstatus.moc"

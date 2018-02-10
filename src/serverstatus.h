@@ -16,19 +16,53 @@
 #ifndef SERVERSTATUS_H
 #define SERVERSTATUS_H
 
-#include <QObject>
+#include "morgoth_export.h"
+#include "servercoordinator.h"
+#include <QtCore/QObject>
 
 namespace morgoth {
 
 class ServerStatus : public QObject {
     Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.morgoth.ServerStatus")
 
-public:
-    explicit ServerStatus(QObject *parent = nullptr);
+    Q_PROPERTY(QString hostname READ hostname NOTIFY hostnameChanged)
+    Q_PROPERTY(int playerCount READ playerCount NOTIFY playerCountChanged)
+    Q_PROPERTY(int maxPlayers READ maxPlayers NOTIFY maxPlayersChanged)
+    Q_PROPERTY(QString map READ map NOTIFY mapChanged)
 
 signals:
+    void hostnameChanged(const QString& hostname);
+    void playerCountChanged(int playerCount);
+    void maxPlayersChanged(int maxPlayers);
+    void mapChanged(const QString& map);
 
-public slots:
+public:
+    explicit ServerStatus(ServerCoordinator* coordinator, QObject *parent = nullptr);
+
+    const QString& hostname() const { return m_hostname; }
+    int playerCount() const { return m_playerCount; }
+    int maxPlayers() const { return m_maxPlayers; }
+    QString map() const { return m_map; }
+
+private:
+    void reset();
+    void setPlayerCount(int playerCount);
+    void setMaxPlayers(int maxPlayers);
+    void setMap(const QString& map);
+
+private slots:
+    void handleStateChange(ServerCoordinator::State serverState);
+    void refreshStatus();
+
+private:
+    ServerCoordinator* m_coordinator;
+
+    QString m_hostname;
+    int m_playerCount;
+    int m_maxPlayers;
+    QString m_map;
+
 };
 
 } // namespace morgoth

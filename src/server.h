@@ -26,6 +26,7 @@
 namespace morgoth {
 
 class ServerCoordinator;
+class ServerStatus;
 
 /**
  * \brief The Server class represents a single server installation.
@@ -77,6 +78,16 @@ class MORGOTH_EXPORT Server : public QObject {
      */
     Q_PROPERTY(QDBusObjectPath configurationPath READ configurationPath CONSTANT)
 
+    /**
+     * This server's status.
+     */
+    Q_PROPERTY(ServerStatus* status READ status CONSTANT)
+
+    /**
+     * This server's status object D-Bus path.
+     */
+    Q_PROPERTY(QDBusObjectPath statusPath READ statusPath CONSTANT)
+
 public:
     /**
      * \brief Creates the new \c Server instance.
@@ -109,6 +120,9 @@ public:
     ServerConfiguration* configuration() { return m_configuration; }
     const ServerConfiguration* configuration() const { return m_configuration; }
     const QDBusObjectPath& configurationPath() const { return m_configurationPath; }
+    ServerStatus* status() { return m_status; }
+    const ServerStatus* status() const { return m_status; }
+    const QDBusObjectPath& statusPath() const { return m_statusPath; }
 
 private:
     void discover();
@@ -122,6 +136,8 @@ private:
     QDBusObjectPath m_coordinatorPath;
     ServerConfiguration* m_configuration = nullptr;
     QDBusObjectPath m_configurationPath;
+    ServerStatus* m_status = nullptr;
+    QDBusObjectPath m_statusPath;
 
 };
 

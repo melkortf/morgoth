@@ -28,54 +28,6 @@
 #include <sys/stat.h>
 #include <pwd.h>
 
-namespace {
-class PlayersInfoEvent : public morgoth::EventHandler {
-    Q_OBJECT
-
-public:
-    PlayersInfoEvent(QObject* parent = nullptr) : morgoth::EventHandler("status.playersinfo", parent) {}
-
-    QRegularExpression regex() const override
-    {
-        return QRegularExpression("^players\\s+\\:\\s+(\\d+)\\shumans,\\s(\\d+)\\sbots\\s\\((\\d+)\\smax\\)$");
-    }
-
-    int players;
-    int maxPlayers;
-
-protected:
-    void maybeActivated(const QString& line, const QRegularExpressionMatch& match) override
-    {
-        Q_UNUSED(line);
-        players = match.captured(1).toInt();
-        maxPlayers = match.captured(3).toInt();
-        emit activated();
-    }
-};
-
-class MapInfoEvent : public morgoth::EventHandler {
-    Q_OBJECT
-
-public:
-    MapInfoEvent(QObject* parent = nullptr) : morgoth::EventHandler("status.mapinfo", parent) {}
-
-    QRegularExpression regex() const override
-    {
-        return QRegularExpression("^map\\s+\\:\\s+(\\w+).*$");
-    }
-
-    QString map;
-
-protected:
-    void maybeActivated(const QString& line, const QRegularExpressionMatch& match) override
-    {
-        Q_UNUSED(line);
-        map = match.captured(1);
-        emit activated();
-    }
-};
-}
-
 namespace morgoth {
 
 ServerCoordinator::ServerCoordinator(Server* server) :
@@ -101,18 +53,6 @@ ServerCoordinator::ServerCoordinator(Server* server) :
     ServerStoppedEvent* serverStopped = new ServerStoppedEvent;
     connect(serverStopped, &EventHandler::activated, this, &ServerCoordinator::handleServerStopped);
     installEventHandler(serverStopped);
-
-    PlayersInfoEvent* pi = new PlayersInfoEvent;
-    connect(pi, &EventHandler::activated, [pi, this]() {
-
-    });
-    installEventHandler(pi);
-
-    MapInfoEvent* mi = new MapInfoEvent;
-    connect(mi, &EventHandler::activated, [mi, this]() {
-
-    });
-    installEventHandler(mi);
 
     new ServerCoordinatorAdaptor(this);
 
@@ -322,4 +262,3 @@ static void registerMetaType()
     qDBusRegisterMetaType<morgoth::ServerCoordinator::State>();
 }
 Q_COREAPP_STARTUP_FUNCTION(registerMetaType)
-#include "servercoordinator.moc"

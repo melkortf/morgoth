@@ -17,6 +17,7 @@
 #include "morgothdaemon.h"
 #include "servercoordinator.h"
 #include "serveradaptor.h"
+#include "serverstatus.h"
 #include <QtCore>
 
 namespace morgoth {
@@ -41,6 +42,8 @@ Server::Server(const QUrl& path, const QString& name, QObject* parent) :
     if (isValid()) {
         m_coordinatorPath.setPath(QStringLiteral("/servers/%1/coordinator").arg(name));
         m_coordinator = new ServerCoordinator(this);
+        m_statusPath.setPath(QStringLiteral("/servers/%1/status").arg(name));
+        m_status = new ServerStatus(m_coordinator, this);
     }
 }
 
