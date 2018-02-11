@@ -15,6 +15,8 @@
 
 #include "serverstatus.h"
 #include "eventhandler.h"
+#include "morgothdaemon.h"
+#include "serverstatusadaptor.h"
 #include <QtCore>
 
 namespace {
@@ -71,6 +73,8 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
     QObject(parent),
     m_coordinator(coordinator)
 {
+    connect(coordinator, &ServerCoordinator::stateChanged, this, &ServerStatus::handleStateChange);
+
     StatusPlayerLineEvent* playerLine = new StatusPlayerLineEvent;
     connect(playerLine, &EventHandler::activated, [playerLine, this]() {
         setPlayerCount(playerLine->players);
@@ -83,6 +87,10 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
         setMap(mapLine->map);
     });
     m_coordinator->installEventHandler(mapLine);
+
+    new ServerStatusAdaptor(this);
+    if (morgothd)
+        morgothd->dbusConnection().registerObject(coordinator->server()->statusPath().path(), this);
 }
 
 void ServerStatus::reset()
@@ -125,6 +133,7 @@ void ServerStatus::handleStateChange(ServerCoordinator::State serverState)
 
 void ServerStatus::refreshStatus()
 {
+    // TODO Execute rcon command instead of this
     m_coordinator->sendCommand("status");
 }
 

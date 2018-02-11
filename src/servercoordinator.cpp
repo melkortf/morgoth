@@ -196,8 +196,6 @@ void ServerCoordinator::handleServerStarted()
     ServerStartedEvent* e = qobject_cast<ServerStartedEvent*>(sender());
     qInfo("%s: started %s", qPrintable(server()->name()), qPrintable(e->game()));
     setState(Running);
-
-    QTimer::singleShot(0, this, &ServerCoordinator::refreshRuntimeInfo);
 }
 
 void ServerCoordinator::handleServerStopped()
@@ -224,11 +222,6 @@ void ServerCoordinator::stopSync()
 
     m_tmux.kill();
     unlink(m_outputFileName.toLocal8Bit().constData());
-}
-
-void ServerCoordinator::refreshRuntimeInfo()
-{
-    m_tmux.sendKeys("status");
 }
 
 } // namespace Morgoth

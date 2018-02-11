@@ -134,7 +134,6 @@ private slots:
     void handleServerStarted();
     void handleServerStopped();
     void stopSync();
-    void refreshRuntimeInfo();
 
 private:
     Server* m_server;

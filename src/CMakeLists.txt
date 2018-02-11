@@ -52,6 +52,8 @@ qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.ServerCoordinator.xml servercoordinator.h morgoth::ServerCoordinator)
 qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.ServerManager.xml servermanager.h morgoth::ServerManager)
+qt5_add_dbus_adaptor (morgoth_SOURCES
+    interfaces/org.morgoth.ServerStatus.xml serverstatus.h morgoth::ServerStatus)
 
 add_library (morgoth SHARED
     ${morgoth_INCLUDES}
