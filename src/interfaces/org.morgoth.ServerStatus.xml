@@ -1,0 +1,21 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.morgoth.ServerStatus">
+    <property name="hostname" type="s" access="read"/>
+    <property name="playerCount" type="i" access="read"/>
+    <property name="maxPlayers" type="i" access="read"/>
+    <property name="map" type="s" access="read"/>
+    <signal name="hostnameChanged">
+      <arg name="hostname" type="s" direction="out"/>
+    </signal>
+    <signal name="playerCountChanged">
+      <arg name="playerCount" type="i" direction="out"/>
+    </signal>
+    <signal name="maxPlayersChanged">
+      <arg name="maxPlayers" type="i" direction="out"/>
+    </signal>
+    <signal name="mapChanged">
+      <arg name="map" type="s" direction="out"/>
+    </signal>
+  </interface>
+</node>

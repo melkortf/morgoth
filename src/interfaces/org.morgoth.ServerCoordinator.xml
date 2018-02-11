@@ -2,16 +2,16 @@
 <node>
   <interface name="org.morgoth.ServerCoordinator">
     <method name="start">
-      <arg type="b" direction="out"/>
+        <arg type="b" direction="out"/>
     </method>
     <method name="stop">
     </method>
-    <property name="status" type="(s)" access="read">
-        <annotation name="org.qtproject.QtDBus.QtTypeName" value="morgoth::ServerCoordinator::Status"/>
+    <property name="state" type="(s)" access="read">
+        <annotation name="org.qtproject.QtDBus.QtTypeName" value="morgoth::ServerCoordinator::State"/>
     </property>
-    <signal name="statusChanged">
-        <arg name="newStatus" type="(s)" direction="out"/>
-        <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="morgoth::ServerCoordinator::Status"/>
+    <signal name="stateChanged">
+        <arg name="state" type="(s)" direction="out"/>
+        <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="morgoth::ServerCoordinator::State"/>
     </signal>
     <method name="flushLogs">
     </method>

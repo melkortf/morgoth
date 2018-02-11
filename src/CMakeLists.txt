@@ -17,6 +17,7 @@ set (morgoth_INCLUDES
     servercoordinator.h
     servermanager.h
     serverstartedevent.h
+    serverstatus.h
     serverstoppedevent.h
     tmuxsessionwrapper.h
     userprocess.h
@@ -35,6 +36,7 @@ set (morgoth_SOURCES
     servercoordinator.cpp
     servermanager.cpp
     serverstartedevent.cpp
+    serverstatus.cpp
     serverstoppedevent.cpp
     tmuxsessionwrapper.cpp
     userprocess.cpp
@@ -50,6 +52,8 @@ qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.ServerCoordinator.xml servercoordinator.h morgoth::ServerCoordinator)
 qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.ServerManager.xml servermanager.h morgoth::ServerManager)
+qt5_add_dbus_adaptor (morgoth_SOURCES
+    interfaces/org.morgoth.ServerStatus.xml serverstatus.h morgoth::ServerStatus)
 
 add_library (morgoth SHARED
     ${morgoth_INCLUDES}

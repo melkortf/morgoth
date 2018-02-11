@@ -38,7 +38,7 @@ class MORGOTH_EXPORT ServerCoordinator : public QObject {
     /**
      * The server process status.
      */
-    Q_PROPERTY(morgoth::ServerCoordinator::Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(morgoth::ServerCoordinator::State state READ state NOTIFY stateChanged)
 
     /**
      * The server instance.
@@ -47,9 +47,9 @@ class MORGOTH_EXPORT ServerCoordinator : public QObject {
 
 public:
     /**
-     * \brief The Status enum describes the status of the server's process.
+     * \brief The State enum describes the state of the server's process.
      */
-    enum Status {
+    enum State {
         Offline         /**< The server is offline. */,
         Starting        /**< The server is booting up. */,
         Running         /**< The server is running. */,
@@ -57,10 +57,10 @@ public:
                             process has not exited yet. */,
         Crashed         /**< The server has crashed. */
     };
-    Q_ENUM(Status)
+    Q_ENUM(State)
 
 signals:
-    void statusChanged(morgoth::ServerCoordinator::Status newStatus);
+    void stateChanged(morgoth::ServerCoordinator::State state);
 
 public:
     /**
@@ -88,8 +88,15 @@ public:
      */
     EventHandler* findEvent(const QString& name);
 
+    /**
+     * \brief Sends the given \c command to the server.
+     * \note This method does nothing if the server is not running.
+     * \param command The command to be sent.
+     */
+    void sendCommand(const QString& command);
+
     const Server* server() const { return m_server; }
-    Status status() const { return m_status; }
+    State state() const { return m_state; }
 
 public slots:
     /**
@@ -123,14 +130,14 @@ private:
     bool createFifo(const QString& fileName, const QString& owner);
 
 private slots:
-    void setStatus(Status status);
+    void setState(State state);
     void handleServerStarted();
     void handleServerStopped();
     void stopSync();
 
 private:
     Server* m_server;
-    Status m_status = Status::Offline;
+    State m_state = State::Offline;
     TmuxSessionWrapper m_tmux;
     QString m_outputFileName;
     LogListener* m_logListener = nullptr;
@@ -141,7 +148,7 @@ private:
 
 } // namespace Morgoth
 
-MORGOTH_EXPORT QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::Status& status);
-MORGOTH_EXPORT const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::Status& status);
+MORGOTH_EXPORT QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::State& state);
+MORGOTH_EXPORT const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::State& state);
 
 #endif // SERVERCOORDINATOR_H
