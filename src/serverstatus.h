@@ -59,8 +59,8 @@ private:
     ServerCoordinator* m_coordinator;
 
     QString m_hostname;
-    int m_playerCount;
-    int m_maxPlayers;
+    int m_playerCount = 0;
+    int m_maxPlayers = 0;
     QString m_map;
 
 };
