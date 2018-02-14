@@ -20,6 +20,28 @@
 #include <QtCore>
 
 namespace {
+class StatusHostnameLineEvent : public morgoth::EventHandler {
+    Q_OBJECT
+
+public:
+    StatusHostnameLineEvent(QObject* parent = nullptr) : morgoth::EventHandler("status.hostnameinfo", parent) {}
+
+    QRegularExpression regex() const override
+    {
+        return QRegularExpression("^hostname\\s*\\:\\s+(.+)$");
+    }
+
+    QString hostname;
+
+protected:
+    void maybeActivated(const QString& line, const QRegularExpressionMatch& match) override
+    {
+        Q_UNUSED(line);
+        hostname = match.captured(1);
+        emit activated();
+    }
+};
+
 class StatusPlayerLineEvent : public morgoth::EventHandler {
     Q_OBJECT
 
@@ -75,6 +97,12 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
 {
     connect(coordinator, &ServerCoordinator::stateChanged, this, &ServerStatus::handleStateChange);
 
+    StatusHostnameLineEvent* hostnameLine = new StatusHostnameLineEvent;
+    connect(hostnameLine, &EventHandler::activated, [hostnameLine, this]() {
+        setHostname(hostnameLine->hostname);
+    });
+    m_coordinator->installEventHandler(hostnameLine);
+
     StatusPlayerLineEvent* playerLine = new StatusPlayerLineEvent;
     connect(playerLine, &EventHandler::activated, [playerLine, this]() {
         setPlayerCount(playerLine->players);
@@ -95,9 +123,16 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
 
 void ServerStatus::reset()
 {
+    setHostname(QString());
     setPlayerCount(0);
     setMaxPlayers(0);
     setMap(QString());
+}
+
+void ServerStatus::setHostname(const QString& hostname)
+{
+    m_hostname = hostname;
+    emit hostnameChanged(m_hostname);
 }
 
 void ServerStatus::setPlayerCount(int playerCount)
@@ -133,7 +168,7 @@ void ServerStatus::handleStateChange(ServerCoordinator::State serverState)
 
 void ServerStatus::refreshStatus()
 {
-    // TODO Execute rcon command instead of this
+    // FIXME Execute rcon command instead of this
     m_coordinator->sendCommand("status");
 }
 

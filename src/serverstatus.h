@@ -47,6 +47,7 @@ public:
 
 private:
     void reset();
+    void setHostname(const QString& hostname);
     void setPlayerCount(int playerCount);
     void setMaxPlayers(int maxPlayers);
     void setMap(const QString& map);
