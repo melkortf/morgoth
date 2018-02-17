@@ -17,77 +17,10 @@
 #include "eventhandler.h"
 #include "morgothdaemon.h"
 #include "serverstatusadaptor.h"
+#include "gameevents/statushostname.h"
+#include "gameevents/statusmap.h"
+#include "gameevents/statusplayernumbers.h"
 #include <QtCore>
-
-namespace {
-class StatusHostnameLineEvent : public morgoth::EventHandler {
-    Q_OBJECT
-
-public:
-    StatusHostnameLineEvent(QObject* parent = nullptr) : morgoth::EventHandler("status.hostnameinfo", parent) {}
-
-    QRegularExpression regex() const override
-    {
-        return QRegularExpression("^hostname\\s*\\:\\s+(.+)$");
-    }
-
-    QString hostname;
-
-protected:
-    void maybeActivated(const QString& line, const QRegularExpressionMatch& match) override
-    {
-        Q_UNUSED(line);
-        hostname = match.captured(1);
-        emit activated();
-    }
-};
-
-class StatusPlayerLineEvent : public morgoth::EventHandler {
-    Q_OBJECT
-
-public:
-    StatusPlayerLineEvent(QObject* parent = nullptr) : morgoth::EventHandler("status.playersinfo", parent) {}
-
-    QRegularExpression regex() const override
-    {
-        return QRegularExpression("^players\\s+\\:\\s+(\\d+)\\shumans,\\s(\\d+)\\sbots\\s\\((\\d+)\\smax\\)$");
-    }
-
-    int players;
-    int maxPlayers;
-
-protected:
-    void maybeActivated(const QString& line, const QRegularExpressionMatch& match) override
-    {
-        Q_UNUSED(line);
-        players = match.captured(1).toInt();
-        maxPlayers = match.captured(3).toInt();
-        emit activated();
-    }
-};
-
-class StatusMapLineEvent : public morgoth::EventHandler {
-    Q_OBJECT
-
-public:
-    StatusMapLineEvent(QObject* parent = nullptr) : morgoth::EventHandler("status.mapinfo", parent) {}
-
-    QRegularExpression regex() const override
-    {
-        return QRegularExpression("^map\\s+\\:\\s+(\\w+).*$");
-    }
-
-    QString map;
-
-protected:
-    void maybeActivated(const QString& line, const QRegularExpressionMatch& match) override
-    {
-        Q_UNUSED(line);
-        map = match.captured(1);
-        emit activated();
-    }
-};
-}
 
 namespace morgoth {
 
@@ -97,22 +30,22 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
 {
     connect(coordinator, &ServerCoordinator::stateChanged, this, &ServerStatus::handleStateChange);
 
-    StatusHostnameLineEvent* hostnameLine = new StatusHostnameLineEvent;
+    StatusHostname* hostnameLine = new StatusHostname;
     connect(hostnameLine, &EventHandler::activated, [hostnameLine, this]() {
-        setHostname(hostnameLine->hostname);
+        setHostname(hostnameLine->hostname());
     });
     m_coordinator->installEventHandler(hostnameLine);
 
-    StatusPlayerLineEvent* playerLine = new StatusPlayerLineEvent;
+    StatusPlayerNumbers* playerLine = new StatusPlayerNumbers;
     connect(playerLine, &EventHandler::activated, [playerLine, this]() {
-        setPlayerCount(playerLine->players);
-        setMaxPlayers(playerLine->maxPlayers);
+        setPlayerCount(playerLine->playerCount());
+        setMaxPlayers(playerLine->maxPlayers());
     });
     m_coordinator->installEventHandler(playerLine);
 
-    StatusMapLineEvent* mapLine = new StatusMapLineEvent;
+    StatusMap* mapLine = new StatusMap;
     connect(mapLine, &EventHandler::activated, [mapLine, this]() {
-        setMap(mapLine->map);
+        setMap(mapLine->map());
     });
     m_coordinator->installEventHandler(mapLine);
 
@@ -173,5 +106,3 @@ void ServerStatus::refreshStatus()
 }
 
 } // namespace morgoth
-
-#include "serverstatus.moc"

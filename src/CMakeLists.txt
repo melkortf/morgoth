@@ -3,6 +3,8 @@ find_package (Qt5 5.8 REQUIRED COMPONENTS Core DBus Sql)
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 set (CMAKE_AUTOMOC ON)
 
+add_subdirectory (gameevents)
+
 set (morgoth_INCLUDES
     eventhandler.h
     logcollector.h
@@ -68,7 +70,7 @@ target_include_directories (morgoth PUBLIC
 
 target_link_libraries (morgoth
     PUBLIC Qt5::Core
-    PRIVATE Qt5::DBus Qt5::Sql
+    PRIVATE Qt5::DBus Qt5::Sql gameevents
 )
 
 set (morgoth_GENERATED_HEADERS

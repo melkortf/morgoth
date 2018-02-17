@@ -1,0 +1,20 @@
+status
+hostname: melkor.tf #1
+version : 4294355/24 4294355 secure
+udp/ip  : 151.80.108.144:27015  (public ip: 151.80.108.144)
+steamid : [A:1:2453821451:9643] (90113411370866699)
+account : not logged in  (No account specified)
+map     : cp_process_final at: 0 x, 0 y, 0 z
+tags    : cp,nocrits
+sourcetv:  port 27026, delay 90.0s
+players : 0 humans, 1 bots (25 max)
+edicts  : 1047 used of 2048 max
+# userid name                uniqueid            connected ping loss state  adr
+#      2 "melkor TV"         BOT                                     active
+Loaded plugins:
+---------------------
+0:      "TFTrue v4.79, AnAkkk"
+1:      "Metamod:Source 1.10.6"
+---------------------
+
+ 
