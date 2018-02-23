@@ -13,26 +13,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "serverstartedevent.h"
+#ifndef MAPCHANGE_H
+#define MAPCHANGE_H
+
+#include "eventhandler.h"
+#include <QtCore/QObject>
 
 namespace morgoth {
 
-ServerStartedEvent::ServerStartedEvent(QObject *parent) :
-    EventHandler(Name, parent)
-{
+class MORGOTH_EXPORT MapChange : public EventHandler {
+    Q_OBJECT
 
-}
+public:
+    explicit MapChange(QObject* parent = nullptr);
 
-QRegularExpression ServerStartedEvent::regex() const
-{
-    return QRegularExpression("^(\\w+.so)\\sloaded for \"(.[^\"]+)\"$");
-}
+    QRegularExpression regex() const override;
 
-void ServerStartedEvent::maybeActivated(const QString& line, const QRegularExpressionMatch& match)
-{
-    Q_UNUSED(line);
-    m_game = match.captured(2);
-    emit activated();
-}
+    static auto constexpr Name = "mapchange";
+};
 
-} // namespace Morgoth
+} // namespace morgoth
+
+#endif // MAPCHANGE_H

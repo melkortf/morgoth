@@ -13,16 +13,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "mapchangeevent.h"
+#include "serverstarted.h"
 
 namespace morgoth {
 
-MapChangeEvent::MapChangeEvent(QObject *parent) :
-    EventHandler(Name, parent) {}
-
-QRegularExpression MapChangeEvent::regex() const
+ServerStarted::ServerStarted(QObject *parent) :
+    EventHandler(Name, parent)
 {
-    return QRegularExpression(".*Host_Changelevel.*");
+
+}
+
+QRegularExpression ServerStarted::regex() const
+{
+    return QRegularExpression("^(\\w+.so)\\sloaded for \"(.[^\"]+)\"$");
+}
+
+void ServerStarted::maybeActivated(const QString& line, const QRegularExpressionMatch& match)
+{
+    Q_UNUSED(line);
+    m_game = match.captured(2);
+    emit activated();
 }
 
 } // namespace Morgoth

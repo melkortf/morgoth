@@ -13,26 +13,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef MAPCHANGEEVENT_H
-#define MAPCHANGEEVENT_H
-
-#include "eventhandler.h"
-#include "morgoth_export.h"
+#include "mapchange.h"
 
 namespace morgoth {
 
-class MORGOTH_EXPORT MapChangeEvent : public EventHandler {
-    Q_OBJECT
+MapChange::MapChange(QObject* parent) :
+    EventHandler(Name, parent)
+{
 
-public:
-    explicit MapChangeEvent(QObject *parent = nullptr);
+}
 
-    QRegularExpression regex() const override;
+QRegularExpression MapChange::regex() const
+{
+    return QRegularExpression(".*Host_Changelevel.*");
+}
 
-    static auto constexpr Name = "mapchange";
-
-};
-
-} // namespace Morgoth
-
-#endif // MAPCHANGEEVENT_H
+} // namespace morgoth

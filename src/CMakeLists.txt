@@ -9,7 +9,6 @@ set (morgoth_INCLUDES
     eventhandler.h
     logcollector.h
     loglistener.h
-    mapchangeevent.h
     morgothdaemon.h
     morgothplugin.h
     persistor.h
@@ -18,9 +17,7 @@ set (morgoth_INCLUDES
     serverconfiguration.h
     servercoordinator.h
     servermanager.h
-    serverstartedevent.h
     serverstatus.h
-    serverstoppedevent.h
     tmuxsessionwrapper.h
     userprocess.h
 )
@@ -29,7 +26,6 @@ set (morgoth_SOURCES
     eventhandler.cpp
     logcollector.cpp
     loglistener.cpp
-    mapchangeevent.cpp
     morgothdaemon.cpp
     persistor.cpp
     pluginmanager.cpp
@@ -37,9 +33,7 @@ set (morgoth_SOURCES
     serverconfiguration.cpp
     servercoordinator.cpp
     servermanager.cpp
-    serverstartedevent.cpp
     serverstatus.cpp
-    serverstoppedevent.cpp
     tmuxsessionwrapper.cpp
     userprocess.cpp
 )

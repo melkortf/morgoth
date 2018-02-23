@@ -2,12 +2,18 @@ set (CMAKE_AUTOMOC ON)
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set (gameevents_SOURCES
+    mapchange.cpp
+    serverstarted.cpp
+    serverstopped.cpp
     statushostname.cpp
     statusmap.cpp
     statusplayernumbers.cpp
 )
 
 set (gameevents_HEADERS
+    mapchange.h
+    serverstarted.h
+    serverstopped.h
     statushostname.h
     statusmap.h
     statusplayernumbers.h

@@ -22,6 +22,8 @@
 namespace morgoth {
 
 class MORGOTH_EXPORT StatusMap : public EventHandler {
+    Q_OBJECT
+
 public:
     StatusMap(QObject* parent = nullptr);
 

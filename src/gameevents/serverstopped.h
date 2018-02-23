@@ -13,19 +13,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "serverstoppedevent.h"
+#ifndef SERVERSTOPPED_H
+#define SERVERSTOPPED_H
+
+#include "eventhandler.h"
+#include "morgoth_export.h"
 
 namespace morgoth {
 
-ServerStoppedEvent::ServerStoppedEvent(QObject *parent) :
-    EventHandler(Name, parent)
-{
+class MORGOTH_EXPORT ServerStopped : public EventHandler {
+    Q_OBJECT
 
-}
+public:
+    explicit ServerStopped(QObject *parent = nullptr);
 
-QRegularExpression ServerStoppedEvent::regex() const
-{
-    return QRegularExpression("Server Quit$");
-}
+    QRegularExpression regex() const override;
+
+    static auto constexpr Name = "server.stopped";
+
+};
 
 } // namespace Morgoth
+
+#endif // SERVERSTOPPED_H

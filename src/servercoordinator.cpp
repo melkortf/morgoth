@@ -16,12 +16,11 @@
 #include "servercoordinator.h"
 #include "logcollector.h"
 #include "loglistener.h"
-#include "mapchangeevent.h"
 #include "morgothdaemon.h"
 #include "serverconfiguration.h"
-#include "serverstartedevent.h"
-#include "serverstoppedevent.h"
 #include "servercoordinatoradaptor.h"
+#include "gameevents/serverstarted.h"
+#include "gameevents/serverstopped.h"
 #include <QtCore>
 #include <unistd.h>
 #include <sys/types.h>
@@ -44,13 +43,12 @@ ServerCoordinator::ServerCoordinator(Server* server) :
     connect(this, &ServerCoordinator::stateChanged, m_logCollector, &LogCollector::save);
 
     connect(qApp, &QCoreApplication::aboutToQuit, this, &ServerCoordinator::stopSync);
-    installEventHandler(new MapChangeEvent);
 
-    ServerStartedEvent* serverStarted = new ServerStartedEvent;
+    ServerStarted* serverStarted = new ServerStarted;
     connect(serverStarted, &EventHandler::activated, this, &ServerCoordinator::handleServerStarted);
     installEventHandler(serverStarted);
 
-    ServerStoppedEvent* serverStopped = new ServerStoppedEvent;
+    ServerStopped* serverStopped = new ServerStopped;
     connect(serverStopped, &EventHandler::activated, this, &ServerCoordinator::handleServerStopped);
     installEventHandler(serverStopped);
 
@@ -193,7 +191,7 @@ bool ServerCoordinator::createFifo(const QString& fileName, const QString& owner
 
 void ServerCoordinator::handleServerStarted()
 {
-    ServerStartedEvent* e = qobject_cast<ServerStartedEvent*>(sender());
+    ServerStarted* e = qobject_cast<ServerStarted*>(sender());
     qInfo("%s: started %s", qPrintable(server()->name()), qPrintable(e->game()));
     setState(Running);
 }
