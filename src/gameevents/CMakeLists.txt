@@ -4,6 +4,7 @@ set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 set (gameevents_SOURCES
     mapchange.cpp
     playerconnected.cpp
+    playerdropped.cpp
     serverstarted.cpp
     serverstopped.cpp
     statushostname.cpp
@@ -14,6 +15,7 @@ set (gameevents_SOURCES
 set (gameevents_HEADERS
     mapchange.h
     playerconnected.h
+    playerdropped.h
     serverstarted.h
     serverstopped.h
     statushostname.h
