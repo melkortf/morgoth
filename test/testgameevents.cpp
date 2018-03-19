@@ -1,6 +1,7 @@
 #include <QtTest/QtTest>
 #include "loglistener.h"
 #include "gameevents/playerconnected.h"
+#include "gameevents/playerdropped.h"
 #include "gameevents/statushostname.h"
 #include "gameevents/statusmap.h"
 #include "gameevents/statusplayernumbers.h"
@@ -63,13 +64,20 @@ void TestGameEvents::playerConnected()
     QVERIFY(logListener);
 
     morgoth::PlayerConnected* playerConnected = new morgoth::PlayerConnected;
-    QSignalSpy spy(playerConnected, &morgoth::EventHandler::activated);
+    QSignalSpy spyConnected(playerConnected, &morgoth::EventHandler::activated);
     logListener->installEventHandler(playerConnected);
+
+    morgoth::PlayerDropped* playerDropped = new morgoth::PlayerDropped;
+    QSignalSpy spyDropped(playerDropped, &morgoth::EventHandler::activated);
+    logListener->installEventHandler(playerDropped);
 
     logListener->start();
 
-    QVERIFY(spy.wait());
-    QCOMPARE(spy.count(), 1);
+    QVERIFY(spyConnected.wait());
+    QCOMPARE(spyConnected.count(), 1);
+
+    spyDropped.wait(100);
+    QCOMPARE(spyDropped.count(), 1);
 
     logListener->requestInterruption();
     logListener->wait();
