@@ -17,6 +17,8 @@
 #include "eventhandler.h"
 #include "morgothdaemon.h"
 #include "serverstatusadaptor.h"
+#include "gameevents/playerconnected.h"
+#include "gameevents/playerdropped.h"
 #include "gameevents/statushostname.h"
 #include "gameevents/statusmap.h"
 #include "gameevents/statusplayernumbers.h"
@@ -48,6 +50,18 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
         setMap(mapLine->map());
     });
     m_coordinator->installEventHandler(mapLine);
+
+    PlayerConnected* playerConnected = new PlayerConnected;
+    connect(playerConnected, &EventHandler::activated, [this]() {
+        setPlayerCount(playerCount() + 1);
+    });
+    m_coordinator->installEventHandler(playerConnected);
+
+    PlayerDropped* playerDropped = new PlayerDropped;
+    connect(playerDropped, &EventHandler::activated, [this]() {
+        setPlayerCount(playerCount() - 1);
+    });
+    m_coordinator->installEventHandler(playerDropped);
 
     new ServerStatusAdaptor(this);
     if (morgothd)
