@@ -39,6 +39,8 @@ set (morgoth_SOURCES
 )
 
 qt5_add_dbus_adaptor (morgoth_SOURCES
+    interfaces/org.morgoth.Daemon.xml morgothdaemon.h morgoth::MorgothDaemon)
+qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.PluginManager.xml pluginmanager.h morgoth::PluginManager)
 qt5_add_dbus_adaptor (morgoth_SOURCES
     interfaces/org.morgoth.Server.xml server.h morgoth::Server)
