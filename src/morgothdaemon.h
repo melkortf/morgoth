@@ -29,6 +29,12 @@ namespace morgoth {
  */
 class MORGOTH_EXPORT MorgothDaemon : public QCoreApplication {
     Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.morgoth.Daemon")
+
+    /**
+     * Stores the MorgothDaemon version.
+     */
+    Q_PROPERTY(QString version READ version CONSTANT)
 
 signals:
     void configRead();
@@ -49,6 +55,8 @@ public:
      * \brief Returns daemon config.
      */
     const QVariantMap& config() const { return m_config; }
+
+    QString version() const;
 
     /**
      * Name of the service which morgothd should register.

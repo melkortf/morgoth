@@ -14,6 +14,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "morgothdaemon.h"
+#include "config.h"
+#include "daemonadaptor.h"
 #include <QtCore>
 #include <csignal>
 #include <unistd.h>
@@ -109,7 +111,16 @@ MorgothDaemon::MorgothDaemon(int& argc, char** argv) :
     if (dbus == QStringLiteral("system"))
         m_dbusConnection = QDBusConnection::systemBus();
 
+    new DaemonAdaptor(this);
+
+    dbusConnection().registerObject("/daemon", this);
+
     // TODO reflect changes in config
+}
+
+QString MorgothDaemon::version() const
+{
+    return QString(MORGOTH_VERSION);
 }
 
 void MorgothDaemon::parseArguments()
