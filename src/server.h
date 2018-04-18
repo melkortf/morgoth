@@ -24,7 +24,7 @@
 #include <QtDBus/QDBusObjectPath>
 
 namespace morgoth {
-
+class ServerPrivate;
 class ServerCoordinator;
 class ServerStatus;
 
@@ -109,35 +109,23 @@ public:
      * \brief Returns path to the srcds_run script.
      * \note This function returns an empty string if \ref isValid() is \c false.
      */
-    const QString& srcdsExec() const { return m_srcdsExec; }
+    const QString& srcdsExec();
 
-    const QString& name() const { return m_name; }
-    const QUrl& path() const { return m_path; }
-    bool isValid() const { return m_valid; }
-    ServerCoordinator* coordinator() { return m_coordinator; }
-    const ServerCoordinator* coordinator() const { return m_coordinator; }
-    const QDBusObjectPath& coordinatorPath() const { return m_coordinatorPath; }
-    ServerConfiguration* configuration() { return m_configuration; }
-    const ServerConfiguration* configuration() const { return m_configuration; }
-    const QDBusObjectPath& configurationPath() const { return m_configurationPath; }
-    ServerStatus* status() { return m_status; }
-    const ServerStatus* status() const { return m_status; }
-    const QDBusObjectPath& statusPath() const { return m_statusPath; }
+    const QString& name() const;
+    const QUrl& path() const;
+    bool isValid() const;
+    ServerCoordinator* coordinator();
+    const ServerCoordinator* coordinator() const;
+    const QDBusObjectPath& coordinatorPath();
+    ServerConfiguration* configuration();
+    const ServerConfiguration* configuration() const;
+    const QDBusObjectPath& configurationPath() const;
+    ServerStatus* status();
+    const ServerStatus* status() const;
+    const QDBusObjectPath& statusPath() const;
 
 private:
-    void discover();
-    void initializeDefaultConfiguration();
-
-    QString m_name;
-    QUrl m_path;
-    bool m_valid;
-    QString m_srcdsExec;
-    ServerCoordinator* m_coordinator = nullptr;
-    QDBusObjectPath m_coordinatorPath;
-    ServerConfiguration* m_configuration = nullptr;
-    QDBusObjectPath m_configurationPath;
-    ServerStatus* m_status = nullptr;
-    QDBusObjectPath m_statusPath;
+    QScopedPointer<ServerPrivate> d;
 
 };
 

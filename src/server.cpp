@@ -22,12 +22,64 @@
 
 namespace morgoth {
 
+class ServerPrivate{
+public:
+    explicit ServerPrivate(Server* server, const QUrl& path, const QString& name);
+    void discover();
+    void initializeDefaultConfiguration();
+
+    Server* d;
+    QString name;
+    QUrl path;
+    bool valid;
+    QString srcdsExec;
+    ServerCoordinator* coordinator = nullptr;
+    QDBusObjectPath coordinatorPath;
+    ServerConfiguration* configuration = nullptr;
+    QDBusObjectPath configurationPath;
+    ServerStatus* status = nullptr;
+    QDBusObjectPath statusPath;
+};
+
+ServerPrivate::ServerPrivate(Server* server, const QUrl& path, const QString& name) :
+    d(server),
+    name(name),
+    path(path)
+{
+
+}
+
+void ServerPrivate::discover()
+{
+    valid = false;
+
+    if (!path.isLocalFile()) {
+        qWarning("Cannot handle server %s: remote servers not supported", qPrintable(path.toString()));
+        return;
+    }
+
+    srcdsExec = path.toLocalFile() + QDir::separator() + "srcds_run";
+
+    if (!QFile::exists(srcdsExec)) {
+        qWarning("%s does not exist", qPrintable(srcdsExec));
+        return;
+    }
+
+    valid = true;
+}
+
+void ServerPrivate::initializeDefaultConfiguration()
+{
+    configuration = new ServerConfiguration(d);
+    configuration->setValue("org.morgoth.Server.launchArguments", "-port 27015 -secured +map cp_badlands");
+    configuration->setValue("org.morgoth.Server.logDirectory", "logs"); // relative to path
+}
+
 Server::Server(const QUrl& path, const QString& name, QObject* parent) :
     QObject(parent),
-    m_name(name),
-    m_path(path)
+    d(new ServerPrivate(this, path, name))
 {
-    discover();
+    d->discover();
 
     new ServerAdaptor(this);
 
@@ -36,43 +88,82 @@ Server::Server(const QUrl& path, const QString& name, QObject* parent) :
         morgothd->dbusConnection().registerObject(dbusPath, this);
     }
 
-    m_configurationPath.setPath(QStringLiteral("/servers/%1/configuration").arg(name));
-    initializeDefaultConfiguration();
+    d->configurationPath.setPath(QStringLiteral("/servers/%1/configuration").arg(name));
+    d->initializeDefaultConfiguration();
 
     if (isValid()) {
-        m_coordinatorPath.setPath(QStringLiteral("/servers/%1/coordinator").arg(name));
-        m_coordinator = new ServerCoordinator(this);
-        m_statusPath.setPath(QStringLiteral("/servers/%1/status").arg(name));
-        m_status = new ServerStatus(m_coordinator, this);
+        d->coordinatorPath.setPath(QStringLiteral("/servers/%1/coordinator").arg(name));
+        d->coordinator = new ServerCoordinator(this);
+        d->statusPath.setPath(QStringLiteral("/servers/%1/status").arg(name));
+        d->status = new ServerStatus(d->coordinator, this);
     }
 }
 
 Server::~Server() {}
 
-void Server::discover()
+const QString& Server::srcdsExec()
 {
-    m_valid = false;
-
-    if (!m_path.isLocalFile()) {
-        qWarning("Cannot handle server %s: remote servers not supported", qPrintable(m_path.toString()));
-        return;
-    }
-
-    m_srcdsExec = m_path.toLocalFile() + QDir::separator() + "srcds_run";
-
-    if (!QFile::exists(m_srcdsExec)) {
-        qWarning("%s does not exist", qPrintable(m_srcdsExec));
-        return;
-    }
-
-    m_valid = true;
+    return d->srcdsExec;
 }
 
-void Server::initializeDefaultConfiguration()
+const QString& Server::name() const
 {
-    m_configuration = new ServerConfiguration(this);
-    m_configuration->setValue("org.morgoth.Server.launchArguments", "-port 27015 -secured +map cp_badlands");
-    m_configuration->setValue("org.morgoth.Server.logDirectory", "logs"); // relative to path
+    return d->name;
+}
+
+const QUrl& Server::path() const
+{
+    return d->path;
+}
+
+bool Server::isValid() const
+{
+    return d->valid;
+}
+
+ServerCoordinator* Server::coordinator()
+{
+    return d->coordinator;
+}
+
+const ServerCoordinator* Server::coordinator() const
+{
+    return d->coordinator;
+}
+
+const QDBusObjectPath& Server::coordinatorPath()
+{
+    return d->coordinatorPath;
+}
+
+ServerConfiguration* Server::configuration()
+{
+    return d->configuration;
+}
+
+const ServerConfiguration* Server::configuration() const
+{
+    return d->configuration;
+}
+
+const QDBusObjectPath& Server::configurationPath() const
+{
+    return d->configurationPath;
+}
+
+ServerStatus* Server::status()
+{
+    return d->status;
+}
+
+const ServerStatus* Server::status() const
+{
+    return d->status;
+}
+
+const QDBusObjectPath& Server::statusPath() const
+{
+    return d->statusPath;
 }
 
 } // namespace Morgoth
