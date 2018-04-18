@@ -23,6 +23,7 @@
 namespace morgoth {
 
 class LogListener;
+class EventHandlerPrivate;
 
 /**
  * \brief The EventHandler class captures interesting lines in the running
@@ -47,6 +48,11 @@ public:
     explicit EventHandler(const QString& name, QObject* parent = nullptr);
 
     /**
+     * Destroys this \c EventHandler instance.
+     */
+    virtual ~EventHandler();
+
+    /**
      * \brief Returns the regular expression that marks the occurrence of
      *  this event.
      */
@@ -55,14 +61,14 @@ public:
     /**
      * \brief Name of this event.
      */
-    const QString& name() const { return m_name; }
+    const QString& name() const;
 
 protected:
     virtual void maybeActivated(const QString& line, const QRegularExpressionMatch& match);
 
 private:
+    QScopedPointer<EventHandlerPrivate> d;
     friend class LogListener;
-    QString m_name;
 
 };
 

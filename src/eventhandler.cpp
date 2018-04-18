@@ -17,9 +17,24 @@
 
 namespace morgoth {
 
+class EventHandlerPrivate {
+public:
+    QString name;
+};
+
 EventHandler::EventHandler(const QString &name, QObject* parent) :
     QObject(parent),
-    m_name(name) {}
+    d(new EventHandlerPrivate{name}) {}
+
+EventHandler::~EventHandler()
+{
+
+}
+
+const QString& EventHandler::name() const
+{
+    return d->name;
+}
 
 void EventHandler::maybeActivated(const QString& line, const QRegularExpressionMatch& match)
 {
