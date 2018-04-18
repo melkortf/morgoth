@@ -20,21 +20,51 @@
 
 namespace morgoth {
 
+class LogListenerPrivate {
+public:
+    LogListenerPrivate(const QString& filePath);
+
+    QString filePath;
+    bool isFinished = false;
+    QList<EventHandler*> events;
+    QMutex eventListMutex;
+    LogCollector* logCollector = nullptr;
+};
+
+LogListenerPrivate::LogListenerPrivate(const QString &filePath) :
+    filePath(filePath)
+{
+
+}
+
 LogListener::LogListener(const QString& filePath, QObject* parent) :
     QThread(parent),
-    m_filePath(filePath) {}
+    d(new LogListenerPrivate{filePath})
+{
+
+}
+
+LogListener::~LogListener()
+{
+
+}
 
 void LogListener::installEventHandler(EventHandler *handler)
 {
     handler->setParent(this);
 
-    QMutexLocker ml(&m_eventListMutex);
-    m_events.append(handler);
+    QMutexLocker ml(&d->eventListMutex);
+    d->events.append(handler);
+}
+
+const QString& LogListener::filePath() const
+{
+    return d->filePath;
 }
 
 void LogListener::setLogCollector(LogCollector* logCollector)
 {
-    m_logCollector = logCollector;
+    d->logCollector = logCollector;
 }
 
 void LogListener::run()
@@ -44,9 +74,9 @@ void LogListener::run()
      * https://bugreports.qt.io/browse/QTBUG-15261
      */
 
-    std::ifstream fifo(m_filePath.toStdString());
+    std::ifstream fifo(d->filePath.toStdString());
     if (!fifo.is_open()) {
-        qWarning("Could not open %s for reading; the LogScanner will not work", qPrintable(m_filePath));
+        qWarning("Could not open %s for reading; the LogScanner will not work", qPrintable(d->filePath));
         return;
     }
 
@@ -55,17 +85,16 @@ void LogListener::run()
     std::string line;
     while (!isInterruptionRequested() && std::getline(fifo, line)) {
         QString qtline = QString::fromStdString(line).trimmed();
-        if (m_logCollector)
-            m_logCollector->log(qtline);
+        if (d->logCollector)
+            d->logCollector->log(qtline);
 
-        QMutexLocker ml(&m_eventListMutex);
-        for (auto e: m_events) {
+        QMutexLocker ml(&d->eventListMutex);
+        for (auto e: d->events) {
             QRegularExpression regex = e->regex();
             QRegularExpressionMatch match = regex.match(qtline);
             if (match.hasMatch())
                 e->maybeActivated(qtline, match);
         }
-
 
         if (quitRx.match(qtline).hasMatch())
             break;

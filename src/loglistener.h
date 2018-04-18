@@ -25,6 +25,8 @@
 
 namespace morgoth {
 
+class LogListenerPrivate;
+
 /**
  * \brief The LogListener class reads server log line by line.
  * \note The log file is supposed to be a fifo one.
@@ -42,6 +44,11 @@ public:
     explicit LogListener(const QString& filePath, QObject* parent = nullptr);
 
     /**
+     * Destroys this \c LogListener instance.
+     */
+    virtual ~LogListener();
+
+    /**
      * \brief Attaches a new \c EventHandler to this LogListener.
      * \param handler The \c EventHandler instance to be installed.
      */
@@ -50,7 +57,7 @@ public:
     /**
      * \brief Returns path to the log file.
      */
-    const QString& filePath() const { return m_filePath; }
+    const QString& filePath() const;
 
     /**
      * \brief Sets the LogCollector instance.
@@ -64,11 +71,7 @@ protected:
     void run() override;
 
 private:
-    QString m_filePath;
-    bool m_isFinished = false;
-    QList<EventHandler*> m_events;
-    QMutex m_eventListMutex;
-    LogCollector* m_logCollector = nullptr;
+    QScopedPointer<LogListenerPrivate> d;
 
 };
 
