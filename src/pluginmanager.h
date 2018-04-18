@@ -11,6 +11,7 @@
 class QPluginLoader;
 
 namespace morgoth {
+class PluginManagerPrivate;
 
 /**
  * \brief The PluginManager class is responsible for controlling all of morgoth
@@ -53,7 +54,7 @@ public slots:
      * is found, it is added to the list of available ones. No plugin is
      * enabled by default.
      * \todo Watch the directory for changes and reload plugins if necessary.
-     * \todo Check plugins signatures.
+     * \todo Check plugins' signatures.
      * \param path The directory to scan.
      */
     void addPluginsDir(const QString& path);
@@ -66,17 +67,7 @@ public slots:
     void setPluginStatus(const QString& name, bool enabled);
 
 private:
-    bool hasValidMetadata(QPluginLoader* loader, QString* name);
-    void readPlugin(const QString& path);
-    void loadPlugin(const QString& name);
-    void unloadPlugin(const QString& name);
-
-    struct PluginData {
-        QString name;
-        QPluginLoader* loader;
-    };
-
-    QList<PluginData> m_plugins;
+    QScopedPointer<PluginManagerPrivate> d;
 
 };
 

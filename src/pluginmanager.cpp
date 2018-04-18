@@ -5,43 +5,31 @@
 
 namespace morgoth {
 
-PluginManager::PluginManager(QObject *parent) :
-    QObject(parent)
+class PluginManagerPrivate {
+public:
+    explicit PluginManagerPrivate(PluginManager* d);
+
+    bool hasValidMetadata(QPluginLoader* loader, QString* name);
+    void readPlugin(const QString& path);
+    void loadPlugin(const QString& name);
+    void unloadPlugin(const QString& name);
+
+    struct PluginData {
+        QString name;
+        QPluginLoader* loader;
+    };
+
+    PluginManager* d;
+    QList<PluginData> plugins;
+};
+
+PluginManagerPrivate::PluginManagerPrivate(PluginManager *d) :
+    d(d)
 {
-    new PluginManagerAdaptor(this);
-    morgothd->dbusConnection().registerObject("/plugins", this);
+
 }
 
-PluginManager::~PluginManager() {}
-
-QStringList PluginManager::availablePlugins() const
-{
-    QStringList res;
-    for (const auto& p: m_plugins) {
-        res << p.name;
-    }
-
-    return res;
-}
-
-void PluginManager::addPluginsDir(const QString& path)
-{
-    QDirIterator it(path, QDir::Files | QDir::NoDotAndDotDot | QDir::Readable, QDirIterator::Subdirectories);
-    while (it.hasNext()) {
-        readPlugin(it.next());
-    }
-}
-
-void PluginManager::setPluginStatus(const QString& name, bool enabled)
-{
-    if (enabled) {
-        loadPlugin(name);
-    } else {
-        unloadPlugin(name);
-    }
-}
-
-bool PluginManager::hasValidMetadata(QPluginLoader* loader, QString* name)
+bool PluginManagerPrivate::hasValidMetadata(QPluginLoader *loader, QString *name)
 {
     // find plugin name
     QJsonObject metaData = loader->metaData();
@@ -62,25 +50,25 @@ bool PluginManager::hasValidMetadata(QPluginLoader* loader, QString* name)
     return false;
 }
 
-void PluginManager::readPlugin(const QString& path)
+void PluginManagerPrivate::readPlugin(const QString &path)
 {
     if (!QLibrary::isLibrary(path))
         return;
 
-    QPluginLoader* loader = new QPluginLoader(path, this);
+    QPluginLoader* loader = new QPluginLoader(path, d);
     QString name;
     if (hasValidMetadata(loader, &name)) {
-        m_plugins.append({ name, loader });
+        plugins.append({ name, loader });
     }
 }
 
-void PluginManager::loadPlugin(const QString& name)
+void PluginManagerPrivate::loadPlugin(const QString &name)
 {
-    auto it = std::find_if(m_plugins.cbegin(), m_plugins.cend(), [name](auto p) {
+    auto it = std::find_if(plugins.cbegin(), plugins.cend(), [name](auto p) {
         return p.name == name;
     });
 
-    if (it != m_plugins.end()) {
+    if (it != plugins.end()) {
         Q_ASSERT(it->loader);
         if (it->loader->isLoaded()) {
             qInfo("Plugin %s already loaded", qPrintable(name));
@@ -94,20 +82,20 @@ void PluginManager::loadPlugin(const QString& name)
             loader->unload();
         } else {
             qInfo("Plugin %s loaded.", qPrintable(name));
-            emit pluginStatusChanged(name, true);
+            emit d->pluginStatusChanged(name, true);
         }
     } else {
         qWarning("Plugin %s does not exist", qPrintable(name));
     }
 }
 
-void PluginManager::unloadPlugin(const QString& name)
+void PluginManagerPrivate::unloadPlugin(const QString &name)
 {
-    auto it = std::find_if(m_plugins.cbegin(), m_plugins.cend(), [name](auto p) {
+    auto it = std::find_if(plugins.cbegin(), plugins.cend(), [name](auto p) {
         return p.name == name;
     });
 
-    if (it != m_plugins.end()) {
+    if (it != plugins.end()) {
         Q_ASSERT(it->loader);
         if (!it->loader->isLoaded()) {
             qInfo("Plugin %s not loaded", qPrintable(name));
@@ -116,12 +104,52 @@ void PluginManager::unloadPlugin(const QString& name)
 
         if (it->loader->unload()) {
             qInfo("Plugin %s unloaded.", qPrintable(name));
-            emit pluginStatusChanged(name, false);
+            emit d->pluginStatusChanged(name, false);
         } else {
             qWarning("Could not unload %s", qPrintable(name));
         }
     }  else {
         qWarning("Plugin %s does not exist", qPrintable(name));
+    }
+}
+
+PluginManager::PluginManager(QObject *parent) :
+    QObject(parent),
+    d(new PluginManagerPrivate(this))
+{
+    new PluginManagerAdaptor(this);
+    morgothd->dbusConnection().registerObject("/plugins", this);
+}
+
+PluginManager::~PluginManager()
+{
+
+}
+
+QStringList PluginManager::availablePlugins() const
+{
+    QStringList res;
+    for (const auto& p: d->plugins) {
+        res << p.name;
+    }
+
+    return res;
+}
+
+void PluginManager::addPluginsDir(const QString& path)
+{
+    QDirIterator it(path, QDir::Files | QDir::NoDotAndDotDot | QDir::Readable, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        d->readPlugin(it.next());
+    }
+}
+
+void PluginManager::setPluginStatus(const QString& name, bool enabled)
+{
+    if (enabled) {
+        d->loadPlugin(name);
+    } else {
+        d->unloadPlugin(name);
     }
 }
 
