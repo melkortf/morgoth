@@ -92,38 +92,29 @@ void installMessageHandler()
 
 namespace morgoth {
 
-MorgothDaemon::MorgothDaemon(int& argc, char** argv) :
-    QCoreApplication(argc, argv),
-    m_dbusConnection(QDBusConnection::sessionBus())
+class MorgothDaemonPrivate {
+public:
+    MorgothDaemonPrivate(MorgothDaemon* d);
+
+    void parseArguments();
+    void loadDefaults();
+    void readConfig();
+
+    MorgothDaemon* d;
+    QSocketNotifier* signal;
+    QDBusConnection dbusConnection;
+    QString configFileName;
+    QVariantMap config;
+};
+
+MorgothDaemonPrivate::MorgothDaemonPrivate(MorgothDaemon *d) :
+    d(d),
+    dbusConnection(QDBusConnection::sessionBus())
 {
-    ::installMessageHandler();
-    ::setupSignalHandlers();
 
-    m_signal = new QSocketNotifier(signalFd[1], QSocketNotifier::Read, this);
-    connect(m_signal, &QSocketNotifier::activated, this, &MorgothDaemon::handleSignal);
-
-    parseArguments();
-    loadDefaults();
-    readConfig();
-
-    // switch to system bus if the config says so
-    QString dbus = m_config.value("dbus", "session").toString();
-    if (dbus == QStringLiteral("system"))
-        m_dbusConnection = QDBusConnection::systemBus();
-
-    new DaemonAdaptor(this);
-
-    dbusConnection().registerObject("/daemon", this);
-
-    // TODO reflect changes in config
 }
 
-QString MorgothDaemon::version() const
-{
-    return QString(MORGOTH_VERSION);
-}
-
-void MorgothDaemon::parseArguments()
+void MorgothDaemonPrivate::parseArguments()
 {
     QCommandLineParser parser;
     parser.addVersionOption();
@@ -131,42 +122,87 @@ void MorgothDaemon::parseArguments()
     QCommandLineOption configFileOption(QStringList() << "c" << "config", "Config file to use", "config");
     parser.addOption(configFileOption);
 
-    parser.process(*this);
+    parser.process(*d);
 
-    m_configFileName = parser.isSet(configFileOption) ? parser.value(configFileOption) : QString();
+    configFileName = parser.isSet(configFileOption) ? parser.value(configFileOption) : QString();
 }
 
-void MorgothDaemon::loadDefaults()
+void MorgothDaemonPrivate::loadDefaults()
 {
-    m_config.insert("dbus", "session");
-    m_config.insert("database", "morgoth.sqlite");
+    config.insert("dbus", "session");
+    config.insert("database", "morgoth.sqlite");
 }
 
-void MorgothDaemon::readConfig()
+void MorgothDaemonPrivate::readConfig()
 {
-    if (m_configFileName.isEmpty())
+    if (configFileName.isEmpty())
         return;
 
-    QSettings s(m_configFileName, QSettings::IniFormat);
+    QSettings s(configFileName, QSettings::IniFormat);
     if (s.status() == QSettings::NoError) {
         QStringList keys = s.allKeys();
         for (const QString& key: qAsConst(keys)) {
             QVariant value = s.value(key);
             Q_ASSERT(!value.isNull());
 
-            m_config.insert(key, value);
+            config.insert(key, value);
         }
 
-        qDebug("%s loaded.", qPrintable(m_configFileName));
-        emit configRead();
+        qDebug("%s loaded.", qPrintable(configFileName));
+        emit d->configRead();
     } else {
-        qWarning() << m_configFileName << ": " << s.status();
+        qWarning() << configFileName << ": " << s.status();
     }
+}
+
+MorgothDaemon::MorgothDaemon(int& argc, char** argv) :
+    QCoreApplication(argc, argv),
+    d(new MorgothDaemonPrivate(this))
+{
+    ::installMessageHandler();
+    ::setupSignalHandlers();
+
+    d->signal = new QSocketNotifier(signalFd[1], QSocketNotifier::Read, this);
+    connect(d->signal, &QSocketNotifier::activated, this, &MorgothDaemon::handleSignal);
+
+    d->parseArguments();
+    d->loadDefaults();
+    d->readConfig();
+
+    // switch to system bus if the config says so
+    QString dbus = d->config.value("dbus", "session").toString();
+    if (dbus == QStringLiteral("system"))
+        d->dbusConnection = QDBusConnection::systemBus();
+
+    new DaemonAdaptor(this);
+    dbusConnection().registerObject("/daemon", this);
+
+    // TODO reflect changes in config
+}
+
+MorgothDaemon::~MorgothDaemon()
+{
+
+}
+
+QDBusConnection MorgothDaemon::dbusConnection() const
+{
+    return d->dbusConnection;
+}
+
+const QVariantMap &MorgothDaemon::config() const
+{
+    return d->config;
+}
+
+QString MorgothDaemon::version() const
+{
+    return QString(MORGOTH_VERSION);
 }
 
 void MorgothDaemon::handleSignal()
 {
-    m_signal->setEnabled(false);
+    d->signal->setEnabled(false);
     int signal;
     ::read(signalFd[1], &signal, sizeof(signal));
 
@@ -178,7 +214,7 @@ void MorgothDaemon::handleSignal()
 
         case SIGHUP: {
             qInfo("-- SIGHUP --");
-            readConfig();
+            d->readConfig();
             break;
         }
 
@@ -186,7 +222,7 @@ void MorgothDaemon::handleSignal()
             qInfo("Caught unhandled signal (%d)", signal);
     }
 
-    m_signal->setEnabled(true);
+    d->signal->setEnabled(true);
 }
 
 } // namespace morgoth

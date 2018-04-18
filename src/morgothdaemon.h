@@ -23,6 +23,8 @@
 
 namespace morgoth {
 
+class MorgothDaemonPrivate;
+
 /**
  * \brief The MorgothDaemon class makes morgoth a proper posix daemon out of
  *  a regular \c QCoreApplication.
@@ -47,14 +49,19 @@ public:
     MorgothDaemon(int& argc, char** argv);
 
     /**
+     * Frees this \c MorgothDaemon instance.
+     */
+    virtual ~MorgothDaemon();
+
+    /**
      * \brief Returns application-wide dbus connection.
      */
-    QDBusConnection dbusConnection() const { return m_dbusConnection; }
+    QDBusConnection dbusConnection() const;
 
     /**
      * \brief Returns daemon config.
      */
-    const QVariantMap& config() const { return m_config; }
+    const QVariantMap& config() const;
 
     QString version() const;
 
@@ -63,19 +70,11 @@ public:
      */
     static inline const char* dbusServiceName() { return "org.morgoth"; }
 
-private:
-    void parseArguments();
-    void loadDefaults();
-    void readConfig();
-
 private slots:
     void handleSignal();
 
 private:
-    QSocketNotifier* m_signal;
-    QDBusConnection m_dbusConnection;
-    QString m_configFileName;
-    QVariantMap m_config;
+    QScopedPointer<MorgothDaemonPrivate> d;
 
 };
 
