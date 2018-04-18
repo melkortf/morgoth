@@ -1,11 +1,9 @@
 find_package (Qt5 5.8 REQUIRED COMPONENTS Core DBus Sql)
-
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 set (CMAKE_AUTOMOC ON)
 
 add_subdirectory (gameevents)
 
-set (morgoth_INCLUDES
+set (morgoth_PUBLIC_HEADERS
     eventhandler.h
     logcollector.h
     loglistener.h
@@ -38,30 +36,36 @@ set (morgoth_SOURCES
     userprocess.cpp
 )
 
-qt5_add_dbus_adaptor (morgoth_SOURCES
-    interfaces/org.morgoth.Daemon.xml morgothdaemon.h morgoth::MorgothDaemon)
-qt5_add_dbus_adaptor (morgoth_SOURCES
-    interfaces/org.morgoth.PluginManager.xml pluginmanager.h morgoth::PluginManager)
-qt5_add_dbus_adaptor (morgoth_SOURCES
-    interfaces/org.morgoth.Server.xml server.h morgoth::Server)
-qt5_add_dbus_adaptor (morgoth_SOURCES
-    interfaces/org.morgoth.ServerConfiguration.xml serverconfiguration.h morgoth::ServerConfiguration)
-qt5_add_dbus_adaptor (morgoth_SOURCES
-    interfaces/org.morgoth.ServerCoordinator.xml servercoordinator.h morgoth::ServerCoordinator)
-qt5_add_dbus_adaptor (morgoth_SOURCES
-    interfaces/org.morgoth.ServerManager.xml servermanager.h morgoth::ServerManager)
-qt5_add_dbus_adaptor (morgoth_SOURCES
-    interfaces/org.morgoth.ServerStatus.xml serverstatus.h morgoth::ServerStatus)
-
 add_library (morgoth SHARED
-    ${morgoth_INCLUDES}
+    ${morgoth_PUBLIC_HEADERS}
+    ${morgoth_PRIVATE_HEADERS}
     ${morgoth_SOURCES}
 )
 
-target_include_directories (morgoth PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    $<INSTALL_INTERFACE:include/morgoth> # <prefix>/include/morgoth
+qt5_add_dbus_adaptor (morgoth_DBUS_ADAPTORS
+    interfaces/org.morgoth.Daemon.xml morgothdaemon.h morgoth::MorgothDaemon)
+qt5_add_dbus_adaptor (morgoth_DBUS_ADAPTORS
+    interfaces/org.morgoth.PluginManager.xml pluginmanager.h morgoth::PluginManager)
+qt5_add_dbus_adaptor (morgoth_DBUS_ADAPTORS
+    interfaces/org.morgoth.Server.xml server.h morgoth::Server)
+qt5_add_dbus_adaptor (morgoth_DBUS_ADAPTORS
+    interfaces/org.morgoth.ServerConfiguration.xml serverconfiguration.h morgoth::ServerConfiguration)
+qt5_add_dbus_adaptor (morgoth_DBUS_ADAPTORS
+    interfaces/org.morgoth.ServerCoordinator.xml servercoordinator.h morgoth::ServerCoordinator)
+qt5_add_dbus_adaptor (morgoth_DBUS_ADAPTORS
+    interfaces/org.morgoth.ServerManager.xml servermanager.h morgoth::ServerManager)
+qt5_add_dbus_adaptor (morgoth_DBUS_ADAPTORS
+    interfaces/org.morgoth.ServerStatus.xml serverstatus.h morgoth::ServerStatus)
+target_sources (morgoth PRIVATE ${morgoth_DBUS_ADAPTORS})
+
+configure_file (config.h.in config.h)
+target_sources (morgoth PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+
+target_include_directories (morgoth
+    PUBLIC
+        $<INSTALL_INTERFACE:include/morgoth> # <prefix>/include/morgoth
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
 
 target_link_libraries (morgoth
@@ -72,12 +76,13 @@ target_link_libraries (morgoth
 set (morgoth_GENERATED_HEADERS
     ${CMAKE_CURRENT_BINARY_DIR}/morgoth_export.h
 )
+target_sources (morgoth PRIVATE ${morgoth_GENERATED_HEADERS})
 
 set_target_properties (morgoth PROPERTIES
     VERSION ${morgoth_VERSION}
     SOVERSION 1
     CXX_VISIBILITY_PRESET hidden
-    PUBLIC_HEADER "${morgoth_INCLUDES};${morgoth_GENERATED_HEADERS}"
+    PUBLIC_HEADER "${morgoth_PUBLIC_HEADERS};${morgoth_GENERATED_HEADERS}"
 )
 
 include (GenerateExportHeader)
@@ -91,8 +96,14 @@ install (TARGETS morgoth
 )
 
 install (EXPORT morgoth-config
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/morgoth/cmake
+    NAMESPACE
+        morgoth::
+    DESTINATION
+        ${CMAKE_INSTALL_DATAROOTDIR}/morgoth/cmake
 )
+
+install (DIRECTORY interfaces
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/morgoth/dbus-1)
 
 add_subdirectory (morgothd)
 add_subdirectory (morgothctl)
