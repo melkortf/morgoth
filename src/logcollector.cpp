@@ -18,9 +18,25 @@
 
 namespace morgoth {
 
+class LogCollectorPrivate {
+public:
+    LogCollectorPrivate(const QString& directory);
+
+    QMutex mutex;
+    QString directory;
+    QByteArray data;
+    bool active;
+};
+
+LogCollectorPrivate::LogCollectorPrivate(const QString &directory) :
+    directory(directory)
+{
+
+}
+
 LogCollector::LogCollector(const QString& directory, QObject *parent) :
     QObject(parent),
-    m_directory(directory) {}
+    d(new LogCollectorPrivate(directory)) {}
 
 LogCollector::~LogCollector()
 {
@@ -29,40 +45,45 @@ LogCollector::~LogCollector()
 
 void LogCollector::log(const QString& line)
 {
-    m_mutex.lock();
-    m_data.append(line).append("\n");
-    m_mutex.unlock();
+    d->mutex.lock();
+    d->data.append(line).append("\n");
+    d->mutex.unlock();
 
-    if (m_data.size() >= MaxLogSize())
+    if (d->data.size() >= MaxLogSize())
         save();
 }
 
 void LogCollector::setDirectory(const QString& directory)
 {
-    if(m_directory != directory) {
-        if (!m_directory.isEmpty())
+    if (d->directory != directory) {
+        if (!d->directory.isEmpty())
             save();
 
-        m_directory = directory;
+        d->directory = directory;
     }
+}
+
+const QString &LogCollector::directory() const
+{
+    return d->directory;
 }
 
 void LogCollector::save()
 {
-    if (m_data.isEmpty())
+    if (d->data.isEmpty())
         return;
 
     if (!isLogDirWritable()) {
-        qWarning("%s: log directory %s not accessible", Q_FUNC_INFO, qPrintable(m_directory));
+        qWarning("%s: log directory %s not accessible", Q_FUNC_INFO, qPrintable(d->directory));
         return;
     }
 
     QFile output(logFileName());
     if (output.open(QIODevice::Append)) {
-        QMutexLocker l(&m_mutex);
-        output.write(m_data);
+        QMutexLocker l(&d->mutex);
+        output.write(d->data);
         output.close();
-        m_data.clear();
+        d->data.clear();
         qDebug("Logs saved to %s", qPrintable(output.fileName()));
     } else {
         qWarning("Could not open %s for writing", qPrintable(output.fileName()));
@@ -71,20 +92,20 @@ void LogCollector::save()
 
 bool LogCollector::isLogDirWritable()
 {
-    if (!QDir(m_directory).exists()) {
-        bool result = QDir().mkpath(m_directory);
+    if (!QDir(d->directory).exists()) {
+        bool result = QDir().mkpath(d->directory);
         if (!result) {
             return false;
         }
     }
 
-    return QDir(m_directory).isReadable();
+    return QDir(d->directory).isReadable();
 }
 
 QString LogCollector::logFileName()
 {
     QString fileName = QDate::currentDate().toString("yyyyMMdd").append(".log");
-    return QDir(m_directory).absoluteFilePath(fileName);
+    return QDir(d->directory).absoluteFilePath(fileName);
 }
 
 } // namespace morgoth

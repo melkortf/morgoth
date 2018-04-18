@@ -23,6 +23,8 @@
 
 namespace morgoth {
 
+class LogCollectorPrivate;
+
 /**
  * \brief The LogCollector class is responsible for saving all servers' logs.
  */
@@ -35,8 +37,15 @@ class MORGOTH_EXPORT LogCollector : public QObject {
     Q_PROPERTY(QString directory READ directory WRITE setDirectory)
 
 public:
+    /**
+     * Creates a new \c LogCollector instance that writes logs to the given
+     * \c directory.
+     */
     explicit LogCollector(const QString& directory, QObject *parent = nullptr);
 
+    /**
+     * Destroys this \c LogCollector instance.
+     */
     virtual ~LogCollector();
 
     /**
@@ -46,7 +55,7 @@ public:
     virtual void log(const QString& line);
 
     void setDirectory(const QString& directory);
-    const QString& directory() const { return m_directory; }
+    const QString& directory() const;
 
     /**
      * \brief Size (in bytes) of logs stored in memory before they get saved
@@ -66,10 +75,7 @@ protected:
     virtual QString logFileName();
 
 private:
-    QMutex m_mutex;
-    QString m_directory;
-    QByteArray m_data;
-    bool m_active = false;
+    QScopedPointer<LogCollectorPrivate> d;
 
 };
 
