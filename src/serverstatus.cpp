@@ -33,6 +33,16 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
 {
     connect(coordinator, &ServerCoordinator::stateChanged, this, &ServerStatus::handleStateChange);
 
+    initialize();
+
+    new ServerStatusAdaptor(this);
+    if (morgothd)
+        morgothd->dbusConnection().registerObject(coordinator->server()->statusPath().path(), this);
+}
+
+void ServerStatus::initialize()
+{
+    // set up log listeners
     StatusHostname* hostnameLine = new StatusHostname;
     connect(hostnameLine, &EventHandler::activated, [hostnameLine, this]() {
         setHostname(hostnameLine->hostname());
@@ -73,10 +83,6 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
         setPlayerCount(playerCount() - 1);
     });
     m_coordinator->installEventHandler(playerDropped);
-
-    new ServerStatusAdaptor(this);
-    if (morgothd)
-        morgothd->dbusConnection().registerObject(coordinator->server()->statusPath().path(), this);
 }
 
 void ServerStatus::reset()

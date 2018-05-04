@@ -49,6 +49,7 @@ public:
     QUrl address() const { return m_address; }
 
 private:
+    void initialize();
     void reset();
     void setHostname(const QString& hostname);
     void setPlayerCount(int playerCount);
