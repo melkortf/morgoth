@@ -30,12 +30,14 @@ class ServerStatus : public QObject {
     Q_PROPERTY(int playerCount READ playerCount NOTIFY playerCountChanged)
     Q_PROPERTY(int maxPlayers READ maxPlayers NOTIFY maxPlayersChanged)
     Q_PROPERTY(QString map READ map NOTIFY mapChanged)
+    Q_PROPERTY(QUrl address READ address NOTIFY addressChanged)
 
 signals:
     void hostnameChanged(const QString& hostname);
     void playerCountChanged(int playerCount);
     void maxPlayersChanged(int maxPlayers);
     void mapChanged(const QString& map);
+    void addressChanged(const QUrl& address);
 
 public:
     explicit ServerStatus(ServerCoordinator* coordinator, QObject *parent = nullptr);
@@ -44,6 +46,7 @@ public:
     int playerCount() const { return m_playerCount; }
     int maxPlayers() const { return m_maxPlayers; }
     QString map() const { return m_map; }
+    QUrl address() const { return m_address; }
 
 private:
     void reset();
@@ -51,6 +54,7 @@ private:
     void setPlayerCount(int playerCount);
     void setMaxPlayers(int maxPlayers);
     void setMap(const QString& map);
+    void setAddress(const QUrl& address);
 
 private slots:
     void handleStateChange(ServerCoordinator::State serverState);
@@ -63,6 +67,7 @@ private:
     int m_playerCount = 0;
     int m_maxPlayers = 0;
     QString m_map;
+    QUrl m_address;
 
 };
 

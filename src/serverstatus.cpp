@@ -20,6 +20,7 @@
 #include "gameevents/playerconnected.h"
 #include "gameevents/playerdropped.h"
 #include "gameevents/statushostname.h"
+#include "gameevents/statusipaddress.h"
 #include "gameevents/statusmap.h"
 #include "gameevents/statusplayernumbers.h"
 #include <QtCore>
@@ -51,6 +52,16 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
     });
     m_coordinator->installEventHandler(mapLine);
 
+    StatusIpAddress* ipLine = new StatusIpAddress;
+    connect(ipLine, &EventHandler::activated, [ipLine, this]() {
+        QUrl address;
+        address.setScheme("steam");
+        address.setHost(ipLine->ip());
+        address.setPort(static_cast<int>(ipLine->port()));
+        setAddress(address);
+    });
+    m_coordinator->installEventHandler(ipLine);
+
     PlayerConnected* playerConnected = new PlayerConnected;
     connect(playerConnected, &EventHandler::activated, [this]() {
         setPlayerCount(playerCount() + 1);
@@ -74,6 +85,7 @@ void ServerStatus::reset()
     setPlayerCount(0);
     setMaxPlayers(0);
     setMap(QString());
+    setAddress(QUrl());
 }
 
 void ServerStatus::setHostname(const QString& hostname)
@@ -98,6 +110,12 @@ void ServerStatus::setMap(const QString& map)
 {
     m_map = map;
     emit mapChanged(m_map);
+}
+
+void ServerStatus::setAddress(const QUrl& address)
+{
+    m_address = address;
+    emit addressChanged(m_address);
 }
 
 void ServerStatus::handleStateChange(ServerCoordinator::State serverState)

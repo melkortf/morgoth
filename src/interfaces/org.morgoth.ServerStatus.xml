@@ -5,6 +5,7 @@
     <property name="playerCount" type="i" access="read"/>
     <property name="maxPlayers" type="i" access="read"/>
     <property name="map" type="s" access="read"/>
+    <property name="address" type="s" access="read"/>
     <signal name="hostnameChanged">
       <arg name="hostname" type="s" direction="out"/>
     </signal>
@@ -16,6 +17,9 @@
     </signal>
     <signal name="mapChanged">
       <arg name="map" type="s" direction="out"/>
+    </signal>
+    <signal name="addressChanged">
+      <arg name="address" type="s" direction="out">
     </signal>
   </interface>
 </node>
