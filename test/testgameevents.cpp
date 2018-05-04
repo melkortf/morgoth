@@ -3,6 +3,7 @@
 #include "gameevents/playerconnected.h"
 #include "gameevents/playerdropped.h"
 #include "gameevents/statushostname.h"
+#include "gameevents/statusipaddress.h"
 #include "gameevents/statusmap.h"
 #include "gameevents/statusplayernumbers.h"
 
@@ -36,6 +37,10 @@ void TestGameEvents::status()
     QSignalSpy spyMap(mapLine, &morgoth::EventHandler::activated);
     logListener->installEventHandler(mapLine);
 
+    morgoth::StatusIpAddress* ipAddressLine = new morgoth::StatusIpAddress;
+    QSignalSpy spyIpAddress(ipAddressLine, &morgoth::EventHandler::activated);
+    logListener->installEventHandler(ipAddressLine);
+
     logListener->start();
 
     spyHostname.wait(1000);
@@ -50,6 +55,11 @@ void TestGameEvents::status()
     spyMap.wait(10);
     QCOMPARE(spyMap.count(), 1);
     QCOMPARE(mapLine->map(), "cp_process_final");
+
+    spyIpAddress.wait(10);
+    QCOMPARE(spyIpAddress.count(), 1);
+    QCOMPARE(ipAddressLine->ip(), "151.80.108.144");
+    QCOMPARE(ipAddressLine->port(), 27015);
 
     logListener->requestInterruption();
     logListener->wait();
