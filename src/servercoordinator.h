@@ -27,6 +27,7 @@ namespace morgoth {
 
 class LogCollector;
 class LogListener;
+class ServerCoordinatorPrivate;
 
 /**
  * \brief The ServerCoordinator class supervises the server running process.
@@ -95,8 +96,8 @@ public:
      */
     void sendCommand(const QString& command);
 
-    const Server* server() const { return m_server; }
-    State state() const { return m_state; }
+    const Server* server() const;
+    State state() const;
 
 public slots:
     /**
@@ -136,13 +137,7 @@ private slots:
     void stopSync();
 
 private:
-    Server* m_server;
-    State m_state = State::Offline;
-    TmuxSessionWrapper m_tmux;
-    QString m_outputFileName;
-    LogListener* m_logListener = nullptr;
-    QMap<QString, EventHandler*> m_eventHandlers;
-    LogCollector* m_logCollector;
+    QScopedPointer<ServerCoordinatorPrivate> d;
 
 };
 

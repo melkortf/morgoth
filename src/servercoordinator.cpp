@@ -29,9 +29,22 @@
 
 namespace morgoth {
 
+class ServerCoordinatorPrivate {
+public:
+    explicit ServerCoordinatorPrivate(Server* server) : server(server) {}
+
+    Server* server;
+    ServerCoordinator::State state = ServerCoordinator::State::Offline;
+    TmuxSessionWrapper tmux;
+    QString outputFileName;
+    LogListener* logListener = nullptr;
+    QMap<QString, EventHandler*> eventHandlers;
+    LogCollector* logCollector;
+};
+
 ServerCoordinator::ServerCoordinator(Server* server) :
     QObject(server),
-    m_server(server)
+    d(new ServerCoordinatorPrivate(server))
 {
     Q_ASSERT(server->isValid());
 
@@ -39,8 +52,8 @@ ServerCoordinator::ServerCoordinator(Server* server) :
     if (QDir::isRelativePath(logDirectory))
         logDirectory.prepend(server->path().toLocalFile() + QDir::separator());
 
-    m_logCollector = new LogCollector(QDir::cleanPath(logDirectory), this);
-    connect(this, &ServerCoordinator::stateChanged, m_logCollector, &LogCollector::save);
+    d->logCollector = new LogCollector(QDir::cleanPath(logDirectory), this);
+    connect(this, &ServerCoordinator::stateChanged, d->logCollector, &LogCollector::save);
 
     connect(qApp, &QCoreApplication::aboutToQuit, this, &ServerCoordinator::stopSync);
 
@@ -66,26 +79,36 @@ ServerCoordinator::~ServerCoordinator()
 
 void ServerCoordinator::installEventHandler(EventHandler* handler)
 {
-    m_eventHandlers.insert(handler->name(), handler);
-    if (m_logListener)
-        m_logListener->installEventHandler(handler);
+    d->eventHandlers.insert(handler->name(), handler);
+    if (d->logListener)
+        d->logListener->installEventHandler(handler);
 }
 
 EventHandler* ServerCoordinator::findEvent(const QString& name)
 {
-    return m_eventHandlers.value(name, nullptr);
+    return d->eventHandlers.value(name, nullptr);
 }
 
 void ServerCoordinator::sendCommand(const QString& command)
 {
     if (state() == Running)
-        m_tmux.sendKeys(command);
+        d->tmux.sendKeys(command);
+}
+
+const Server* ServerCoordinator::server() const
+{
+    return d->server;
+}
+
+ServerCoordinator::State ServerCoordinator::state() const
+{
+    return d->state;
 }
 
 void ServerCoordinator::setState(ServerCoordinator::State state)
 {
-    m_state = state;
-    emit stateChanged(m_state);
+    d->state = state;
+    emit stateChanged(d->state);
 }
 
 bool ServerCoordinator::start()
@@ -109,42 +132,42 @@ bool ServerCoordinator::start()
     if (user.isEmpty() && morgothd)
         user = morgothd->config().value("user").toString();
 
-    m_tmux.setUser(user);
+    d->tmux.setUser(user);
 
-    if (!m_tmux.create()) {
+    if (!d->tmux.create()) {
         qWarning("%s: could not create a tmux session", qPrintable(server()->name()));
         setState(Crashed);
         return false;
     }
 
-    m_outputFileName = QString("/tmp/%1-tmux").arg(m_tmux.name());
-    if (!createFifo(m_outputFileName, user)) {
-        m_tmux.kill();
+    d->outputFileName = QString("/tmp/%1-tmux").arg(d->tmux.name());
+    if (!createFifo(d->outputFileName, user)) {
+        d->tmux.kill();
         setState(Crashed);
         return false;
     }
 
-    m_logListener = new LogListener(m_outputFileName, this);
-    m_logListener->setLogCollector(m_logCollector);
-    m_logListener->start();
+    d->logListener = new LogListener(d->outputFileName, this);
+    d->logListener->setLogCollector(d->logCollector);
+    d->logListener->start();
 
-    std::for_each(m_eventHandlers.begin(), m_eventHandlers.end(),
-                  std::bind(&LogListener::installEventHandler, m_logListener, std::placeholders::_1));
+    std::for_each(d->eventHandlers.begin(), d->eventHandlers.end(),
+                  std::bind(&LogListener::installEventHandler, d->logListener, std::placeholders::_1));
 
-    if (!m_tmux.redirectOutput(m_outputFileName)) {
-        qWarning("%s: could not redirect output to %s", qPrintable(server()->name()), qPrintable(m_outputFileName));
-        m_tmux.kill();
-        unlink(m_outputFileName.toLocal8Bit().constData());
+    if (!d->tmux.redirectOutput(d->outputFileName)) {
+        qWarning("%s: could not redirect output to %s", qPrintable(server()->name()), qPrintable(d->outputFileName));
+        d->tmux.kill();
+        unlink(d->outputFileName.toLocal8Bit().constData());
         setState(Crashed);
         return false;
     }
 
     QString arguments = server()->configuration()->value("org.morgoth.Server.launchArguments");
     QString cmd = QString("%1/srcds_run %2").arg(server()->path().toLocalFile(), arguments);
-    if (!m_tmux.sendKeys(cmd)) {
+    if (!d->tmux.sendKeys(cmd)) {
         qWarning("%s: could not start the server", qPrintable(server()->name()));
-        m_tmux.kill();
-        unlink(m_outputFileName.toLocal8Bit().constData());
+        d->tmux.kill();
+        unlink(d->outputFileName.toLocal8Bit().constData());
         setState(Crashed);
         return false;
     }
@@ -157,13 +180,13 @@ void ServerCoordinator::stop()
     if (state() == Running || state() == Starting) {
         qDebug("%s: stopping...", qPrintable(server()->name()));
         setState(ShuttingDown);
-        m_tmux.sendKeys("quit");
+        d->tmux.sendKeys("quit");
     }
 }
 
 void ServerCoordinator::flushLogs()
 {
-    m_logCollector->save();
+    d->logCollector->save();
 }
 
 bool ServerCoordinator::createFifo(const QString& fileName, const QString& owner)
@@ -182,7 +205,7 @@ bool ServerCoordinator::createFifo(const QString& fileName, const QString& owner
             unlink(fileName.toLocal8Bit().constData());
             return false;
         } else {
-            ::chown(m_outputFileName.toLocal8Bit().constData(), pwd->pw_uid, pwd->pw_gid);
+            ::chown(d->outputFileName.toLocal8Bit().constData(), pwd->pw_uid, pwd->pw_gid);
         }
     }
 
@@ -198,11 +221,11 @@ void ServerCoordinator::handleServerStarted()
 
 void ServerCoordinator::handleServerStopped()
 {
-    Q_ASSERT(m_logListener);
-    m_logListener->requestInterruption();
-    m_logListener = nullptr;
-    unlink(m_outputFileName.toLocal8Bit().constData());
-    m_tmux.kill();
+    Q_ASSERT(d->logListener);
+    d->logListener->requestInterruption();
+    d->logListener = nullptr;
+    unlink(d->outputFileName.toLocal8Bit().constData());
+    d->tmux.kill();
     Q_ASSERT(state() == ShuttingDown);
     setState(Offline);
     qInfo("%s: stopped", qPrintable(server()->name()));
@@ -213,13 +236,13 @@ void ServerCoordinator::stopSync()
     // send stop keys and wait for the server to actually shut down
     stop();
 
-    if (m_logListener) {
-        m_logListener->wait();
-        m_logListener = nullptr;
+    if (d->logListener) {
+        d->logListener->wait();
+        d->logListener = nullptr;
     }
 
-    m_tmux.kill();
-    unlink(m_outputFileName.toLocal8Bit().constData());
+    d->tmux.kill();
+    unlink(d->outputFileName.toLocal8Bit().constData());
 }
 
 } // namespace Morgoth
