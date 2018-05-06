@@ -4,7 +4,7 @@
 class TestLogCollector : public QObject {
     Q_OBJECT
 
-    QString dir = QCoreApplication::applicationDirPath() + "/tmp_logcollector";
+    QString dir = QCoreApplication::applicationDirPath() + "/test_logcollector";
 
 private slots:
     void initTestCase();

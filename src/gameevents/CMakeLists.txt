@@ -8,6 +8,7 @@ set (gameevents_SOURCES
     serverstarted.cpp
     serverstopped.cpp
     statushostname.cpp
+    statusipaddress.cpp
     statusmap.cpp
     statusplayernumbers.cpp
 )
@@ -19,6 +20,7 @@ set (gameevents_HEADERS
     serverstarted.h
     serverstopped.h
     statushostname.h
+    statusipaddress.h
     statusmap.h
     statusplayernumbers.h
 )

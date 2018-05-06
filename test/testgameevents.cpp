@@ -3,6 +3,7 @@
 #include "gameevents/playerconnected.h"
 #include "gameevents/playerdropped.h"
 #include "gameevents/statushostname.h"
+#include "gameevents/statusipaddress.h"
 #include "gameevents/statusmap.h"
 #include "gameevents/statusplayernumbers.h"
 
@@ -10,50 +11,9 @@ class TestGameEvents : public QObject {
     Q_OBJECT
 
 private slots:
-    void status();
     void playerConnected();
 
 };
-
-
-void TestGameEvents::status()
-{
-    QString fileName = QFINDTESTDATA("cmd_status.log");
-    QVERIFY(QFile(fileName).exists());
-
-    morgoth::LogListener* logListener = new morgoth::LogListener(fileName);
-    QVERIFY(logListener);
-
-    morgoth::StatusHostname* hostnameLine = new morgoth::StatusHostname;
-    QSignalSpy spyHostname(hostnameLine, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(hostnameLine);
-
-    morgoth::StatusPlayerNumbers* playerLine = new morgoth::StatusPlayerNumbers;
-    QSignalSpy spyPlayers(playerLine, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(playerLine);
-
-    morgoth::StatusMap* mapLine = new morgoth::StatusMap;
-    QSignalSpy spyMap(mapLine, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(mapLine);
-
-    logListener->start();
-
-    spyHostname.wait(1000);
-    QCOMPARE(spyHostname.count(), 1);
-    QCOMPARE(hostnameLine->hostname(), "melkor.tf #1");
-
-    spyPlayers.wait(100);
-    QCOMPARE(spyPlayers.count(), 1);
-    QCOMPARE(playerLine->playerCount(), 0);
-    QCOMPARE(playerLine->maxPlayers(), 25);
-
-    spyMap.wait(10);
-    QCOMPARE(spyMap.count(), 1);
-    QCOMPARE(mapLine->map(), "cp_process_final");
-
-    logListener->requestInterruption();
-    logListener->wait();
-}
 
 void TestGameEvents::playerConnected()
 {
