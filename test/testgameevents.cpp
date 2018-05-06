@@ -11,59 +11,9 @@ class TestGameEvents : public QObject {
     Q_OBJECT
 
 private slots:
-    void status();
     void playerConnected();
 
 };
-
-
-void TestGameEvents::status()
-{
-    QString fileName = QFINDTESTDATA("cmd_status.log");
-    QVERIFY(QFile(fileName).exists());
-
-    morgoth::LogListener* logListener = new morgoth::LogListener(fileName);
-    QVERIFY(logListener);
-
-    morgoth::StatusHostname* hostnameLine = new morgoth::StatusHostname;
-    QSignalSpy spyHostname(hostnameLine, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(hostnameLine);
-
-    morgoth::StatusPlayerNumbers* playerLine = new morgoth::StatusPlayerNumbers;
-    QSignalSpy spyPlayers(playerLine, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(playerLine);
-
-    morgoth::StatusMap* mapLine = new morgoth::StatusMap;
-    QSignalSpy spyMap(mapLine, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(mapLine);
-
-    morgoth::StatusIpAddress* ipAddressLine = new morgoth::StatusIpAddress;
-    QSignalSpy spyIpAddress(ipAddressLine, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(ipAddressLine);
-
-    logListener->start();
-
-    spyHostname.wait(1000);
-    QCOMPARE(spyHostname.count(), 1);
-    QCOMPARE(hostnameLine->hostname(), "melkor.tf #1");
-
-    spyPlayers.wait(100);
-    QCOMPARE(spyPlayers.count(), 1);
-    QCOMPARE(playerLine->playerCount(), 0);
-    QCOMPARE(playerLine->maxPlayers(), 25);
-
-    spyMap.wait(10);
-    QCOMPARE(spyMap.count(), 1);
-    QCOMPARE(mapLine->map(), "cp_process_final");
-
-    spyIpAddress.wait(10);
-    QCOMPARE(spyIpAddress.count(), 1);
-    QCOMPARE(ipAddressLine->ip(), "151.80.108.144");
-    QCOMPARE(ipAddressLine->port(), 27015);
-
-    logListener->requestInterruption();
-    logListener->wait();
-}
 
 void TestGameEvents::playerConnected()
 {
