@@ -39,6 +39,10 @@ signals:
     void mapChanged(const QString& map);
     void addressChanged(const QUrl& address);
 
+    // DBus workaround to make setAutoRelaySignals() in adaptor work
+    // (the D-Bus XML type is registered as a string).
+    void addressChanged(const QString& address);
+
 public:
     explicit ServerStatus(ServerCoordinator* coordinator, QObject *parent = nullptr);
 

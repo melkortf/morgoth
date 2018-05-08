@@ -122,6 +122,7 @@ void ServerStatus::setAddress(const QUrl& address)
 {
     m_address = address;
     emit addressChanged(m_address);
+    emit addressChanged(m_address.toString());
 }
 
 void ServerStatus::handleStateChange(ServerCoordinator::State serverState)
