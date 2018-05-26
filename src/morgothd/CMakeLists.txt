@@ -1,4 +1,4 @@
-find_package (Qt5 5.8 REQUIRED COMPONENTS Core DBus)
+find_package (Qt5 REQUIRED COMPONENTS Core DBus)
 
 add_executable (morgothd main.cpp)
 target_link_libraries (morgothd morgoth Qt5::Core Qt5::DBus)
