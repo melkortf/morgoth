@@ -6,12 +6,12 @@ compiler:
  - gcc
 
 before_install:
- - sudo add-apt-repository -y ppa:beineri/opt-qt58-trusty
+ - sudo add-apt-repository -y ppa:beineri/opt-qt-5.10.1-trusty
  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
  - sudo apt-get -qy update
 
 install:
- - sudo apt-get -qy install qt58base qt58tools
+ - sudo apt-get -qy install qt510base qt510tools
  - sudo apt-get -qy install gcc-5 g++-5
  - sudo apt-get -qy install libsystemd-daemon-dev
  - wget https://cmake.org/files/v3.10/cmake-3.10.3-Linux-x86_64.sh && sudo sh cmake-3.10.3-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir
@@ -19,7 +19,7 @@ install:
 script:
  - export CXX=g++-5
  - export CC=gcc-5
- - /usr/local/bin/cmake -DCMAKE_PREFIX_PATH=/opt/qt58/lib/cmake .
+ - /usr/local/bin/cmake -DCMAKE_PREFIX_PATH=/opt/qt510/lib/cmake .
  - make VERBOSE=1
  - make test
 
