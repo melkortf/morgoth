@@ -6,6 +6,9 @@
 <h4 align="center">A source dedicated server manager</h4>
 
 <div align="center">
+  <a href="https://travis-ci.org/melkortf/morgoth">
+    <img src="https://img.shields.io/travis/melkortf/morgoth.svg?style=flat-square" alt="build status">
+  </a>
   <img src="https://img.shields.io/badge/stability-experimental-orange.svg?style=flat-square" alt="stability: experimental">
 </div>
 
@@ -18,12 +21,12 @@
 
 ## Dependencies
 
-* Qt (>= 5.8)
-* CMake (>= 3.7)
+* Qt (>= 5.10)
+* CMake (>= 3.10)
 
 ## Installation
 
-```
+```bash
 # Clone this repository
 $ git clone https://github.com/melkortf/morgoth
 
