@@ -15,7 +15,7 @@ install:
  - sudo apt-get -qy --only-upgrade install cmake
  - sudo apt-get -qy install qt58base qt58tools
  - sudo apt-get -qy install gcc-5 g++-5
- - sudo apt-get -qy install systemd
+ - sudo apt-get -qy install libsystemd-daemon-dev
 
 script:
  - export CXX=g++-5
