@@ -1,4 +1,4 @@
-find_package (Qt5 5.8 REQUIRED COMPONENTS Core DBus)
+find_package (Qt5 REQUIRED COMPONENTS Core DBus)
 
 set (CMAKE_AUTOMOC ON)
 set (CMAKE_INCLUDE_CURRENT_DIR ON)

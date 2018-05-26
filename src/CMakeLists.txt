@@ -1,4 +1,4 @@
-find_package (Qt5 5.8 REQUIRED COMPONENTS Core DBus Sql)
+find_package (Qt5 5.10 REQUIRED COMPONENTS Core DBus Sql)
 set (CMAKE_AUTOMOC ON)
 
 add_subdirectory (gameevents)
