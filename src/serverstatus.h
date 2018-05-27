@@ -22,14 +22,39 @@
 
 namespace morgoth {
 
+class ServerStatusPrivate;
+
+/**
+ * \brief The ServerStatus class stores runtime server information.
+ */
 class ServerStatus : public QObject {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.morgoth.ServerStatus")
 
+    /**
+     * The server's hostname, as stored in the \c hostname cvar.
+     */
     Q_PROPERTY(QString hostname READ hostname NOTIFY hostnameChanged)
+
+    /**
+     * Number of players currently connected to the server.
+     */
     Q_PROPERTY(int playerCount READ playerCount NOTIFY playerCountChanged)
+
+    /**
+     * Maximum number of players.
+     * Defined by the \c +maxplayers argument.
+     */
     Q_PROPERTY(int maxPlayers READ maxPlayers NOTIFY maxPlayersChanged)
+
+    /**
+     * A map the server is currently running.
+     */
     Q_PROPERTY(QString map READ map NOTIFY mapChanged)
+
+    /**
+     * Public IP address of the server.
+     */
     Q_PROPERTY(QUrl address READ address NOTIFY addressChanged)
 
 signals:
@@ -45,12 +70,13 @@ signals:
 
 public:
     explicit ServerStatus(ServerCoordinator* coordinator, QObject *parent = nullptr);
+    virtual ~ServerStatus();
 
-    const QString& hostname() const { return m_hostname; }
-    int playerCount() const { return m_playerCount; }
-    int maxPlayers() const { return m_maxPlayers; }
-    QString map() const { return m_map; }
-    QUrl address() const { return m_address; }
+    const QString& hostname() const;
+    int playerCount() const;
+    int maxPlayers() const;
+    QString map() const;
+    QUrl address() const;
 
 private:
     void initialize();
@@ -66,13 +92,7 @@ private slots:
     void refreshStatus();
 
 private:
-    ServerCoordinator* m_coordinator;
-
-    QString m_hostname;
-    int m_playerCount = 0;
-    int m_maxPlayers = 0;
-    QString m_map;
-    QUrl m_address;
+    QScopedPointer<ServerStatusPrivate> d;
 
 };
 

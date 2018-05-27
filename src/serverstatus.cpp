@@ -27,9 +27,23 @@
 
 namespace morgoth {
 
+class ServerStatusPrivate {
+public:
+    explicit ServerStatusPrivate(ServerCoordinator* coordinator) :
+        coordinator(coordinator) {}
+
+    ServerCoordinator* coordinator;
+
+    QString hostname;
+    int playerCount = 0;
+    int maxPlayers = 0;
+    QString map;
+    QUrl address;
+};
+
 ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
     QObject(parent),
-    m_coordinator(coordinator)
+    d(new ServerStatusPrivate(coordinator))
 {
     connect(coordinator, &ServerCoordinator::stateChanged, this, &ServerStatus::handleStateChange);
 
@@ -40,6 +54,36 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
         morgothd->dbusConnection().registerObject(coordinator->server()->statusPath().path(), this);
 }
 
+ServerStatus::~ServerStatus()
+{
+
+}
+
+const QString& ServerStatus::hostname() const
+{
+    return d->hostname;
+}
+
+int ServerStatus::playerCount() const
+{
+    return d->playerCount;
+}
+
+int ServerStatus::maxPlayers() const
+{
+    return d->maxPlayers;
+}
+
+QString ServerStatus::map() const
+{
+    return d->map;
+}
+
+QUrl ServerStatus::address() const
+{
+    return d->address;
+}
+
 void ServerStatus::initialize()
 {
     // set up log listeners
@@ -47,20 +91,20 @@ void ServerStatus::initialize()
     connect(hostnameLine, &EventHandler::activated, [hostnameLine, this]() {
         setHostname(hostnameLine->hostname());
     });
-    m_coordinator->installEventHandler(hostnameLine);
+    d->coordinator->installEventHandler(hostnameLine);
 
     StatusPlayerNumbers* playerLine = new StatusPlayerNumbers;
     connect(playerLine, &EventHandler::activated, [playerLine, this]() {
         setPlayerCount(playerLine->playerCount());
         setMaxPlayers(playerLine->maxPlayers());
     });
-    m_coordinator->installEventHandler(playerLine);
+    d->coordinator->installEventHandler(playerLine);
 
     StatusMap* mapLine = new StatusMap;
     connect(mapLine, &EventHandler::activated, [mapLine, this]() {
         setMap(mapLine->map());
     });
-    m_coordinator->installEventHandler(mapLine);
+    d->coordinator->installEventHandler(mapLine);
 
     StatusIpAddress* ipLine = new StatusIpAddress;
     connect(ipLine, &EventHandler::activated, [ipLine, this]() {
@@ -70,19 +114,19 @@ void ServerStatus::initialize()
         address.setPort(static_cast<int>(ipLine->port()));
         setAddress(address);
     });
-    m_coordinator->installEventHandler(ipLine);
+    d->coordinator->installEventHandler(ipLine);
 
     PlayerConnected* playerConnected = new PlayerConnected;
     connect(playerConnected, &EventHandler::activated, [this]() {
         setPlayerCount(playerCount() + 1);
     });
-    m_coordinator->installEventHandler(playerConnected);
+    d->coordinator->installEventHandler(playerConnected);
 
     PlayerDropped* playerDropped = new PlayerDropped;
     connect(playerDropped, &EventHandler::activated, [this]() {
         setPlayerCount(playerCount() - 1);
     });
-    m_coordinator->installEventHandler(playerDropped);
+    d->coordinator->installEventHandler(playerDropped);
 }
 
 void ServerStatus::reset()
@@ -96,33 +140,33 @@ void ServerStatus::reset()
 
 void ServerStatus::setHostname(const QString& hostname)
 {
-    m_hostname = hostname;
-    emit hostnameChanged(m_hostname);
+    d->hostname = hostname;
+    emit hostnameChanged(d->hostname);
 }
 
 void ServerStatus::setPlayerCount(int playerCount)
 {
-    m_playerCount = playerCount;
-    emit playerCountChanged(m_playerCount);
+    d->playerCount = playerCount;
+    emit playerCountChanged(d->playerCount);
 }
 
 void ServerStatus::setMaxPlayers(int maxPlayers)
 {
-    m_maxPlayers = maxPlayers;
-    emit maxPlayersChanged(m_maxPlayers);
+    d->maxPlayers = maxPlayers;
+    emit maxPlayersChanged(d->maxPlayers);
 }
 
 void ServerStatus::setMap(const QString& map)
 {
-    m_map = map;
-    emit mapChanged(m_map);
+    d->map = map;
+    emit mapChanged(d->map);
 }
 
 void ServerStatus::setAddress(const QUrl& address)
 {
-    m_address = address;
-    emit addressChanged(m_address);
-    emit addressChanged(m_address.toString());
+    d->address = address;
+    emit addressChanged(d->address);
+    emit addressChanged(d->address.toString());
 }
 
 void ServerStatus::handleStateChange(ServerCoordinator::State serverState)
@@ -141,7 +185,7 @@ void ServerStatus::handleStateChange(ServerCoordinator::State serverState)
 void ServerStatus::refreshStatus()
 {
     // FIXME Execute rcon command instead of this
-    m_coordinator->sendCommand("status");
+    d->coordinator->sendCommand("status");
 }
 
 } // namespace morgoth
