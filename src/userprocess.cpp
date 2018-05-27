@@ -22,38 +22,70 @@
 
 namespace morgoth {
 
+class UserProcessPrivate {
+public:
+    void resolveGidAndUid()
+    {
+        if (!user.isEmpty()) {
+            passwd* pwd = ::getpwnam(user.toLocal8Bit().constData());
+            if (!pwd) {
+                char* error = ::strerror(errno);
+                qCritical("Error retrieving uid and gid of user %s (%s)", qPrintable(user), error);
+            } else {
+                gid = pwd->pw_gid;
+                uid = pwd->pw_uid;
+                userResolved = true;
+            }
+        }
+    }
+
+    QString user;
+    unsigned int gid = 0;
+    unsigned int uid = 0;
+    bool userResolved = false;
+};
+
 UserProcess::UserProcess(QObject *parent) :
-    QProcess(parent) {}
+    QProcess(parent),
+    d(new UserProcessPrivate)
+{
+
+}
+
+UserProcess::~UserProcess()
+{
+
+}
 
 void UserProcess::setUser(const QString& user)
 {
-    if (m_user != user) {
-        m_user = user;
-        resolveGidAndUid();
+    if (d->user != user) {
+        d->user = user;
+        d->resolveGidAndUid();
     }
+}
+
+const QString& UserProcess::user() const
+{
+    return d->user;
+}
+
+unsigned int UserProcess::groupId() const
+{
+    return d->gid;
+}
+
+unsigned int UserProcess::userId() const
+{
+    return d->uid;
 }
 
 void UserProcess::setupChildProcess()
 {
-    if (m_userResolved) {
+    if (d->userResolved) {
         ::setgroups(0, nullptr);
-        ::setgid(m_gid);
-        ::setuid(m_uid);
-    }
-}
-
-void UserProcess::resolveGidAndUid()
-{
-    if (!m_user.isEmpty()) {
-        passwd* pwd = ::getpwnam(m_user.toLocal8Bit().constData());
-        if (!pwd) {
-            char* error = ::strerror(errno);
-            qCritical("Error retrieving uid and gid of user %s (%s)", qPrintable(user()), error);
-        } else {
-            m_gid = pwd->pw_gid;
-            m_uid = pwd->pw_uid;
-            m_userResolved = true;
-        }
+        ::setgid(d->gid);
+        ::setuid(d->uid);
     }
 }
 

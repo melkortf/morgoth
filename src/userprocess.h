@@ -21,6 +21,8 @@
 
 namespace morgoth {
 
+class UserProcessPrivate;
+
 /**
  * \brief The UserProcess class executes process as a specified
  *  user.
@@ -40,8 +42,16 @@ public:
      */
     explicit UserProcess(QObject* parent = nullptr);
 
+    /**
+     * Destroys this \c UserProcess instance.
+     */
+    virtual ~UserProcess();
+
     void setUser(const QString& user);
-    const QString& user() const { return m_user; }
+    const QString& user() const;
+
+    unsigned int groupId() const;
+    unsigned int userId() const;
 
 protected:
     /**
@@ -49,13 +59,8 @@ protected:
      */
     void setupChildProcess() override;
 
-    virtual void resolveGidAndUid();
-
 private:
-    QString m_user;
-    bool m_userResolved = false;
-    unsigned int m_gid = 0;
-    unsigned int m_uid = 0;
+    QScopedPointer<UserProcessPrivate> d;
 
 };
 
