@@ -22,7 +22,7 @@
 
 namespace morgoth {
 
-class TmuxProcessFactory;
+class TmuxSessionWrapperPrivate;
 
 /**
  * \brief The TmuxSessionWrapper class wraps all tmux-oriented tasks morgoth
@@ -68,14 +68,14 @@ public:
     /**
      * \brief The randomly generated name of this tmux session.
      */
-    const QString& name() const { return m_name; }
+    const QString& name() const;
 
     /**
      * \brief Queries tmux to find out whether this session is running or not.
      */
     bool exists() const;
 
-    const QString user() const { return m_user; }
+    const QString user() const;
     void setUser(const QString& user);
 
     /**
@@ -84,11 +84,7 @@ public:
     operator bool() const { return exists(); }
 
 private:
-    void generateRandomName();
-
-    QSharedPointer<TmuxProcessFactory> m_tmuxFactory;
-    QString m_name;
-    QString m_user;
+    QScopedPointer<TmuxSessionWrapperPrivate> d;
 
 };
 

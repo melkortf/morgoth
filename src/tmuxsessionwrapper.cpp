@@ -22,9 +22,8 @@
 #include <pwd.h>
 #include <sys/types.h>
 
+namespace {
 static constexpr int TmuxProcessTimeout = 1000; // 1 second
-
-namespace morgoth {
 
 class TmuxProcessFactory {
 private:
@@ -51,8 +50,9 @@ private:
     }
 
 public:
-    std::unique_ptr<UserProcess> create(const QString& user)
+    std::unique_ptr<morgoth::UserProcess> create(const QString& user)
     {
+        using morgoth::UserProcess;
         std::unique_ptr<UserProcess> process = std::make_unique<UserProcess>();
         process->setProgram(tmuxExec());
         process->setUser(user);
@@ -60,11 +60,42 @@ public:
     }
 };
 
+QString generateRandomSessionName()
+{
+    return QString("morgoth-") % []() -> QString {
+        auto randchar = []() -> char {
+            const char charset[] = "0123456789abcdef";
+            const int max_index = (sizeof(charset) - 2);
+
+            std::random_device rd;
+            std::mt19937 rng(rd());
+            std::uniform_int_distribution<size_t> uni(0, max_index);
+
+            return charset[uni(rng)];
+        };
+
+        const int length = 6;
+        QString str(length, '-');
+        std::generate(str.begin(), str.end(), randchar);
+        return str;
+    }();
+}
+}
+
+namespace morgoth {
+
+class TmuxSessionWrapperPrivate {
+public:
+    QSharedPointer<TmuxProcessFactory> tmuxFactory { new TmuxProcessFactory };
+    QString name;
+    QString user;
+};
+
 
 TmuxSessionWrapper::TmuxSessionWrapper() :
-    m_tmuxFactory(new TmuxProcessFactory)
+    d(new TmuxSessionWrapperPrivate)
 {
-    generateRandomName();
+    d->name = ::generateRandomSessionName();
 }
 
 TmuxSessionWrapper::~TmuxSessionWrapper()
@@ -79,7 +110,7 @@ bool TmuxSessionWrapper::create()
         return false;
     }
 
-    auto tmux = m_tmuxFactory->create(m_user);
+    auto tmux = d->tmuxFactory->create(d->user);
     tmux->setArguments({
         "new-session",
         "-d", // detached
@@ -106,7 +137,7 @@ bool TmuxSessionWrapper::redirectOutput(const QString& dest)
         return false;
     }
 
-    auto tmux = m_tmuxFactory->create(m_user);
+    auto tmux = d->tmuxFactory->create(d->user);
     tmux->setArguments({
         "pipe-pane",
         "-t", name(), // session name
@@ -133,7 +164,7 @@ bool TmuxSessionWrapper::sendKeys(const QString& keys)
         return false;
     }
 
-    auto tmux = m_tmuxFactory->create(m_user);
+    auto tmux = d->tmuxFactory->create(d->user);
     tmux->setArguments({
         "send-keys",
         "-t", name(),
@@ -158,7 +189,7 @@ bool TmuxSessionWrapper::kill()
     if (!exists())
         return true;
 
-    auto tmux = m_tmuxFactory->create(m_user);
+    auto tmux = d->tmuxFactory->create(d->user);
     tmux->setArguments({
         "kill-session",
         "-t", name()
@@ -177,9 +208,14 @@ bool TmuxSessionWrapper::kill()
     return result;
 }
 
+const QString& TmuxSessionWrapper::name() const
+{
+    return d->name;
+}
+
 bool TmuxSessionWrapper::exists() const
 {
-    auto tmux = m_tmuxFactory->create(m_user);
+    auto tmux = d->tmuxFactory->create(d->user);
     tmux->setArguments({
         "has-session",
         "-t", name()
@@ -196,37 +232,21 @@ bool TmuxSessionWrapper::exists() const
             && tmux->exitCode() == 0;
 }
 
+const QString TmuxSessionWrapper::user() const
+{
+    return d->user;
+}
+
 void TmuxSessionWrapper::setUser(const QString& user)
 {
-    if (user != m_user) {
+    if (user != d->user) {
         if (exists()) {
             qWarning("%s: cannot change the user while the session is running", Q_FUNC_INFO);
             return;
         }
 
-        m_user = user;
+        d->user = user;
     }
-}
-
-void TmuxSessionWrapper::generateRandomName()
-{
-    m_name = "morgoth-" + []() -> QString {
-        auto randchar = []() -> char {
-            const char charset[] = "0123456789abcdef";
-            const int max_index = (sizeof(charset) - 2);
-
-            std::random_device rd;
-            std::mt19937 rng(rd());
-            std::uniform_int_distribution<size_t> uni(0, max_index);
-
-            return charset[uni(rng)];
-        };
-
-        const int length = 6;
-        QString str(length, '-');
-        std::generate(str.begin(), str.end(), randchar);
-        return str;
-    }();
 }
 
 } // namespace Morgoth
