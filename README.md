@@ -9,7 +9,10 @@
   <a href="https://travis-ci.org/melkortf/morgoth">
     <img src="https://img.shields.io/travis/melkortf/morgoth.svg?style=flat-square" alt="build status">
   </a>
-  <img src="https://img.shields.io/badge/stability-experimental-orange.svg?style=flat-square" alt="stability: experimental">
+  <img src="https://img.shields.io/badge/status-experimental-orange.svg?style=flat-square" alt="status: experimental">
+  <a href="https://github.com/melkortf/morgoth/blob/master/LICENSE">
+    <img src="https://img.shields.io/badge/license-GPL-blue.svg?style=flat-square">
+  </a>
 </div>
 
 
