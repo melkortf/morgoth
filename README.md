@@ -26,6 +26,8 @@
 
 * Qt (>= 5.10)
 * CMake (>= 3.10)
+* systemd
+* DBus
 
 ## Installation
 
@@ -44,4 +46,38 @@ $ make && make test
 
 # Install
 $ make install
+```
+
+## Configuration
+
+The configuration file is installed in `/etc/morgoth.conf`. Available options are:
+* `dbus` specifies which bus should morgoth bind to. Leave it set to `system` if you wish to use morgoth as a daemon;
+* `database` defines the location of SQlite database file;
+* `user` specifies the user that will own all the running game server instances. It is adviced against running source game as a root.
+
+You also need to create the user for the last configuration option:
+```bash
+$ useradd -r -U morgoth
+```
+
+## Usage
+
+```bash
+# Start morgoth daemon
+$ systemctl start morgoth
+
+# Add your server installation
+$ morgothctl add my-fancy-server /home/tf2/servers/fancy
+
+# Make sure your server is added
+$ morgothctl list
+
+# Adjust your server launch arguments
+$ morgothctl config my-fancy-server
+
+# Start the server
+$ morgothctl start my-fancy-server
+
+# Verify your server started successfully
+$ morgothctl status my-fancy-server
 ```
