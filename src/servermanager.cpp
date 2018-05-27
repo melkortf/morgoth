@@ -22,19 +22,30 @@
 
 namespace morgoth {
 
+class ServerManagerPrivate {
+public:
+    QList<Server*> servers;
+};
+
 ServerManager::ServerManager(QObject* parent) :
-    QObject(parent)
+    QObject(parent),
+    d(new ServerManagerPrivate)
 {
     new ServerManagerAdaptor(this);
     morgothd->dbusConnection().registerObject("/servers", this);
 }
 
+ServerManager::~ServerManager()
+{
+
+}
+
 Server* ServerManager::find(const QString& name) const
 {
-    auto it = std::find_if(m_servers.begin(), m_servers.end(), [&name](auto s) {
+    auto it = std::find_if(d->servers.begin(), d->servers.end(), [&name](auto s) {
         return s->name() == name;
     });
-    return it == m_servers.end() ? nullptr : *it;
+    return it == d->servers.end() ? nullptr : *it;
 }
 
 Server* ServerManager::add(const QUrl& path, const QString& name)
@@ -50,7 +61,7 @@ Server* ServerManager::add(const QUrl& path, const QString& name)
     }
 
     Server* s = new Server(fixedPath, name, this);
-    m_servers.append(s);
+    d->servers.append(s);
     emit serverAdded(s);
     return s;
 }
@@ -67,7 +78,7 @@ QDBusObjectPath ServerManager::serverPath(const QString& serverName) const
 QStringList ServerManager::serverNames() const
 {
     QStringList result;
-    std::for_each(m_servers.begin(), m_servers.end(), [&result](const Server* s) {
+    std::for_each(d->servers.begin(), d->servers.end(), [&result](const Server* s) {
         result.append(s->name());
     });
 

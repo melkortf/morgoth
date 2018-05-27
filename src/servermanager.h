@@ -22,6 +22,8 @@
 
 namespace morgoth {
 
+class ServerManagerPrivate;
+
 /**
  * \brief The ServerManager class instantiates and gives access to all
  * setup servers.
@@ -50,6 +52,11 @@ public:
     explicit ServerManager(QObject* parent = nullptr);
 
     /**
+     * Destroys this \c ServerManager instance.
+     */
+    virtual ~ServerManager();
+
+    /**
      * \brief Finds a \c Server instance by its name.
      * \param name The name of the server.
      * \return The \c Server instance or \c nullptr if nothing was found.
@@ -76,12 +83,12 @@ public:
     /**
      * \brief Gives direct access to all installed servers.
      */
-    const QList<Server*>& servers() const { return m_servers; }
+    const QList<Server*>& servers() const;
 
     QStringList serverNames() const;
 
 private:
-    QList<Server*> m_servers;
+    QScopedPointer<ServerManagerPrivate> d;
 
 };
 
