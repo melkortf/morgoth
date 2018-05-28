@@ -63,7 +63,23 @@ Server* ServerManager::add(const QUrl& path, const QString& name)
     Server* s = new Server(fixedPath, name, this);
     d->servers.append(s);
     emit serverAdded(s);
+    qInfo("Server %s added", qPrintable(name));
     return s;
+}
+
+bool ServerManager::remove(const QString& serverName)
+{
+    Server* server = find(serverName);
+    if (server == nullptr) {
+        qWarning("Could not find server \"%s\"; not removing anything", qPrintable(serverName));
+        return false;
+    }
+
+    emit serverAboutToBeRemoved(server);
+    d->servers.removeAll(server);
+    server->deleteLater();
+    qInfo("Server %s removed", qPrintable(serverName));
+    return true;
 }
 
 QDBusObjectPath ServerManager::serverPath(const QString& serverName) const
