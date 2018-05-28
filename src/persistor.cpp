@@ -114,6 +114,7 @@ void Persistor::initialize()
 
     restoreServers();
     connect(d->serverManager, &ServerManager::serverAdded, this, &Persistor::storeServer);
+    connect(d->serverManager, &ServerManager::serverAboutToBeRemoved, this, &Persistor::deleteServer);
 
     restorePlugins();
     connect(d->pluginManager, &PluginManager::pluginStatusChanged, this, &Persistor::storePluginState);
@@ -123,6 +124,8 @@ void Persistor::initialize()
 
 void Persistor::storeServer(Server* server)
 {
+    Q_ASSERT(server);
+
     QSqlQuery q;
     q.exec(QStringLiteral("SELECT * FROM servers WHERE name='%1'").arg(server->name()));
     if (q.size() > 0) {
@@ -167,10 +170,36 @@ void Persistor::storeServer(Server* server)
     connect(server->configuration(), &ServerConfiguration::valueChanged, this, &Persistor::storeConfigurationEntry);
 }
 
+void Persistor::deleteServer(Server* server)
+{
+    Q_ASSERT(server);
+
+    QSqlQuery q;
+    if (!q.exec(QStringLiteral("SELECT id FROM servers WHERE name='%1'").arg(server->name()))) {
+        qWarning("Could not retrieve server %s from the database", qPrintable(server->name()));
+    }
+
+    QSqlQuery q2;
+    q2.prepare("DELETE FROM server_configuration_entries WHERE serverid=:serverid");
+
+    while (q.next()) {
+        QVariant id = q.value(0);
+        q2.bindValue(":serverid", id);
+        if (!q2.exec()) {
+            qWarning("Could not remove configuration for server %s", qPrintable(server->name()));
+        }
+    }
+
+    if (!q.exec(QStringLiteral("DELETE FROM servers WHERE name='%1'").arg(server->name()))) {
+        qWarning("Could not delete server %s from the database", qPrintable(server->name()));
+    }
+}
+
 void Persistor::storeConfigurationEntry(const QString& key, const QString& value)
 {
     ServerConfiguration* configuration = qobject_cast<ServerConfiguration*>(sender());
     Q_ASSERT(configuration);
+    Q_ASSERT(configuration->server());
 
     QSqlQuery q;
     bool res = q.exec(QStringLiteral("SELECT id FROM server_configuration_entries WHERE serverid=("
