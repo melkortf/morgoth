@@ -20,37 +20,53 @@
 
 namespace morgoth {
 
+class PersistorPrivate {
+public:
+    explicit PersistorPrivate(ServerManager* serverManager, PluginManager* pluginManager) :
+        serverManager(serverManager),
+        pluginManager(pluginManager),
+        database(QSqlDatabase::addDatabase("QSQLITE"))
+    {}
+
+    ServerManager* serverManager;
+    PluginManager* pluginManager;
+    QSqlDatabase database;
+};
+
 Persistor::Persistor(ServerManager* serverManager, PluginManager* pluginManager, QObject* parent) :
     QObject(parent),
-    m_serverManager(serverManager),
-    m_pluginManager(pluginManager),
-    m_database(QSqlDatabase::addDatabase("QSQLITE"))
+    d(new PersistorPrivate(serverManager, pluginManager))
 {
     // initialize Persistor the moment the event loop starts
     QTimer::singleShot(0, this, &Persistor::initialize);
+}
+
+Persistor::~Persistor()
+{
+
 }
 
 void Persistor::initializeDatabase()
 {
     QString databaseFile = morgothd->config().value("database", "morgoth.sqlite").toString();
     qDebug("Using database file: %s", qPrintable(databaseFile));
-    m_database.setDatabaseName(databaseFile);
-    if (!m_database.open()) {
-        qCritical() << m_database.lastError();
-        qCritical("Could not connect to database");
+    d->database.setDatabaseName(databaseFile);
+    if (!d->database.open()) {
+        qCritical() << d->database.lastError();
+        qCritical("Could not connect to the database");
     } else {
-        Q_ASSERT(m_database.driver()->hasFeature(QSqlDriver::LastInsertId));
-        Q_ASSERT(m_database.driver()->hasFeature(QSqlDriver::Transactions));
+        Q_ASSERT(d->database.driver()->hasFeature(QSqlDriver::LastInsertId));
+        Q_ASSERT(d->database.driver()->hasFeature(QSqlDriver::Transactions));
 
-        m_database.exec("CREATE TABLE IF NOT EXISTS servers(id integer primary key autoincrement, path text, name text)");
-        m_database.exec("CREATE TABLE IF NOT EXISTS server_configuration_entries("
-                        "id integer primary key autoincrement, "
-                        "serverid integer, "
-                        "key string, "
-                        "value string)");
-        m_database.exec("CREATE TABLE IF NOT EXISTS plugins(id integer primary key autoincrement, "
-                        "name text unique not null, "
-                        "enabled integer)");
+        d->database.exec("CREATE TABLE IF NOT EXISTS servers(id integer primary key autoincrement, path text, name text)");
+        d->database.exec("CREATE TABLE IF NOT EXISTS server_configuration_entries("
+                         "id integer primary key autoincrement, "
+                         "serverid integer, "
+                         "key string, "
+                         "value string)");
+        d->database.exec("CREATE TABLE IF NOT EXISTS plugins(id integer primary key autoincrement, "
+                         "name text unique not null, "
+                         "enabled integer)");
     }
 }
 
@@ -66,7 +82,7 @@ void Persistor::restoreServers() {
         QUrl path = q.value(1).toUrl();
         QString name = q.value(2).toString();
 
-        Server* server = m_serverManager->add(path, name);
+        Server* server = d->serverManager->add(path, name);
         ServerConfiguration* configuration = server->configuration();
         q2.bindValue(":serverid", id);
         if (q2.exec()) {
@@ -88,7 +104,7 @@ void Persistor::restorePlugins()
 
     while (q.next()) {
         QString name = q.value(0).toString();
-        m_pluginManager->setPluginStatus(name, true);
+        d->pluginManager->setPluginStatus(name, true);
     }
 }
 
@@ -97,10 +113,10 @@ void Persistor::initialize()
     initializeDatabase();
 
     restoreServers();
-    connect(m_serverManager, &ServerManager::serverAdded, this, &Persistor::storeServer);
+    connect(d->serverManager, &ServerManager::serverAdded, this, &Persistor::storeServer);
 
     restorePlugins();
-    connect(m_pluginManager, &PluginManager::pluginStatusChanged, this, &Persistor::storePluginState);
+    connect(d->pluginManager, &PluginManager::pluginStatusChanged, this, &Persistor::storePluginState);
 
     emit initialized();
 }
@@ -114,20 +130,20 @@ void Persistor::storeServer(Server* server)
         return;
     }
 
-    m_database.transaction();
+    d->database.transaction();
 
     q.prepare("INSERT INTO servers (path, name) VALUES (:path, :name)");
     q.bindValue(":path", server->path());
     q.bindValue(":name", server->name());
     if (!q.exec()) {
         qCritical("Error adding server: %s", qPrintable(q.lastError().text()));
-        m_database.rollback();
+        d->database.rollback();
         return;
     }
 
     if (!q.lastInsertId().isValid()) {
         qCritical("Error adding server: could not retrieve lastInsertId");
-        m_database.rollback();
+        d->database.rollback();
         return;
     }
 
@@ -142,13 +158,12 @@ void Persistor::storeServer(Server* server)
         q.bindValue(":value", value);
         if (!q.exec()) {
             qCritical("Error adding server configration: %s", qPrintable(q.lastError().text()));
-            m_database.rollback();
+            d->database.rollback();
             return;
         }
     }
 
-    m_database.commit();
-
+    d->database.commit();
     connect(server->configuration(), &ServerConfiguration::valueChanged, this, &Persistor::storeConfigurationEntry);
 }
 

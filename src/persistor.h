@@ -23,6 +23,8 @@
 
 namespace morgoth {
 
+class PersistorPrivate;
+
 /**
  * \brief The Persistor class is responsible for storing all servers and their
  *  configs.
@@ -37,8 +39,17 @@ signals:
     void initialized();
 
 public:
+    /**
+     * Creates a new \c Persistor instance for the given \c serverManager and
+     * \c pluginManager.
+     */
     explicit Persistor(ServerManager* serverManager, PluginManager* pluginManager,
                        QObject* parent = nullptr);
+
+    /**
+     * Destroys this \c Persistor instance.
+     */
+    virtual ~Persistor();
 
 private:
     void initializeDatabase();
@@ -52,9 +63,7 @@ private slots:
     void storePluginState(const QString& pluginName, bool enabled);
 
 private:
-    ServerManager* m_serverManager;
-    PluginManager* m_pluginManager;
-    QSqlDatabase m_database;
+    QScopedPointer<PersistorPrivate> d;
 
 };
 
