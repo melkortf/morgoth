@@ -61,15 +61,42 @@ int StartCommand::execute(QDBusConnection dbus, const QStringList& arguments, QT
         org::morgoth::Server server(morgoth::MorgothDaemon::dbusServiceName(), path.path(), dbus);
         Q_ASSERT(server.isValid());
 
-        out << "Starting \"" << serverName << "\"... " << flush;
-
         org::morgoth::ServerCoordinator coordinator(morgoth::MorgothDaemon::dbusServiceName(), server.coordinatorPath().path(), dbus);
-        if (coordinator.start()) {
-            out << "ok" << endl;
-        } else {
-            out << "FAILED" << endl;
-            ret = 4;
+        if (coordinator.state() != morgoth::ServerCoordinator::Offline) {
+            out << "Server " << serverName << " is already running" << endl;
+            return 0;
         }
+
+        QEventLoop loop;
+        QObject::connect(&coordinator, &org::morgoth::ServerCoordinator::stateChanged, [&ret, &loop, &out, &serverName](auto state) {
+            switch (state) {
+                case morgoth::ServerCoordinator::Running:
+                    out << "started." << endl;
+                    ret = 0;
+                    loop.quit();
+                    break;
+
+                case morgoth::ServerCoordinator::Starting:
+                    out << "Starting \"" << serverName << "\"... " << flush;
+                    break;
+
+                case morgoth::ServerCoordinator::Crashed:
+                    out << "FAILED" << endl;
+                    ret = 5;
+                    loop.quit();
+                    break;
+
+                default:
+                    break;
+            }
+        });
+
+        if (!coordinator.start()) {
+            out << "Could not start " << serverName << endl;
+            return 4;
+        }
+
+        loop.exec();
     }
 
     return ret;
