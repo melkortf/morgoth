@@ -60,22 +60,40 @@ int StopCommand::execute(QDBusConnection dbus, const QStringList& arguments, QTe
         org::morgoth::Server server(morgoth::MorgothDaemon::dbusServiceName(), path.path(), dbus);
         Q_ASSERT(server.isValid());
 
-        out << "Stopping \"" << serverName << "\"... " << flush;
-
         org::morgoth::ServerCoordinator coordinator(morgoth::MorgothDaemon::dbusServiceName(), server.coordinatorPath().path(), dbus);
-        switch (coordinator.state()) {
-            case morgoth::ServerCoordinator::State::Offline:
-            case morgoth::ServerCoordinator::State::Crashed:
-                out << "not running" << endl;
-                break;
-
-            case morgoth::ServerCoordinator::State::Starting:
-            case morgoth::ServerCoordinator::State::Running:
-            case morgoth::ServerCoordinator::State::ShuttingDown:
-                coordinator.stop();
-                out << endl;
-                break;
+        if (coordinator.state() == morgoth::ServerCoordinator::State::Offline
+                || coordinator.state() == morgoth::ServerCoordinator::State::Crashed) {
+            out << "Server " << serverName << " is offline." << endl;
+            return 0;
         }
+
+        int ret = 0;
+        QEventLoop loop;
+        QObject::connect(&coordinator, &org::morgoth::ServerCoordinator::stateChanged, [&ret, &loop, &out, &serverName](auto state) {
+            switch (state) {
+                case morgoth::ServerCoordinator::Offline:
+                    out << "stopped." << endl;
+                    ret = 0;
+                    loop.quit();
+                    break;
+
+                case morgoth::ServerCoordinator::ShuttingDown:
+                    out << "Shutting down \"" << serverName << "\"... " << flush;
+                    break;
+
+                case morgoth::ServerCoordinator::Crashed:
+                    out << "FAILED" << endl;
+                    ret = 5;
+                    loop.quit();
+                    break;
+
+                default:
+                    break;
+            }
+        });
+
+        coordinator.stop();
+        loop.exec();
     }
 
     return 0;

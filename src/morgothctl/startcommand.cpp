@@ -71,7 +71,7 @@ int StartCommand::execute(QDBusConnection dbus, const QStringList& arguments, QT
         QObject::connect(&coordinator, &org::morgoth::ServerCoordinator::stateChanged, [&ret, &loop, &out, &serverName](auto state) {
             switch (state) {
                 case morgoth::ServerCoordinator::Running:
-                    out << "started" << endl;
+                    out << "started." << endl;
                     ret = 0;
                     loop.quit();
                     break;
