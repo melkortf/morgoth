@@ -62,6 +62,10 @@ int StartCommand::execute(QDBusConnection dbus, const QStringList& arguments, QT
         Q_ASSERT(server.isValid());
 
         org::morgoth::ServerCoordinator coordinator(morgoth::MorgothDaemon::dbusServiceName(), server.coordinatorPath().path(), dbus);
+        if (coordinator.state() != morgoth::ServerCoordinator::Offline) {
+            out << "Server " << serverName << " is already running" << endl;
+            return 0;
+        }
 
         QEventLoop loop;
         QObject::connect(&coordinator, &org::morgoth::ServerCoordinator::stateChanged, [&ret, &loop, &out, &serverName](auto state) {
