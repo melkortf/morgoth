@@ -78,7 +78,7 @@ int StartCommand::execute(QDBusConnection dbus, const QStringList& arguments, QT
 
                 case morgoth::ServerCoordinator::Crashed:
                     out << "FAILED" << endl;
-                    ret = 4;
+                    ret = 5;
                     loop.quit();
                     break;
 
@@ -87,7 +87,11 @@ int StartCommand::execute(QDBusConnection dbus, const QStringList& arguments, QT
             }
         });
 
-        coordinator.start();
+        if (!coordinator.start()) {
+            out << "Could not start " << serverName << endl;
+            return 4;
+        }
+
         loop.exec();
     }
 
