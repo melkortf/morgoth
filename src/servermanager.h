@@ -80,6 +80,14 @@ public:
     Server* add(const QUrl& path, const QString& name);
 
     /**
+     * \brief Adds the given server.
+     *
+     * The \c ServerManager becomes the new parent for \c server, effectively
+     * taking ownership of its.
+     */
+    bool add(Server* server);
+
+    /**
      * \brief Removes a server instance.
      *
      * This method only removes the server entry from the database. It does
