@@ -32,7 +32,8 @@ ServerManager::ServerManager(QObject* parent) :
     d(new ServerManagerPrivate)
 {
     new ServerManagerAdaptor(this);
-    morgothd->dbusConnection().registerObject("/servers", this);
+    if (morgothd)
+        morgothd->dbusConnection().registerObject("/servers", this);
 }
 
 ServerManager::~ServerManager()
@@ -50,20 +51,52 @@ Server* ServerManager::find(const QString& name) const
 
 Server* ServerManager::add(const QUrl& path, const QString& name)
 {
-    if (find(name) != nullptr) {
-        qWarning("Could not add server \"%s\": name already exists", qPrintable(name));
-        return nullptr;
-    }
-
     QUrl fixedPath(path);
     if (QFile::exists(fixedPath.toString())) {
         fixedPath = QUrl::fromLocalFile(fixedPath.toString());
     }
 
-    Server* s = new Server(fixedPath, name, this);
-    d->servers.append(s);
-    emit serverAdded(s);
-    return s;
+    Server* s = new Server(fixedPath, name);
+    if (add(s)) {
+        return s;
+    } else {
+        delete s;
+        return nullptr;
+    }
+}
+
+bool ServerManager::add(Server* server)
+{
+    if (d->servers.contains(server)) {
+        qWarning("Could not add server \"%s\": server already added", qPrintable(server->name()));
+        return false;
+    }
+
+    if (find(server->name()) != nullptr) {
+        qWarning("Could not add server \"%s\": name taken", qPrintable(server->name()));
+        return false;
+    }
+
+    server->setParent(this);
+    d->servers.append(server);
+    emit serverAdded(server);
+    qInfo("Server %s added", qPrintable(server->name()));
+    return true;
+}
+
+bool ServerManager::remove(const QString& serverName)
+{
+    Server* server = find(serverName);
+    if (server == nullptr) {
+        qWarning("Could not find server \"%s\"; not removing anything", qPrintable(serverName));
+        return false;
+    }
+
+    emit serverAboutToBeRemoved(server);
+    d->servers.removeAll(server);
+    server->deleteLater();
+    qInfo("Server %s removed", qPrintable(serverName));
+    return true;
 }
 
 QDBusObjectPath ServerManager::serverPath(const QString& serverName) const

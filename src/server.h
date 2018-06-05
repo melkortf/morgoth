@@ -94,8 +94,6 @@ public:
      * \param path Path to the directory where the server is installed.
      * \param name Name of the server.
      * \param parent Passed to QObject.
-     * \warning Do _not_ use this constructor unless you know exactly what you
-     *  are doing.
      * \sa ServerManager::add().
      */
     Server(const QUrl& path, const QString& name, QObject* parent = nullptr);

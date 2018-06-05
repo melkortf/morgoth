@@ -59,6 +59,7 @@ private:
 private slots:
     void initialize();
     void storeServer(Server* server);
+    void deleteServer(Server* server);
     void storeConfigurationEntry(const QString& key, const QString& value);
     void storePluginState(const QString& pluginName, bool enabled);
 

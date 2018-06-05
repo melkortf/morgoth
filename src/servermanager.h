@@ -40,9 +40,13 @@ class MORGOTH_EXPORT ServerManager : public QObject {
 signals:
     /**
      * \brief Emitted when a new server has been added.
-     * \param server The new \c Server instance.
      */
     void serverAdded(Server* server);
+
+    /**
+     * \brief Emitted just before a server is removed.
+     */
+    void serverAboutToBeRemoved(Server* server);
 
 public:
     /**
@@ -74,6 +78,25 @@ public:
      * \return The \c Server instance of the newly created server.
      */
     Server* add(const QUrl& path, const QString& name);
+
+    /**
+     * \brief Adds the given server.
+     *
+     * The \c ServerManager becomes the new parent for \c server, effectively
+     * taking ownership of its.
+     */
+    bool add(Server* server);
+
+    /**
+     * \brief Removes a server instance.
+     *
+     * This method only removes the server entry from the database. It does
+     * _not_ remove any directories.
+     *
+     * \param serverName The name of the server to be removed.
+     * \return \c true if the server was successfully removed, false otherwise.
+     */
+    bool remove(const QString& serverName);
 
     /**
      * \brief Returns the D-Bus path the given server is registered under.
