@@ -81,3 +81,15 @@ $ morgothctl start my-fancy-server
 # Verify your server started successfully
 $ morgothctl status my-fancy-server
 ```
+
+## TODO
+
+There are many TODO as of now, as the project is in an early development phase.
+Apart from lots of integration tests, there are:
+* plugins: add plugin dependency system
+* plugins: implement `server-updater` plugin
+* plugins: implement `iptables` plugin
+* morgothctl: add `restart` command
+* morgothctl: add player list in `status` command
+* add `org.morgoth.Server.displayName` config option for ando
+* (POC needed) handle morgoth <-> server communication via srcds plugin
