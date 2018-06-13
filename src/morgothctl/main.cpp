@@ -18,6 +18,7 @@
 #include "configcommand.h"
 #include "listcommand.h"
 #include "morgothdaemon.h"
+#include "removecommand.h"
 #include "startcommand.h"
 #include "statuscommand.h"
 #include "stopcommand.h"
@@ -58,6 +59,7 @@ int main(int argc, char** argv)
     QList<morgoth::MorgothCtlPlugin*> commands({
         new ListCommand,
         new AddCommand,
+        new RemoveCommand,
         new StartCommand,
         new StopCommand,
         new StatusCommand,
