@@ -18,7 +18,56 @@
 #include "servercoordinatorinterface.h"
 #include "serverinterface.h"
 #include "servermanagerinterface.h"
+#include "serverstatusinterface.h"
 #include <QtCore>
+
+namespace {
+void printStatus(const org::morgoth::Server& server, QTextStream& out)
+{
+    org::morgoth::ServerStatus status(
+                morgoth::MorgothDaemon::dbusServiceName(),
+                server.statusPath().path(),
+                server.connection());
+
+    out << "    " << status.hostname() << " " << status.map() << " " << status.playerCount() << "/" << status.maxPlayers()  << endl;
+}
+
+void printState(const org::morgoth::Server& server, QTextStream& out)
+{
+    org::morgoth::ServerCoordinator coordinator(
+                morgoth::MorgothDaemon::dbusServiceName(),
+                server.coordinatorPath().path(),
+                server.connection());
+
+    QString state;
+    switch (coordinator.state()) {
+        case morgoth::ServerCoordinator::State::Offline:
+            state = "offline";
+            break;
+
+        case morgoth::ServerCoordinator::State::Starting:
+            state = "starting";
+            break;
+
+        case morgoth::ServerCoordinator::State::Running:
+            state = "running";
+            break;
+
+        case morgoth::ServerCoordinator::State::ShuttingDown:
+            state = "shutting down";
+            break;
+
+        case morgoth::ServerCoordinator::State::Crashed:
+            state = "crashed";
+            break;
+    }
+
+    out << server.name() << ": " << state << endl;
+
+    if (coordinator.state() == morgoth::ServerCoordinator::Running)
+        printStatus(server, out);
+}
+}
 
 int StatusCommand::execute(QDBusConnection dbus, const QStringList& arguments, QTextStream& out)
 {
@@ -45,32 +94,10 @@ int StatusCommand::execute(QDBusConnection dbus, const QStringList& arguments, Q
     QString status;
     org::morgoth::Server server(morgoth::MorgothDaemon::dbusServiceName(), serverManager.serverPath(serverName).value().path(), dbus);
     if (server.valid()) {
-        org::morgoth::ServerCoordinator coordinator(morgoth::MorgothDaemon::dbusServiceName(), server.coordinatorPath().path(), dbus);
-        switch (coordinator.state()) {
-            case morgoth::ServerCoordinator::State::Offline:
-                status = "offline";
-                break;
-
-            case morgoth::ServerCoordinator::State::Starting:
-                status = "starting";
-                break;
-
-            case morgoth::ServerCoordinator::State::Running:
-                status = "running";
-                break;
-
-            case morgoth::ServerCoordinator::State::ShuttingDown:
-                status = "shutting down";
-                break;
-
-            case morgoth::ServerCoordinator::State::Crashed:
-                status = "crashed";
-                break;
-        }
+        printState(server, out);
     } else {
-        status = "invalid";
+        out << server.name() << ": invalid" << endl;
     }
 
-    out << server.name() << ": " << status << endl;
     return 0;
 }
