@@ -17,6 +17,7 @@
 #include "eventhandler.h"
 #include "morgothdaemon.h"
 #include "serverstatusadaptor.h"
+#include "gameevents/cvarvalue.h"
 #include "gameevents/playerconnected.h"
 #include "gameevents/playerdropped.h"
 #include "gameevents/statushostname.h"
@@ -39,6 +40,7 @@ public:
     int maxPlayers = 0;
     QString map;
     QUrl address;
+    bool passwordProtected = false;
 };
 
 ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
@@ -46,7 +48,6 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
     d(new ServerStatusPrivate(coordinator))
 {
     connect(coordinator, &ServerCoordinator::stateChanged, this, &ServerStatus::handleStateChange);
-
     initialize();
 
     new ServerStatusAdaptor(this);
@@ -82,6 +83,11 @@ QString ServerStatus::map() const
 QUrl ServerStatus::address() const
 {
     return d->address;
+}
+
+bool ServerStatus::isPasswordProtected() const
+{
+    return d->passwordProtected;
 }
 
 void ServerStatus::initialize()
@@ -127,6 +133,12 @@ void ServerStatus::initialize()
         setPlayerCount(playerCount() - 1);
     });
     d->coordinator->installEventHandler(playerDropped);
+
+    CvarValue* password = new CvarValue("sv_password");
+    connect(password, &EventHandler::activated, [password, this]() {
+        setPasswordProtected(!password->value().isEmpty());
+    });
+    d->coordinator->installEventHandler(password);
 }
 
 void ServerStatus::reset()
@@ -136,6 +148,7 @@ void ServerStatus::reset()
     setMaxPlayers(0);
     setMap(QString());
     setAddress(QUrl());
+    setPasswordProtected(false);
 }
 
 void ServerStatus::setHostname(const QString& hostname)
@@ -169,6 +182,12 @@ void ServerStatus::setAddress(const QUrl& address)
     emit addressChanged(d->address.toString());
 }
 
+void ServerStatus::setPasswordProtected(bool passwordProtected)
+{
+    d->passwordProtected = passwordProtected;
+    emit passwordProtectedChanged(d->passwordProtected);
+}
+
 void ServerStatus::handleStateChange(ServerCoordinator::State serverState)
 {
     switch (serverState) {
@@ -186,6 +205,7 @@ void ServerStatus::refreshStatus()
 {
     // FIXME Execute rcon command instead of this
     d->coordinator->sendCommand("status");
+    d->coordinator->sendCommand("sv_password");
 }
 
 } // namespace morgoth

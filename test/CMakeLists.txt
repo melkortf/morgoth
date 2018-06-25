@@ -30,3 +30,7 @@ add_test (NAME TestStatusCommand COMMAND teststatuscommand)
 add_executable (testgameevents testgameevents.cpp)
 target_link_libraries (testgameevents morgoth Qt5::Test)
 add_test (NAME TestGameEvents COMMAND testgameevents)
+
+add_executable (testcvars testcvars.cpp)
+target_link_libraries (testcvars morgoth Qt5::Test)
+add_test (NAME TestCvars COMMAND testcvars)

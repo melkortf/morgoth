@@ -2,6 +2,7 @@ set (CMAKE_AUTOMOC ON)
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set (gameevents_SOURCES
+    cvarvalue.cpp
     mapchange.cpp
     playerconnected.cpp
     playerdropped.cpp
@@ -14,6 +15,7 @@ set (gameevents_SOURCES
 )
 
 set (gameevents_HEADERS
+    cvarvalue.h
     mapchange.h
     playerconnected.h
     playerdropped.h
