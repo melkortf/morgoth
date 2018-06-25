@@ -6,6 +6,7 @@
     <property name="maxPlayers" type="i" access="read"/>
     <property name="map" type="s" access="read"/>
     <property name="address" type="s" access="read"/>
+    <property name="passwordProtected" type="b" access="read"/>
     <signal name="hostnameChanged">
       <arg name="hostname" type="s" direction="out"/>
     </signal>
@@ -20,6 +21,9 @@
     </signal>
     <signal name="addressChanged">
       <arg name="address" type="s" direction="out">
+    </signal>
+    <signal name="passwordProtectedChanged">
+      <arg name="passwordProtected" type="b" direction="out">
     </signal>
   </interface>
 </node>
