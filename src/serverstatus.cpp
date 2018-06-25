@@ -179,7 +179,7 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
     QObject(parent),
     d(new ServerStatusPrivate(this, coordinator))
 {
-    connect(coordinator, &ServerCoordinator::stateChanged, std::bind(&ServerStatusPrivate::handleStateChange, d.get(), std::placeholders::_1));
+    connect(coordinator, &ServerCoordinator::stateChanged, std::bind(&ServerStatusPrivate::handleStateChange, d.data(), std::placeholders::_1));
     d->initialize();
 
     new ServerStatusAdaptor(this);
