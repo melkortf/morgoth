@@ -25,14 +25,16 @@
 #include "gameevents/statusmap.h"
 #include "gameevents/statusplayernumbers.h"
 #include <QtCore>
+#include <functional>
 
 namespace morgoth {
 
 class ServerStatusPrivate {
 public:
-    explicit ServerStatusPrivate(ServerCoordinator* coordinator) :
-        coordinator(coordinator) {}
+    explicit ServerStatusPrivate(ServerStatus* q, ServerCoordinator* coordinator) :
+        q(q), coordinator(coordinator) {}
 
+    ServerStatus* q;
     ServerCoordinator* coordinator;
 
     QString hostname;
@@ -41,14 +43,144 @@ public:
     QString map;
     QUrl address;
     bool passwordProtected = false;
+
+    void initialize();
+    void reset();
+    void setHostname(const QString& hostname);
+    void setPlayerCount(int playerCount);
+    void setMaxPlayers(int maxPlayers);
+    void setMap(const QString& map);
+    void setAddress(const QUrl& address);
+    void setPasswordProtected(bool passwordProtected);
+
+    void handleStateChange(ServerCoordinator::State serverState);
+    void refreshStatus();
 };
+
+void ServerStatusPrivate::initialize()
+{
+    // set up log listeners
+    StatusHostname* hostnameLine = new StatusHostname;
+    QObject::connect(hostnameLine, &EventHandler::activated, [hostnameLine, this]() {
+        setHostname(hostnameLine->hostname());
+    });
+    coordinator->installEventHandler(hostnameLine);
+
+    StatusPlayerNumbers* playerLine = new StatusPlayerNumbers;
+    QObject::connect(playerLine, &EventHandler::activated, [playerLine, this]() {
+        setPlayerCount(playerLine->playerCount());
+        setMaxPlayers(playerLine->maxPlayers());
+    });
+    coordinator->installEventHandler(playerLine);
+
+    StatusMap* mapLine = new StatusMap;
+    QObject::connect(mapLine, &EventHandler::activated, [mapLine, this]() {
+        setMap(mapLine->map());
+    });
+    coordinator->installEventHandler(mapLine);
+
+    StatusIpAddress* ipLine = new StatusIpAddress;
+    QObject::connect(ipLine, &EventHandler::activated, [ipLine, this]() {
+        QUrl address;
+        address.setScheme("steam");
+        address.setHost(ipLine->ip());
+        address.setPort(static_cast<int>(ipLine->port()));
+        setAddress(address);
+    });
+    coordinator->installEventHandler(ipLine);
+
+    PlayerConnected* playerConnected = new PlayerConnected;
+    QObject::connect(playerConnected, &EventHandler::activated, [this]() {
+        setPlayerCount(playerCount + 1);
+    });
+    coordinator->installEventHandler(playerConnected);
+
+    PlayerDropped* playerDropped = new PlayerDropped;
+    QObject::connect(playerDropped, &EventHandler::activated, [this]() {
+        setPlayerCount(playerCount - 1);
+    });
+    coordinator->installEventHandler(playerDropped);
+
+    CvarValue* password = new CvarValue("sv_password");
+    QObject::connect(password, &EventHandler::activated, [password, this]() {
+        setPasswordProtected(!password->value().isEmpty());
+    });
+    coordinator->installEventHandler(password);
+}
+
+void ServerStatusPrivate::reset()
+{
+    setHostname(QString());
+    setPlayerCount(0);
+    setMaxPlayers(0);
+    setMap(QString());
+    setAddress(QUrl());
+    setPasswordProtected(false);
+}
+
+void ServerStatusPrivate::setHostname(const QString& hostname)
+{
+    this->hostname = hostname;
+    emit q->hostnameChanged(hostname);
+}
+
+void ServerStatusPrivate::setPlayerCount(int playerCount)
+{
+    this->playerCount = playerCount;
+    emit q->playerCountChanged(playerCount);
+}
+
+void ServerStatusPrivate::setMaxPlayers(int maxPlayers)
+{
+    this->maxPlayers = maxPlayers;
+    emit q->maxPlayersChanged(maxPlayers);
+}
+
+void ServerStatusPrivate::setMap(const QString& map)
+{
+    this->map = map;
+    emit q->mapChanged(map);
+}
+
+void ServerStatusPrivate::setAddress(const QUrl& address)
+{
+    this->address = address;
+    emit q->addressChanged(address);
+    emit q->addressChanged(address.toString());
+}
+
+void ServerStatusPrivate::setPasswordProtected(bool passwordProtected)
+{
+    this->passwordProtected = passwordProtected;
+    emit q->passwordProtectedChanged(passwordProtected);
+}
+
+void ServerStatusPrivate::handleStateChange(ServerCoordinator::State serverState)
+{
+    switch (serverState) {
+        case ServerCoordinator::State::Running:
+            QTimer::singleShot(0, std::bind(&ServerStatusPrivate::refreshStatus, this));
+            break;
+
+        default:
+            reset();
+            break;
+    }
+}
+
+void ServerStatusPrivate::refreshStatus()
+{
+    // FIXME Execute rcon command instead of this
+    coordinator->sendCommand("status");
+    coordinator->sendCommand("sv_password");
+}
 
 ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
     QObject(parent),
-    d(new ServerStatusPrivate(coordinator))
+    d(new ServerStatusPrivate(this, coordinator))
 {
-    connect(coordinator, &ServerCoordinator::stateChanged, this, &ServerStatus::handleStateChange);
-    initialize();
+    connect(coordinator, &ServerCoordinator::stateChanged, std::bind(&ServerStatusPrivate::handleStateChange, d.get(), std::placeholders::_1));
+    d->initialize();
 
     new ServerStatusAdaptor(this);
     if (morgothd)
@@ -88,124 +220,6 @@ QUrl ServerStatus::address() const
 bool ServerStatus::isPasswordProtected() const
 {
     return d->passwordProtected;
-}
-
-void ServerStatus::initialize()
-{
-    // set up log listeners
-    StatusHostname* hostnameLine = new StatusHostname;
-    connect(hostnameLine, &EventHandler::activated, [hostnameLine, this]() {
-        setHostname(hostnameLine->hostname());
-    });
-    d->coordinator->installEventHandler(hostnameLine);
-
-    StatusPlayerNumbers* playerLine = new StatusPlayerNumbers;
-    connect(playerLine, &EventHandler::activated, [playerLine, this]() {
-        setPlayerCount(playerLine->playerCount());
-        setMaxPlayers(playerLine->maxPlayers());
-    });
-    d->coordinator->installEventHandler(playerLine);
-
-    StatusMap* mapLine = new StatusMap;
-    connect(mapLine, &EventHandler::activated, [mapLine, this]() {
-        setMap(mapLine->map());
-    });
-    d->coordinator->installEventHandler(mapLine);
-
-    StatusIpAddress* ipLine = new StatusIpAddress;
-    connect(ipLine, &EventHandler::activated, [ipLine, this]() {
-        QUrl address;
-        address.setScheme("steam");
-        address.setHost(ipLine->ip());
-        address.setPort(static_cast<int>(ipLine->port()));
-        setAddress(address);
-    });
-    d->coordinator->installEventHandler(ipLine);
-
-    PlayerConnected* playerConnected = new PlayerConnected;
-    connect(playerConnected, &EventHandler::activated, [this]() {
-        setPlayerCount(playerCount() + 1);
-    });
-    d->coordinator->installEventHandler(playerConnected);
-
-    PlayerDropped* playerDropped = new PlayerDropped;
-    connect(playerDropped, &EventHandler::activated, [this]() {
-        setPlayerCount(playerCount() - 1);
-    });
-    d->coordinator->installEventHandler(playerDropped);
-
-    CvarValue* password = new CvarValue("sv_password");
-    connect(password, &EventHandler::activated, [password, this]() {
-        setPasswordProtected(!password->value().isEmpty());
-    });
-    d->coordinator->installEventHandler(password);
-}
-
-void ServerStatus::reset()
-{
-    setHostname(QString());
-    setPlayerCount(0);
-    setMaxPlayers(0);
-    setMap(QString());
-    setAddress(QUrl());
-    setPasswordProtected(false);
-}
-
-void ServerStatus::setHostname(const QString& hostname)
-{
-    d->hostname = hostname;
-    emit hostnameChanged(d->hostname);
-}
-
-void ServerStatus::setPlayerCount(int playerCount)
-{
-    d->playerCount = playerCount;
-    emit playerCountChanged(d->playerCount);
-}
-
-void ServerStatus::setMaxPlayers(int maxPlayers)
-{
-    d->maxPlayers = maxPlayers;
-    emit maxPlayersChanged(d->maxPlayers);
-}
-
-void ServerStatus::setMap(const QString& map)
-{
-    d->map = map;
-    emit mapChanged(d->map);
-}
-
-void ServerStatus::setAddress(const QUrl& address)
-{
-    d->address = address;
-    emit addressChanged(d->address);
-    emit addressChanged(d->address.toString());
-}
-
-void ServerStatus::setPasswordProtected(bool passwordProtected)
-{
-    d->passwordProtected = passwordProtected;
-    emit passwordProtectedChanged(d->passwordProtected);
-}
-
-void ServerStatus::handleStateChange(ServerCoordinator::State serverState)
-{
-    switch (serverState) {
-        case ServerCoordinator::State::Running:
-            QTimer::singleShot(0, this, &ServerStatus::refreshStatus);
-            break;
-
-        default:
-            reset();
-            break;
-    }
-}
-
-void ServerStatus::refreshStatus()
-{
-    // FIXME Execute rcon command instead of this
-    d->coordinator->sendCommand("status");
-    d->coordinator->sendCommand("sv_password");
 }
 
 } // namespace morgoth

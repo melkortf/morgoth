@@ -33,7 +33,7 @@ CvarValue::CvarValue(QString cvar, QObject* parent) :
 
 QRegularExpression CvarValue::regex() const
 {
-    // https://regex101.com/r/9bAKzI/1
+    // https://regex101.com/r/9bAKzI/3
     return QRegularExpression(
         QStringLiteral("^\\\"%1\\\"\\s?=\\s?\\\"(.*)\\\"\\s?(?:\\(\\s?def\\.\\s?\\\"(.*)\\\"\\s?\\))?$").arg(m_name)
                 );

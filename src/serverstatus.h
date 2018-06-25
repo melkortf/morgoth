@@ -86,20 +86,6 @@ public:
     bool isPasswordProtected() const;
 
 private:
-    void initialize();
-    void reset();
-    void setHostname(const QString& hostname);
-    void setPlayerCount(int playerCount);
-    void setMaxPlayers(int maxPlayers);
-    void setMap(const QString& map);
-    void setAddress(const QUrl& address);
-    void setPasswordProtected(bool passwordProtected);
-
-private slots:
-    void handleStateChange(ServerCoordinator::State serverState);
-    void refreshStatus();
-
-private:
     QScopedPointer<ServerStatusPrivate> d;
 
 };
