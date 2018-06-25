@@ -7,7 +7,6 @@
 
 class TestStatusCommand : public QObject {
     Q_OBJECT
-
     morgoth::LogListener* logListener = nullptr;
 
 private slots:
