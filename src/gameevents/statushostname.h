@@ -22,6 +22,8 @@
 namespace morgoth {
 
 class MORGOTH_EXPORT StatusHostname : public EventHandler {
+    Q_OBJECT
+
 public:
     StatusHostname(QObject* parent = nullptr);
 

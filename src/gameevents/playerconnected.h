@@ -22,6 +22,8 @@
 namespace morgoth {
 
 class MORGOTH_EXPORT PlayerConnected : public EventHandler {
+    Q_OBJECT
+
 public:
     explicit PlayerConnected(QObject* parent = nullptr);
 
