@@ -16,7 +16,7 @@
 #ifndef SERVERCOORDINATOR_H
 #define SERVERCOORDINATOR_H
 
-#include "eventhandler.h"
+#include "gameevent.h"
 #include "morgoth_export.h"
 #include "server.h"
 #include "tmuxsessionwrapper.h"
@@ -78,16 +78,16 @@ public:
     virtual ~ServerCoordinator();
 
     /**
-     * \brief Attaches a new \c EventHandler to the log listener.
+     * \brief Attaches a new \c GameEvent to the log listener.
      */
-    void installEventHandler(EventHandler* handler);
+    void installGameEvent(GameEvent* event);
 
     /**
-     * \brief Finds the \c EventHandler, using its name as a key.
-     * \param name The event handler's name to find.
-     * \return The \c EventHandler instance, \c nullptr if nothing was found.
+     * \brief Finds the \c GameEvent, using its name as a key.
+     * \param name The event's name to find.
+     * \return The \c GameEvent instance, \c nullptr if nothing was found.
      */
-    EventHandler* findEvent(const QString& name);
+    GameEvent* findGameEvent(const QString& name);
 
     /**
      * \brief Sends the given \c command to the server.

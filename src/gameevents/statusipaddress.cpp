@@ -18,7 +18,7 @@
 namespace morgoth {
 
 StatusIpAddress::StatusIpAddress(QObject* parent) :
-    EventHandler(Name, parent)
+    GameEvent(Name, parent)
 {
 
 }

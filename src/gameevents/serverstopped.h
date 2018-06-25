@@ -16,12 +16,12 @@
 #ifndef SERVERSTOPPED_H
 #define SERVERSTOPPED_H
 
-#include "eventhandler.h"
+#include "gameevent.h"
 #include "morgoth_export.h"
 
 namespace morgoth {
 
-class MORGOTH_EXPORT ServerStopped : public EventHandler {
+class MORGOTH_EXPORT ServerStopped : public GameEvent {
     Q_OBJECT
 
 public:

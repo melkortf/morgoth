@@ -18,7 +18,7 @@
 namespace morgoth {
 
 StatusHostname::StatusHostname(QObject* parent) :
-    EventHandler(Name, parent)
+    GameEvent(Name, parent)
 {
 
 }

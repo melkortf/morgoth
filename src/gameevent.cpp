@@ -13,30 +13,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "eventhandler.h"
+#include "gameevent.h"
 
 namespace morgoth {
 
-class EventHandlerPrivate {
+class GameEventPrivate {
 public:
     QString name;
 };
 
-EventHandler::EventHandler(const QString &name, QObject* parent) :
+GameEvent::GameEvent(const QString &name, QObject* parent) :
     QObject(parent),
-    d(new EventHandlerPrivate{name}) {}
+    d(new GameEventPrivate{name}) {}
 
-EventHandler::~EventHandler()
+GameEvent::~GameEvent()
 {
 
 }
 
-const QString& EventHandler::name() const
+const QString& GameEvent::name() const
 {
     return d->name;
 }
 
-void EventHandler::maybeActivated(const QString& line, const QRegularExpressionMatch& match)
+void GameEvent::maybeActivated(const QString& line, const QRegularExpressionMatch& match)
 {
     Q_UNUSED(line);
     Q_UNUSED(match);

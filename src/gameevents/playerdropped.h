@@ -16,12 +16,12 @@
 #ifndef PLAYERDROPPED_H
 #define PLAYERDROPPED_H
 
-#include "eventhandler.h"
+#include "gameevent.h"
 #include <QtCore/QObject>
 
 namespace morgoth {
 
-class MORGOTH_EXPORT PlayerDropped : public EventHandler {
+class MORGOTH_EXPORT PlayerDropped : public GameEvent {
 public:
     explicit PlayerDropped(QObject* parent = nullptr);
 

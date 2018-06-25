@@ -18,7 +18,7 @@
 namespace morgoth {
 
 ServerStopped::ServerStopped(QObject *parent) :
-    EventHandler(Name, parent)
+    GameEvent(Name, parent)
 {
 
 }

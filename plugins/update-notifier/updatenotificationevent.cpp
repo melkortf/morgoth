@@ -18,7 +18,7 @@
 namespace morgoth {
 
 UpdateNotificationEvent::UpdateNotificationEvent(QObject *parent) :
-    EventHandler(Name, parent) {}
+    GameEvent(Name, parent) {}
 
 QRegularExpression UpdateNotificationEvent::regex() const
 {

@@ -13,8 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EVENTHANDLER_H
-#define EVENTHANDLER_H
+#ifndef GAMEEVENT_H
+#define GAMEEVENT_H
 
 #include "morgoth_export.h"
 #include <QtCore/QObject>
@@ -23,14 +23,14 @@
 namespace morgoth {
 
 class LogListener;
-class EventHandlerPrivate;
+class GameEventPrivate;
 
 /**
- * \brief The EventHandler class captures interesting lines in the running
+ * \brief The GameEvent class captures interesting lines in the running
  *  server's log.
  * \sa ServerCoordinator.
  */
-class MORGOTH_EXPORT EventHandler : public QObject {
+class MORGOTH_EXPORT GameEvent : public QObject {
     Q_OBJECT
 
 signals:
@@ -41,16 +41,16 @@ signals:
 
 public:
     /**
-     * \brief Creates a new \c EventHandler instance.
+     * \brief Creates a new \c GameEvent instance.
      * \param name The name of the event.
      * \param parent Passed to QObject.
      */
-    explicit EventHandler(const QString& name, QObject* parent = nullptr);
+    explicit GameEvent(const QString& name, QObject* parent = nullptr);
 
     /**
-     * Destroys this \c EventHandler instance.
+     * Destroys this \c GameEvent instance.
      */
-    virtual ~EventHandler();
+    virtual ~GameEvent();
 
     /**
      * \brief Returns the regular expression that marks the occurrence of
@@ -67,11 +67,11 @@ protected:
     virtual void maybeActivated(const QString& line, const QRegularExpressionMatch& match);
 
 private:
-    QScopedPointer<EventHandlerPrivate> d;
+    QScopedPointer<GameEventPrivate> d;
     friend class LogListener;
 
 };
 
 } // namespace Morgoth
 
-#endif // EVENTHANDLER_H
+#endif // GAMEEVENT_H

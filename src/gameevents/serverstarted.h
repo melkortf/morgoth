@@ -16,12 +16,12 @@
 #ifndef SERVERSTARTED_H
 #define SERVERSTARTED_H
 
-#include "eventhandler.h"
+#include "gameevent.h"
 #include "morgoth_export.h"
 
 namespace morgoth {
 
-class MORGOTH_EXPORT ServerStarted : public EventHandler {
+class MORGOTH_EXPORT ServerStarted : public GameEvent {
     Q_OBJECT
 
 public:

@@ -26,7 +26,7 @@ public:
 
     QString filePath;
     bool isFinished = false;
-    QList<EventHandler*> events;
+    QList<GameEvent*> events;
     QMutex eventListMutex;
     LogCollector* logCollector = nullptr;
 };
@@ -49,12 +49,12 @@ LogListener::~LogListener()
 
 }
 
-void LogListener::installEventHandler(EventHandler *handler)
+void LogListener::installGameEvent(GameEvent *event)
 {
-    handler->setParent(this);
+    event->setParent(this);
 
     QMutexLocker ml(&d->eventListMutex);
-    d->events.append(handler);
+    d->events.append(event);
 }
 
 const QString& LogListener::filePath() const

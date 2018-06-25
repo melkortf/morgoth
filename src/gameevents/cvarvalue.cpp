@@ -25,7 +25,7 @@ QString produceName(const QString& cvar)
 namespace morgoth {
 
 CvarValue::CvarValue(QString cvar, QObject* parent) :
-    EventHandler(::produceName(cvar), parent),
+    GameEvent(::produceName(cvar), parent),
     m_name(cvar)
 {
 

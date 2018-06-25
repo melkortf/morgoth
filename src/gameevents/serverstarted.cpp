@@ -18,7 +18,7 @@
 namespace morgoth {
 
 ServerStarted::ServerStarted(QObject *parent) :
-    EventHandler(Name, parent)
+    GameEvent(Name, parent)
 {
 
 }

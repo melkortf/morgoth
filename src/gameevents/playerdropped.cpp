@@ -18,7 +18,7 @@
 namespace morgoth {
 
 PlayerDropped::PlayerDropped(QObject* parent) :
-    EventHandler(Name, parent)
+    GameEvent(Name, parent)
 {
 
 }

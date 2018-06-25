@@ -16,12 +16,12 @@
 #ifndef CVARVALUE_H
 #define CVARVALUE_H
 
-#include "eventhandler.h"
+#include "gameevent.h"
 #include <QtCore/QObject>
 
 namespace morgoth {
 
-class MORGOTH_EXPORT CvarValue: public EventHandler {
+class MORGOTH_EXPORT CvarValue: public GameEvent {
     Q_OBJECT
 
 public:

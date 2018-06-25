@@ -18,7 +18,7 @@
 namespace morgoth {
 
 StatusPlayerNumbers::StatusPlayerNumbers(QObject* parent) :
-    EventHandler(Name, parent)
+    GameEvent(Name, parent)
 {
 
 }

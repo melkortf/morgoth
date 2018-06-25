@@ -16,12 +16,12 @@
 #ifndef PLAYERCONNECTED_H
 #define PLAYERCONNECTED_H
 
-#include "eventhandler.h"
+#include "gameevent.h"
 #include <QtCore/QObject>
 
 namespace morgoth {
 
-class MORGOTH_EXPORT PlayerConnected : public EventHandler {
+class MORGOTH_EXPORT PlayerConnected : public GameEvent {
     Q_OBJECT
 
 public:

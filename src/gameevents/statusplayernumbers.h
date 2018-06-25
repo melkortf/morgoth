@@ -16,12 +16,12 @@
 #ifndef STATUSPLAYERNUMBERS_H
 #define STATUSPLAYERNUMBERS_H
 
-#include "eventhandler.h"
+#include "gameevent.h"
 #include <QtCore/QObject>
 
 namespace morgoth {
 
-class MORGOTH_EXPORT StatusPlayerNumbers : public EventHandler {
+class MORGOTH_EXPORT StatusPlayerNumbers : public GameEvent {
 public:
     StatusPlayerNumbers(QObject* parent = nullptr);
 

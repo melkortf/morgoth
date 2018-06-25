@@ -38,7 +38,7 @@ public:
     TmuxSessionWrapper tmux;
     QString outputFileName;
     LogListener* logListener = nullptr;
-    QMap<QString, EventHandler*> eventHandlers;
+    QMap<QString, GameEvent*> gameEvents;
     LogCollector* logCollector;
 };
 
@@ -58,12 +58,12 @@ ServerCoordinator::ServerCoordinator(Server* server) :
     connect(qApp, &QCoreApplication::aboutToQuit, this, &ServerCoordinator::stopSync);
 
     ServerStarted* serverStarted = new ServerStarted;
-    connect(serverStarted, &EventHandler::activated, this, &ServerCoordinator::handleServerStarted);
-    installEventHandler(serverStarted);
+    connect(serverStarted, &GameEvent::activated, this, &ServerCoordinator::handleServerStarted);
+    installGameEvent(serverStarted);
 
     ServerStopped* serverStopped = new ServerStopped;
-    connect(serverStopped, &EventHandler::activated, this, &ServerCoordinator::handleServerStopped);
-    installEventHandler(serverStopped);
+    connect(serverStopped, &GameEvent::activated, this, &ServerCoordinator::handleServerStopped);
+    installGameEvent(serverStopped);
 
     new ServerCoordinatorAdaptor(this);
 
@@ -77,16 +77,16 @@ ServerCoordinator::~ServerCoordinator()
     // is already destroyed and we relay on its existence
 }
 
-void ServerCoordinator::installEventHandler(EventHandler* handler)
+void ServerCoordinator::installGameEvent(GameEvent* event)
 {
-    d->eventHandlers.insert(handler->name(), handler);
+    d->gameEvents.insert(event->name(), event);
     if (d->logListener)
-        d->logListener->installEventHandler(handler);
+        d->logListener->installGameEvent(event);
 }
 
-EventHandler* ServerCoordinator::findEvent(const QString& name)
+GameEvent* ServerCoordinator::findGameEvent(const QString& name)
 {
-    return d->eventHandlers.value(name, nullptr);
+    return d->gameEvents.value(name, nullptr);
 }
 
 void ServerCoordinator::sendCommand(const QString& command)
@@ -151,8 +151,8 @@ bool ServerCoordinator::start()
     d->logListener->setLogCollector(d->logCollector);
     d->logListener->start();
 
-    std::for_each(d->eventHandlers.begin(), d->eventHandlers.end(),
-                  std::bind(&LogListener::installEventHandler, d->logListener, std::placeholders::_1));
+    std::for_each(d->gameEvents.begin(), d->gameEvents.end(),
+                  std::bind(&LogListener::installGameEvent, d->logListener, std::placeholders::_1));
 
     if (!d->tmux.redirectOutput(d->outputFileName)) {
         qWarning("%s: could not redirect output to %s", qPrintable(server()->name()), qPrintable(d->outputFileName));

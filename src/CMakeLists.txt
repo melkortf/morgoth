@@ -4,7 +4,7 @@ set (CMAKE_AUTOMOC ON)
 add_subdirectory (gameevents)
 
 set (morgoth_PUBLIC_HEADERS
-    eventhandler.h
+    gameevent.h
     logcollector.h
     loglistener.h
     morgothdaemon.h
@@ -21,7 +21,7 @@ set (morgoth_PUBLIC_HEADERS
 )
 
 set (morgoth_SOURCES
-    eventhandler.cpp
+    gameevent.cpp
     logcollector.cpp
     loglistener.cpp
     morgothdaemon.cpp

@@ -34,8 +34,8 @@ void TestCvars::cleanup()
 void TestCvars::sv_password()
 {
     morgoth::CvarValue* cvar = new morgoth::CvarValue("sv_password");
-    QSignalSpy spy(cvar, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(cvar);
+    QSignalSpy spy(cvar, &morgoth::GameEvent::activated);
+    logListener->installGameEvent(cvar);
 
     logListener->start();
 
@@ -49,8 +49,8 @@ void TestCvars::sv_password()
 void TestCvars::tv_password()
 {
     morgoth::CvarValue* cvar = new morgoth::CvarValue("tv_password");
-    QSignalSpy spy(cvar, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(cvar);
+    QSignalSpy spy(cvar, &morgoth::GameEvent::activated);
+    logListener->installGameEvent(cvar);
 
     logListener->start();
 

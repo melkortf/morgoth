@@ -16,7 +16,7 @@
 #ifndef LOGLISTENER_H
 #define LOGLISTENER_H
 
-#include "eventhandler.h"
+#include "gameevent.h"
 #include "logcollector.h"
 #include "morgoth_export.h"
 #include <QtCore/QList>
@@ -30,7 +30,7 @@ class LogListenerPrivate;
 /**
  * \brief The LogListener class reads server log line by line.
  * \note The log file is supposed to be a fifo one.
- * \sa EventHandler.
+ * \sa GameEvent.
  */
 class MORGOTH_EXPORT LogListener : public QThread {
     Q_OBJECT
@@ -49,10 +49,10 @@ public:
     virtual ~LogListener();
 
     /**
-     * \brief Attaches a new \c EventHandler to this LogListener.
-     * \param handler The \c EventHandler instance to be installed.
+     * \brief Attaches a new \c GameEvent to this LogListener.
+     * \param handler The \c GameEvent instance to be installed.
      */
-    void installEventHandler(EventHandler* handler);
+    void installGameEvent(GameEvent* handler);
 
     /**
      * \brief Returns path to the log file.

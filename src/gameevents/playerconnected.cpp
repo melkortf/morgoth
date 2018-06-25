@@ -18,7 +18,7 @@
 namespace morgoth {
 
 PlayerConnected::PlayerConnected(QObject* parent) :
-    EventHandler(Name, parent)
+    GameEvent(Name, parent)
 {
     
 }

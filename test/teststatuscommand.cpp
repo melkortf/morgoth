@@ -46,8 +46,8 @@ void TestStatusCommand::hostname()
     Q_ASSERT(logListener);
 
     morgoth::StatusHostname* hostnameLine = new morgoth::StatusHostname;
-    QSignalSpy spy(hostnameLine, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(hostnameLine);
+    QSignalSpy spy(hostnameLine, &morgoth::GameEvent::activated);
+    logListener->installGameEvent(hostnameLine);
 
     logListener->start();
     spy.wait();
@@ -60,8 +60,8 @@ void TestStatusCommand::players()
     Q_ASSERT(logListener);
 
     morgoth::StatusPlayerNumbers* playerLine = new morgoth::StatusPlayerNumbers;
-    QSignalSpy spy(playerLine, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(playerLine);
+    QSignalSpy spy(playerLine, &morgoth::GameEvent::activated);
+    logListener->installGameEvent(playerLine);
 
     logListener->start();
     spy.wait();
@@ -75,8 +75,8 @@ void TestStatusCommand::map()
     Q_ASSERT(logListener);
 
     morgoth::StatusMap* mapLine = new morgoth::StatusMap;
-    QSignalSpy spy(mapLine, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(mapLine);
+    QSignalSpy spy(mapLine, &morgoth::GameEvent::activated);
+    logListener->installGameEvent(mapLine);
 
     logListener->start();
     spy.wait();
@@ -89,8 +89,8 @@ void TestStatusCommand::ipAddress()
     Q_ASSERT(logListener);
 
     morgoth::StatusIpAddress* ipAddressLine = new morgoth::StatusIpAddress;
-    QSignalSpy spy(ipAddressLine, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(ipAddressLine);
+    QSignalSpy spy(ipAddressLine, &morgoth::GameEvent::activated);
+    logListener->installGameEvent(ipAddressLine);
 
     logListener->start();
     spy.wait();

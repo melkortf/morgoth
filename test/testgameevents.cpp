@@ -24,12 +24,12 @@ void TestGameEvents::playerConnected()
     QVERIFY(logListener);
 
     morgoth::PlayerConnected* playerConnected = new morgoth::PlayerConnected;
-    QSignalSpy spyConnected(playerConnected, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(playerConnected);
+    QSignalSpy spyConnected(playerConnected, &morgoth::GameEvent::activated);
+    logListener->installGameEvent(playerConnected);
 
     morgoth::PlayerDropped* playerDropped = new morgoth::PlayerDropped;
-    QSignalSpy spyDropped(playerDropped, &morgoth::EventHandler::activated);
-    logListener->installEventHandler(playerDropped);
+    QSignalSpy spyDropped(playerDropped, &morgoth::GameEvent::activated);
+    logListener->installGameEvent(playerDropped);
 
     logListener->start();
 

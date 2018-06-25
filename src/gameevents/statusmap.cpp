@@ -18,7 +18,7 @@
 namespace morgoth {
 
 StatusMap::StatusMap(QObject* parent) :
-    EventHandler(Name, parent)
+    GameEvent(Name, parent)
 {
 
 }

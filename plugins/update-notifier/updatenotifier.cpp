@@ -51,8 +51,8 @@ void UpdateNotifier::initialize(ServerManager* serverManager)
 void UpdateNotifier::handleServer(Server* server)
 {
     UpdateNotificationEvent* update = new UpdateNotificationEvent;
-    connect(update, &EventHandler::activated, [server]() { qInfo("%s: update available", qPrintable(server->name())); });
-    server->coordinator()->installEventHandler(update);
+    connect(update, &GameEvent::activated, [server]() { qInfo("%s: update available", qPrintable(server->name())); });
+    server->coordinator()->installGameEvent(update);
 }
 
 } // namespace morgoth
