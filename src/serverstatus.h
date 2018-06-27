@@ -58,9 +58,9 @@ class ServerStatus : public QObject {
     Q_PROPERTY(QUrl address READ address NOTIFY addressChanged)
 
     /**
-     * Specifies whether the server is password protected or not.
+     * Holds the server's current server password (the sv_password cvar).
      */
-    Q_PROPERTY(bool passwordProtected READ isPasswordProtected NOTIFY passwordProtectedChanged)
+    Q_PROPERTY(QString password READ password NOTIFY passwordChanged)
 
 signals:
     void hostnameChanged(const QString& hostname);
@@ -68,7 +68,7 @@ signals:
     void maxPlayersChanged(int maxPlayers);
     void mapChanged(const QString& map);
     void addressChanged(const QUrl& address);
-    void passwordProtectedChanged(bool passwordProtected);
+    void passwordChanged(const QString& password);
 
     // DBus workaround to make setAutoRelaySignals() in adaptor work
     // (the D-Bus XML type is registered as a string).
@@ -83,7 +83,7 @@ public:
     int maxPlayers() const;
     QString map() const;
     QUrl address() const;
-    bool isPasswordProtected() const;
+    QString password() const;
 
 private:
     QScopedPointer<ServerStatusPrivate> d;

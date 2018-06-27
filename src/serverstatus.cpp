@@ -42,7 +42,7 @@ public:
     int maxPlayers = 0;
     QString map;
     QUrl address;
-    bool passwordProtected = false;
+    QString password;
 
     void initialize();
     void reset();
@@ -51,7 +51,7 @@ public:
     void setMaxPlayers(int maxPlayers);
     void setMap(const QString& map);
     void setAddress(const QUrl& address);
-    void setPasswordProtected(bool passwordProtected);
+    void setPassword(const QString& password);
 
     void handleStateChange(ServerCoordinator::State serverState);
     void refreshStatus();
@@ -103,7 +103,7 @@ void ServerStatusPrivate::initialize()
 
     CvarValue* password = new CvarValue("sv_password");
     QObject::connect(password, &GameEvent::activated, [password, this]() {
-        setPasswordProtected(!password->value().isEmpty());
+        setPassword(password->value());
     });
     coordinator->installGameEvent(password);
 }
@@ -115,7 +115,7 @@ void ServerStatusPrivate::reset()
     setMaxPlayers(0);
     setMap(QString());
     setAddress(QUrl());
-    setPasswordProtected(false);
+    setPassword(QString());
 }
 
 void ServerStatusPrivate::setHostname(const QString& hostname)
@@ -149,10 +149,10 @@ void ServerStatusPrivate::setAddress(const QUrl& address)
     emit q->addressChanged(address.toString());
 }
 
-void ServerStatusPrivate::setPasswordProtected(bool passwordProtected)
+void ServerStatusPrivate::setPassword(const QString& password)
 {
-    this->passwordProtected = passwordProtected;
-    emit q->passwordProtectedChanged(passwordProtected);
+    this->password = password;
+    emit q->passwordChanged(password);
 }
 
 void ServerStatusPrivate::handleStateChange(ServerCoordinator::State serverState)
@@ -217,9 +217,9 @@ QUrl ServerStatus::address() const
     return d->address;
 }
 
-bool ServerStatus::isPasswordProtected() const
+QString ServerStatus::password() const
 {
-    return d->passwordProtected;
+    return d->password;
 }
 
 } // namespace morgoth
