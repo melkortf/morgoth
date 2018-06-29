@@ -62,6 +62,9 @@ class ServerStatus : public QObject {
      */
     Q_PROPERTY(QString password READ password NOTIFY passwordChanged)
 
+    Q_PROPERTY(int stvPort READ stvPort NOTIFY stvPortChanged)
+    Q_PROPERTY(QString stvPassword READ stvPassword NOTIFY stvPasswordChanged)
+
 signals:
     void hostnameChanged(const QString& hostname);
     void playerCountChanged(int playerCount);
@@ -69,6 +72,8 @@ signals:
     void mapChanged(const QString& map);
     void addressChanged(const QUrl& address);
     void passwordChanged(const QString& password);
+    void stvPortChanged(int stvPort);
+    void stvPasswordChanged(const QString& stvPassword);
 
     // DBus workaround to make setAutoRelaySignals() in adaptor work
     // (the D-Bus XML type is registered as a string).
@@ -84,6 +89,8 @@ public:
     QString map() const;
     QUrl address() const;
     QString password() const;
+    int stvPort() const;
+    QString stvPassword() const;
 
 private:
     QScopedPointer<ServerStatusPrivate> d;

@@ -43,6 +43,8 @@ public:
     QString map;
     QUrl address;
     QString password;
+    int stvPort;
+    QString stvPassword;
 
     void initialize();
     void reset();
@@ -52,6 +54,8 @@ public:
     void setMap(const QString& map);
     void setAddress(const QUrl& address);
     void setPassword(const QString& password);
+    void setStvPort(int stvPort);
+    void setStvPassword(const QString& stvPassword);
 
     void handleStateChange(ServerCoordinator::State serverState);
     void refreshStatus();
@@ -106,6 +110,20 @@ void ServerStatusPrivate::initialize()
         setPassword(password->value());
     });
     coordinator->installGameEvent(password);
+
+    CvarValue* stvPort = new CvarValue("tv_port");
+    QObject::connect(stvPort, &GameEvent::activated, [stvPort, this]() {
+        bool ok;
+        int port = stvPort->value().toInt(&ok);
+        setStvPort(ok ? port : 0);
+    });
+    coordinator->installGameEvent(stvPort);
+
+    CvarValue* stvPassword = new CvarValue("tv_password");
+    QObject::connect(stvPassword, &GameEvent::activated, [stvPassword, this]() {
+        setStvPassword(stvPassword->value());
+    });
+    coordinator->installGameEvent(stvPassword);
 }
 
 void ServerStatusPrivate::reset()
@@ -116,12 +134,14 @@ void ServerStatusPrivate::reset()
     setMap(QString());
     setAddress(QUrl());
     setPassword(QString());
+    setStvPort(0);
+    setStvPassword(QString());
 }
 
 void ServerStatusPrivate::setHostname(const QString& hostname)
 {
     this->hostname = hostname;
-    emit q->hostnameChanged(hostname);
+    emit q->hostnameChanged(this->hostname);
 }
 
 void ServerStatusPrivate::setPlayerCount(int playerCount)
@@ -139,20 +159,32 @@ void ServerStatusPrivate::setMaxPlayers(int maxPlayers)
 void ServerStatusPrivate::setMap(const QString& map)
 {
     this->map = map;
-    emit q->mapChanged(map);
+    emit q->mapChanged(this->map);
 }
 
 void ServerStatusPrivate::setAddress(const QUrl& address)
 {
     this->address = address;
-    emit q->addressChanged(address);
+    emit q->addressChanged(this->address);
     emit q->addressChanged(address.toString());
 }
 
 void ServerStatusPrivate::setPassword(const QString& password)
 {
     this->password = password;
-    emit q->passwordChanged(password);
+    emit q->passwordChanged(this->password);
+}
+
+void ServerStatusPrivate::setStvPort(int stvPort)
+{
+    this->stvPort = stvPort;
+    emit q->stvPortChanged(stvPort);
+}
+
+void ServerStatusPrivate::setStvPassword(const QString& stvPassword)
+{
+    this->stvPassword = stvPassword;
+    emit q->stvPasswordChanged(this->stvPassword);
 }
 
 void ServerStatusPrivate::handleStateChange(ServerCoordinator::State serverState)
@@ -173,6 +205,8 @@ void ServerStatusPrivate::refreshStatus()
     // FIXME Execute rcon command instead of this
     coordinator->sendCommand("status");
     coordinator->sendCommand("sv_password");
+    coordinator->sendCommand("tv_port");
+    coordinator->sendCommand("tv_password");
 }
 
 ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
@@ -220,6 +254,16 @@ QUrl ServerStatus::address() const
 QString ServerStatus::password() const
 {
     return d->password;
+}
+
+int ServerStatus::stvPort() const
+{
+    return d->stvPort;
+}
+
+QString ServerStatus::stvPassword() const
+{
+    return d->stvPassword;
 }
 
 } // namespace morgoth

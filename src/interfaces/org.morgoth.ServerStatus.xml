@@ -7,6 +7,8 @@
     <property name="map" type="s" access="read"/>
     <property name="address" type="s" access="read"/>
     <property name="password" type="s" access="read"/>
+    <property name="stvPort" type="i" access="read"/>
+    <property name="stvPassword" type="s" access="read"/>
     <signal name="hostnameChanged">
       <arg name="hostname" type="s" direction="out"/>
     </signal>
@@ -20,10 +22,17 @@
       <arg name="map" type="s" direction="out"/>
     </signal>
     <signal name="addressChanged">
-      <arg name="address" type="s" direction="out">
+      <arg name="address" type="s" direction="out"/>
     </signal>
     <signal name="passwordChanged">
-      <arg name="password" type="s" direction="out">
+      <arg name="password" type="s" direction="out"/>
+    </signal>
+    <signal name="stvPortChanged">
+      <arg name="stvPort" type="i" direction="out"/>
+    </signal>
+    <signal name="stvPasswordChanged">
+      <arg name="stvPassword" type="s" direction="out"/>
     </signal>
   </interface>
 </node>
+
