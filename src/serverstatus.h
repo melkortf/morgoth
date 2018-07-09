@@ -62,7 +62,14 @@ class ServerStatus : public QObject {
      */
     Q_PROPERTY(QString password READ password NOTIFY passwordChanged)
 
+    /**
+     * The SourceTV port for this server.
+     */
     Q_PROPERTY(int stvPort READ stvPort NOTIFY stvPortChanged)
+
+    /**
+     * The SourceTV password for this server.
+     */
     Q_PROPERTY(QString stvPassword READ stvPassword NOTIFY stvPasswordChanged)
 
 signals:
