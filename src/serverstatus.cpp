@@ -45,6 +45,7 @@ public:
     QString password;
     int stvPort;
     QString stvPassword;
+    QList<PlayerInfo> players;
 
     void initialize();
     void reset();
@@ -94,13 +95,16 @@ void ServerStatusPrivate::initialize()
     coordinator->installGameEvent(ipLine);
 
     PlayerConnected* playerConnected = new PlayerConnected;
-    QObject::connect(playerConnected, &GameEvent::activated, [this]() {
+    QObject::connect(playerConnected, &GameEvent::activated, [playerConnected, this]() {
+        players.append(playerConnected->player());
         setPlayerCount(playerCount + 1);
     });
     coordinator->installGameEvent(playerConnected);
 
     PlayerDropped* playerDropped = new PlayerDropped;
-    QObject::connect(playerDropped, &GameEvent::activated, [this]() {
+    QObject::connect(playerDropped, &GameEvent::activated, [playerDropped, this]() {
+        auto player = std::find_if(players.begin(), players.end(), [playerDropped](const PlayerInfo& info) { return info.name() == playerDropped->playerName(); });
+        players.removeAll(*player);
         setPlayerCount(playerCount - 1);
     });
     coordinator->installGameEvent(playerDropped);

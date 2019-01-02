@@ -27,7 +27,15 @@ public:
 
     QRegularExpression regex() const override;
 
+    const QString& playerName() const { return m_playerName; }
+
     static auto constexpr Name = "player.dropeed";
+
+protected:
+    void maybeActivated(const QString& line, const QRegularExpressionMatch& match) override;
+
+private:
+    QString m_playerName;
 
 };
 

@@ -1,5 +1,6 @@
 #include <QtTest/QtTest>
 #include "loglistener.h"
+#include "playerinfo.h"
 #include "gameevents/playerconnected.h"
 #include "gameevents/playerdropped.h"
 #include "gameevents/statushostname.h"
@@ -9,38 +10,63 @@
 
 class TestGameEvents : public QObject {
     Q_OBJECT
+    morgoth::LogListener* logListener;
 
 private slots:
+    void init();
+    void cleanup();
+
     void playerConnected();
+    void playerDropped();
 
 };
 
-void TestGameEvents::playerConnected()
+void TestGameEvents::init()
 {
+    Q_ASSERT(logListener == nullptr);
+
     QString fileName = QFINDTESTDATA("dm-console.log.20180306023605");
     QVERIFY(QFile(fileName).exists());
 
-    morgoth::LogListener* logListener = new morgoth::LogListener(fileName);
+    logListener = new morgoth::LogListener(fileName);
     QVERIFY(logListener);
+}
 
+void TestGameEvents::cleanup()
+{
+    logListener->requestInterruption();
+    logListener->wait();
+    delete logListener;
+    logListener = nullptr;
+}
+
+void TestGameEvents::playerConnected()
+{
     morgoth::PlayerConnected* playerConnected = new morgoth::PlayerConnected;
-    QSignalSpy spyConnected(playerConnected, &morgoth::GameEvent::activated);
+    QSignalSpy spy(playerConnected, &morgoth::GameEvent::activated);
     logListener->installGameEvent(playerConnected);
 
+    logListener->start();
+
+    QVERIFY(spy.wait());
+    QCOMPARE(spy.count(), 1);
+
+    QCOMPARE(playerConnected->player().name(), "mały");
+    QCOMPARE(playerConnected->player().steamId().toSteamId64(), 76561198074409147);
+}
+
+void TestGameEvents::playerDropped()
+{
     morgoth::PlayerDropped* playerDropped = new morgoth::PlayerDropped;
-    QSignalSpy spyDropped(playerDropped, &morgoth::GameEvent::activated);
+    QSignalSpy spy(playerDropped, &morgoth::GameEvent::activated);
     logListener->installGameEvent(playerDropped);
 
     logListener->start();
 
-    QVERIFY(spyConnected.wait());
-    QCOMPARE(spyConnected.count(), 1);
+    QVERIFY(spy.wait());
+    QCOMPARE(spy.count(), 1);
 
-    spyDropped.wait(100);
-    QCOMPARE(spyDropped.count(), 1);
-
-    logListener->requestInterruption();
-    logListener->wait();
+    QCOMPARE(playerDropped->playerName(), "mały");
 }
 
 QTEST_MAIN(TestGameEvents)
