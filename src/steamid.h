@@ -51,7 +51,10 @@ public:
 
     quint64 toSteamId64() const { return m_steamId; }
 
-    QString toFormat(Format format);
+    /**
+     * \brief Converts the SteamID to the given format and returns it.
+     */
+    QString toFormat(Format format) const;
 
     bool operator==(const SteamId& other) const;
 

@@ -91,14 +91,14 @@ SteamId::SteamId(const QString& steamId, Format format) :
 
 }
 
-QString SteamId::toFormat(SteamId::Format format)
+QString SteamId::toFormat(SteamId::Format format) const
 {
     switch (format) {
         case Format::Id64:
             return QString::number(m_steamId);
 
         case morgoth::SteamId::Format::Text: {
-            SteamId64* steamId = reinterpret_cast<SteamId64*>(&m_steamId);
+            const SteamId64* steamId = reinterpret_cast<const SteamId64*>(&m_steamId);
             return QString("STEAM_%1:%2:%3")
                     .arg(steamId->universe == 1 ? 0 : steamId->universe)
                     .arg(steamId->y)
@@ -106,7 +106,7 @@ QString SteamId::toFormat(SteamId::Format format)
         }
 
         case morgoth::SteamId::Format::Id3: {
-            SteamId64* steamId = reinterpret_cast<SteamId64*>(&m_steamId);
+            const SteamId64* steamId = reinterpret_cast<const SteamId64*>(&m_steamId);
             auto w = steamId->accountNumber * 2 + steamId->y;
             return QString("[U:%1:%2]")
                     .arg(steamId->universe)
