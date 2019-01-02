@@ -34,3 +34,7 @@ add_test (NAME TestGameEvents COMMAND testgameevents)
 add_executable (testcvars testcvars.cpp)
 target_link_libraries (testcvars morgoth Qt5::Test)
 add_test (NAME TestCvars COMMAND testcvars)
+
+add_executable (teststeamid teststeamid.cpp)
+target_link_libraries (teststeamid morgoth Qt5::Test)
+add_test (NAME TestSteamId COMMAND teststeamid)

@@ -16,6 +16,7 @@ set (morgoth_PUBLIC_HEADERS
     servercoordinator.h
     servermanager.h
     serverstatus.h
+    steamid.h
     tmuxsessionwrapper.h
     userprocess.h
 )
@@ -32,6 +33,7 @@ set (morgoth_SOURCES
     servercoordinator.cpp
     servermanager.cpp
     serverstatus.cpp
+    steamid.cpp
     tmuxsessionwrapper.cpp
     userprocess.cpp
 )
