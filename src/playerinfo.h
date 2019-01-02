@@ -25,12 +25,31 @@ namespace morgoth {
 
 class PlayerInfoData;
 
+/**
+ * \brief The PlayerInfo class holds data of a player that is connected to
+ *  a server.
+ */
 class MORGOTH_EXPORT PlayerInfo {
 public:
+    /**
+     * \brief Creates a new instance of PlayerInfo with the given \c name.
+     * \param name The nickname of the player.
+     */
     explicit PlayerInfo(const QString& name = QString());
+
+    /**
+     * \brief Constructs a new instance of PlayerInfo that is a copy of \c other.
+     */
     PlayerInfo(const PlayerInfo& other);
+
+    /**
+     * \brief Destroys this instance.
+     */
     virtual ~PlayerInfo();
 
+    /**
+     * \brief Assigns \c other to \c this.
+     */
     PlayerInfo& operator=(const PlayerInfo& other);
 
     QString name() const;
