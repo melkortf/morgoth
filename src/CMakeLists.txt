@@ -10,6 +10,7 @@ set (morgoth_PUBLIC_HEADERS
     morgothdaemon.h
     morgothplugin.h
     persistor.h
+    playerinfo.h
     pluginmanager.h
     server.h
     serverconfiguration.h
@@ -27,6 +28,7 @@ set (morgoth_SOURCES
     loglistener.cpp
     morgothdaemon.cpp
     persistor.cpp
+    playerinfo.cpp
     pluginmanager.cpp
     server.cpp
     serverconfiguration.cpp
