@@ -23,12 +23,15 @@
 namespace morgoth {
 
 /**
- * \brief The SteamId class utilized the SteamID handling.
+ * \brief The SteamId class utilizes SteamID handling.
  */
 class MORGOTH_EXPORT SteamId {
 public:
+    /**
+     * \brief The Format enum identifies the SteamID presentation.
+     */
     enum Format {
-        Text    /**< STEAM_X:Y:Z */,
+        Text    /**< Textual, i.e. STEAM_X:Y:Z */,
         Id3     /**< a.k.a. Community Id, U:1:W */,
         Id64,
     };
@@ -49,6 +52,9 @@ public:
      */
     explicit SteamId(const QString& steamId, Format format);
 
+    /**
+     * \brief Returns the binary representation of SteamID.
+     */
     quint64 toSteamId64() const { return m_steamId; }
 
     /**
@@ -56,6 +62,9 @@ public:
      */
     QString toFormat(Format format) const;
 
+    /**
+     * \brief Compares \c this SteamId to the \c other.
+     */
     bool operator==(const SteamId& other) const;
 
 private:
