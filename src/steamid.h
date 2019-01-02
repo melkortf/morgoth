@@ -17,6 +17,7 @@
 #define STEAMID_H
 
 #include "morgoth_export.h"
+#include <QMetaType>
 #include <QString>
 
 namespace morgoth {
@@ -60,5 +61,7 @@ private:
 };
 
 } // namespace morgoth
+
+Q_DECLARE_METATYPE(morgoth::SteamId);
 
 #endif // STEAMID_H
