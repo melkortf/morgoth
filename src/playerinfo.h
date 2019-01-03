@@ -18,8 +18,9 @@
 
 #include "morgoth_export.h"
 #include "steamid.h"
-#include <QMetaType>
-#include <QSharedDataPointer>
+#include <QtCore/QMetaType>
+#include <QtCore/QSharedDataPointer>
+#include <QtDBus/QDBusArgument>
 
 namespace morgoth {
 

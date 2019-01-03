@@ -17,8 +17,8 @@
 #define STEAMID_H
 
 #include "morgoth_export.h"
-#include <QMetaType>
-#include <QString>
+#include <QtCore/QMetaType>
+#include <QtCore/QString>
 
 namespace morgoth {
 
