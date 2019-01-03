@@ -57,6 +57,8 @@ public:
     void setPassword(const QString& password);
     void setStvPort(int stvPort);
     void setStvPassword(const QString& stvPassword);
+    void addPlayer(const PlayerInfo& player);
+    void removePlayer(const PlayerInfo& player);
 
     void handleStateChange(ServerCoordinator::State serverState);
     void refreshStatus();
@@ -96,16 +98,14 @@ void ServerStatusPrivate::initialize()
 
     PlayerConnected* playerConnected = new PlayerConnected;
     QObject::connect(playerConnected, &GameEvent::activated, [playerConnected, this]() {
-        players.append(playerConnected->player());
-        setPlayerCount(playerCount + 1);
+        addPlayer(playerConnected->player());
     });
     coordinator->installGameEvent(playerConnected);
 
     PlayerDropped* playerDropped = new PlayerDropped;
     QObject::connect(playerDropped, &GameEvent::activated, [playerDropped, this]() {
         auto player = std::find_if(players.begin(), players.end(), [playerDropped](const PlayerInfo& info) { return info.name() == playerDropped->playerName(); });
-        players.removeAll(*player);
-        setPlayerCount(playerCount - 1);
+        removePlayer(*player);
     });
     coordinator->installGameEvent(playerDropped);
 
@@ -191,6 +191,20 @@ void ServerStatusPrivate::setStvPassword(const QString& stvPassword)
     emit q->stvPasswordChanged(this->stvPassword);
 }
 
+void ServerStatusPrivate::addPlayer(const PlayerInfo& player)
+{
+    players.append(player);
+    setPlayerCount(playerCount + 1);
+    emit q->playersChanged(players);
+}
+
+void ServerStatusPrivate::removePlayer(const PlayerInfo& player)
+{
+    players.removeAll(player);
+    setPlayerCount(playerCount - 1);
+    emit q->playersChanged(players);
+}
+
 void ServerStatusPrivate::handleStateChange(ServerCoordinator::State serverState)
 {
     switch (serverState) {
@@ -268,6 +282,11 @@ int ServerStatus::stvPort() const
 QString ServerStatus::stvPassword() const
 {
     return d->stvPassword;
+}
+
+const QList<PlayerInfo>&ServerStatus::players() const
+{
+    return d->players;
 }
 
 } // namespace morgoth
