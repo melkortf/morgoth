@@ -7,11 +7,11 @@
 
 <div align="center">
   <a href="https://travis-ci.org/melkortf/morgoth">
-    <img src="https://img.shields.io/travis/melkortf/morgoth.svg?style=flat-square" alt="build status">
+    <img src="https://travis-ci.org/melkortf/morgoth.svg?branch=master" alt="build status">
   </a>
-  <img src="https://img.shields.io/badge/status-experimental-orange.svg?style=flat-square" alt="status: experimental">
+  <img src="https://img.shields.io/badge/status-experimental-yellow.svg" alt="status: experimental">
   <a href="https://github.com/melkortf/morgoth/blob/master/LICENSE">
-    <img src="https://img.shields.io/badge/license-GPL-blue.svg?style=flat-square">
+    <img src="https://img.shields.io/badge/license-GPL-blue.svg">
   </a>
 </div>
 
