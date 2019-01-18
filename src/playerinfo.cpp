@@ -101,9 +101,38 @@ const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::PlayerIn
     return argument;
 }
 
+QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::PlayerInfoList& players)
+{
+    argument.beginArray(qMetaTypeId<morgoth::PlayerInfo>());
+    for (const morgoth::PlayerInfo& playerInfo: qAsConst(players)) {
+        argument << playerInfo;
+    }
+    argument.endArray();
+
+    return argument;
+}
+
+const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::PlayerInfoList& players)
+{
+    argument.beginArray();
+    players.clear();
+
+    while (!argument.atEnd()) {
+        morgoth::PlayerInfo playerInfo;
+        argument >> playerInfo;
+        players.append(playerInfo);
+    }
+
+    argument.endArray();
+    return argument;
+}
+
 static void registerMetaType()
 {
+    qRegisterMetaType<morgoth::PlayerInfo>();
+    qRegisterMetaType<morgoth::PlayerInfoList>();
     qDBusRegisterMetaType<morgoth::PlayerInfo>();
     qDBusRegisterMetaType<morgoth::PlayerInfoList>();
 }
+
 Q_COREAPP_STARTUP_FUNCTION(registerMetaType)

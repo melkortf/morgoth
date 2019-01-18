@@ -70,9 +70,11 @@ typedef QList<PlayerInfo> PlayerInfoList;
 
 } // namespace morgoth
 
-Q_DECLARE_METATYPE(morgoth::PlayerInfo);
-Q_DECLARE_METATYPE(morgoth::PlayerInfoList);
+Q_DECLARE_METATYPE(morgoth::PlayerInfo)
+Q_DECLARE_METATYPE(morgoth::PlayerInfoList)
 MORGOTH_EXPORT QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::PlayerInfo& player);
 MORGOTH_EXPORT const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::PlayerInfo& player);
+MORGOTH_EXPORT QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::PlayerInfoList& players);
+MORGOTH_EXPORT const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::PlayerInfoList& players);
 
 #endif // PLAYERINFO_H

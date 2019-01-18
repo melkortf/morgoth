@@ -76,7 +76,7 @@ class MORGOTH_EXPORT ServerStatus : public QObject {
     /**
       * List of players currently connected to this server.
       */
-    Q_PROPERTY(PlayerInfoList players READ players NOTIFY playersChanged)
+    Q_PROPERTY(morgoth::PlayerInfoList players READ players NOTIFY playersChanged)
 
 signals:
     void hostnameChanged(const QString& hostname);
@@ -87,7 +87,7 @@ signals:
     void passwordChanged(const QString& password);
     void stvPortChanged(int stvPort);
     void stvPasswordChanged(const QString& stvPassword);
-    void playersChanged(const QList<PlayerInfo>& players);
+    void playersChanged(const PlayerInfoList& players);
 
     // DBus workaround to make setAutoRelaySignals() in adaptor work
     // (the D-Bus XML type is registered as a string).
