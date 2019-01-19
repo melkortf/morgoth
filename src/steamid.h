@@ -74,6 +74,6 @@ private:
 
 } // namespace morgoth
 
-Q_DECLARE_METATYPE(morgoth::SteamId);
+Q_DECLARE_METATYPE(morgoth::SteamId)
 
 #endif // STEAMID_H

@@ -113,6 +113,8 @@ QString SteamId::toFormat(SteamId::Format format) const
                     .arg(w);
         }
     }
+
+    Q_UNREACHABLE();
 }
 
 bool SteamId::operator==(const SteamId& other) const
