@@ -10,7 +10,7 @@
 
 class TestGameEvents : public QObject {
     Q_OBJECT
-    morgoth::LogListener* logListener;
+    morgoth::LogListener* logListener = nullptr;
 
 private slots:
     void init();
