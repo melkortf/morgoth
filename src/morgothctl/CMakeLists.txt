@@ -32,7 +32,10 @@ qt5_add_dbus_interface (morgothctl_SOURCES ${servercoordinator_IFACE_XML} server
 qt5_add_dbus_interface (morgothctl_SOURCES ${morgoth_IFACES_DIR}/org.morgoth.Server.xml serverinterface)
 qt5_add_dbus_interface (morgothctl_SOURCES ${morgoth_IFACES_DIR}/org.morgoth.ServerConfiguration.xml serverconfigurationinterface)
 qt5_add_dbus_interface (morgothctl_SOURCES ${morgoth_IFACES_DIR}/org.morgoth.ServerManager.xml servermanagerinterface)
-qt5_add_dbus_interface (morgothctl_SOURCES ${morgoth_IFACES_DIR}/org.morgoth.ServerStatus.xml serverstatusinterface)
+
+set (serverstatus_IFACE_XML ${morgoth_IFACES_DIR}/org.morgoth.ServerStatus.xml)
+set_source_files_properties (${serverstatus_IFACE_XML} PROPERTIES INCLUDE "playerinfo.h")
+qt5_add_dbus_interface (morgothctl_SOURCES ${serverstatus_IFACE_XML} serverstatusinterface)
 
 add_executable (morgothctl ${morgothctl_SOURCES})
 target_link_libraries (morgothctl Qt5::Core Qt5::DBus morgoth)

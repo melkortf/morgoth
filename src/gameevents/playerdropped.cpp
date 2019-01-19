@@ -28,4 +28,13 @@ QRegularExpression PlayerDropped::regex() const
     return QRegularExpression("^Dropped\\s(.+)\\sfrom\\sserver\\s\\((.[^\\)]+)\\)$");
 }
 
+void PlayerDropped::maybeActivated(const QString& line, const QRegularExpressionMatch& match)
+{
+    Q_UNUSED(line);
+
+    m_playerName = match.captured(1);
+
+    emit activated();
+}
+
 } // namespace morgoth

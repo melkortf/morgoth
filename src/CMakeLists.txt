@@ -10,12 +10,14 @@ set (morgoth_PUBLIC_HEADERS
     morgothdaemon.h
     morgothplugin.h
     persistor.h
+    playerinfo.h
     pluginmanager.h
     server.h
     serverconfiguration.h
     servercoordinator.h
     servermanager.h
     serverstatus.h
+    steamid.h
     tmuxsessionwrapper.h
     userprocess.h
 )
@@ -26,12 +28,14 @@ set (morgoth_SOURCES
     loglistener.cpp
     morgothdaemon.cpp
     persistor.cpp
+    playerinfo.cpp
     pluginmanager.cpp
     server.cpp
     serverconfiguration.cpp
     servercoordinator.cpp
     servermanager.cpp
     serverstatus.cpp
+    steamid.cpp
     tmuxsessionwrapper.cpp
     userprocess.cpp
 )

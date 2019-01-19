@@ -30,6 +30,11 @@ void printStatus(const org::morgoth::Server& server, QTextStream& out)
                 server.connection());
 
     out << "    " << status.hostname() << " " << status.map() << " " << status.playerCount() << "/" << status.maxPlayers()  << endl;
+
+    auto players = status.players();
+    for (const morgoth::PlayerInfo& player: qAsConst(players)) {
+        out << " " << player.name() << endl;
+    }
 }
 
 void printState(const org::morgoth::Server& server, QTextStream& out)

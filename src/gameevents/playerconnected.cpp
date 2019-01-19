@@ -25,12 +25,25 @@ PlayerConnected::PlayerConnected(QObject* parent) :
 
 QRegularExpression PlayerConnected::regex() const
 {
-    // https://regex101.com/r/uyPW8m/2
-    return QRegularExpression(
-                "^\\w\\s(\\d{2}\\/\\d{2}\\/\\d{4})\\s-\\s(\\d{2}"
-                ":\\d{2}:\\d{2}):\\s\\\"(.[^\\\"]+)\"\\sconnected,"
-                "\\saddress\\s\\\"(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}"
-                "\\.\\d{1,3}:\\d{1,5})\"$");
+    // https://regex101.com/r/uyPW8m/3
+    return QRegularExpression("^\\w\\s(\\d{2}\\/\\d{2}\\/\\d{4})\\s-\\s(\\d{2}"
+                              ":\\d{2}:\\d{2}):\\s\\\"(.[^\\<]+)\\<(\\d+)\\>\\"
+                              "<\\[(.[^\\]]+)\\]\\>\\<\\>\"\\sconnected,\\sadd"
+                              "ress\\s\\\"(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\"
+                              "d{1,3}:\\d{1,5})\"$");
+}
+
+void PlayerConnected::maybeActivated(const QString& line, const QRegularExpressionMatch& match)
+{
+    Q_UNUSED(line);
+
+    QString playerName = match.captured(3);
+    m_player = PlayerInfo(playerName);
+
+    QString steamId = match.captured(5);
+    m_player.setSteamId(SteamId(steamId, SteamId::Format::Id3));
+
+    emit activated();
 }
 
 } // namespace morgoth

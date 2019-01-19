@@ -17,6 +17,7 @@
 #define PLAYERCONNECTED_H
 
 #include "gameevent.h"
+#include "../playerinfo.h"
 #include <QtCore/QObject>
 
 namespace morgoth {
@@ -29,7 +30,15 @@ public:
 
     QRegularExpression regex() const override;
 
+    const PlayerInfo& player() const { return m_player; }
+
     static auto constexpr Name = "player.connected";
+
+protected:
+    void maybeActivated(const QString& line, const QRegularExpressionMatch& match) override;
+
+private:
+    PlayerInfo m_player;
 
 };
 

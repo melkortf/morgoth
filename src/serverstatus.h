@@ -17,6 +17,7 @@
 #define SERVERSTATUS_H
 
 #include "morgoth_export.h"
+#include "playerinfo.h"
 #include "servercoordinator.h"
 #include <QtCore/QObject>
 
@@ -27,7 +28,7 @@ class ServerStatusPrivate;
 /**
  * \brief The ServerStatus class stores runtime server information.
  */
-class ServerStatus : public QObject {
+class MORGOTH_EXPORT ServerStatus : public QObject {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.morgoth.ServerStatus")
 
@@ -72,6 +73,11 @@ class ServerStatus : public QObject {
      */
     Q_PROPERTY(QString stvPassword READ stvPassword NOTIFY stvPasswordChanged)
 
+    /**
+      * List of players currently connected to this server.
+      */
+    Q_PROPERTY(morgoth::PlayerInfoList players READ players NOTIFY playersChanged)
+
 signals:
     void hostnameChanged(const QString& hostname);
     void playerCountChanged(int playerCount);
@@ -81,6 +87,7 @@ signals:
     void passwordChanged(const QString& password);
     void stvPortChanged(int stvPort);
     void stvPasswordChanged(const QString& stvPassword);
+    void playersChanged(const PlayerInfoList& players);
 
     // DBus workaround to make setAutoRelaySignals() in adaptor work
     // (the D-Bus XML type is registered as a string).
@@ -98,6 +105,7 @@ public:
     QString password() const;
     int stvPort() const;
     QString stvPassword() const;
+    const QList<PlayerInfo>& players() const;
 
 private:
     QScopedPointer<ServerStatusPrivate> d;
