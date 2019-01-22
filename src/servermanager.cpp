@@ -16,10 +16,13 @@
 #include "servermanager.h"
 #include "morgothdaemon.h"
 #include "servermanageradaptor.h"
+#include "serverstatus.h"
 #include "gameserverinterface.h"
 #include <QtCore>
 #include <algorithm>
 #include <iostream>
+
+using org::morgoth::connector::GameServer;
 
 namespace morgoth {
 
@@ -28,6 +31,7 @@ public:
     QList<Server*> servers;
     QDBusServiceWatcher* watcher;
     int lastGameServerId = 0;
+    QMap<QString, GameServer*> gameServers;
 
 };
 
@@ -47,6 +51,7 @@ ServerManager::ServerManager(QObject* parent) :
                 QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration,
                 this);
     connect(d->watcher, &QDBusServiceWatcher::serviceRegistered, this, &ServerManager::resolveRegisteredGameServer);
+    connect(d->watcher, &QDBusServiceWatcher::serviceUnregistered, this, &ServerManager::removeGameServer);
 }
 
 ServerManager::~ServerManager()
@@ -145,7 +150,6 @@ void ServerManager::listenForNextGameServer()
 
 void ServerManager::resolveRegisteredGameServer(const QString& serviceName)
 {
-    using namespace org::morgoth::connector;
     GameServer* iface = new GameServer(serviceName, "/", QDBusConnection::sessionBus(), this);
     QDir gameLocation = iface->gameLocation();
     auto it = std::find_if(servers().begin(), servers().end(), [&gameLocation](const Server* server) {
@@ -154,9 +158,22 @@ void ServerManager::resolveRegisteredGameServer(const QString& serviceName)
 
     if (it != servers().end()) {
         qDebug("Server %s is online", qPrintable((*it)->name()));
+        (*it)->status()->trackGameServer(iface);
+        d->gameServers.insert(serviceName, iface);
         listenForNextGameServer();
     } else {
         qWarning("Could not match %s to any of the known servers", qPrintable(serviceName));
+    }
+}
+
+void ServerManager::removeGameServer(const QString& serviceName)
+{
+    GameServer* iface = d->gameServers.value(serviceName, nullptr);
+    if (iface) {
+        iface->deleteLater();
+        d->gameServers.remove(serviceName);
+    } else {
+        qWarning("Game server %s was not previously registered", qPrintable(serviceName));
     }
 }
 

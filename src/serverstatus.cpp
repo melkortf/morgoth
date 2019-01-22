@@ -47,7 +47,6 @@ public:
     QString stvPassword;
     QList<PlayerInfo> players;
 
-    void initialize();
     void reset();
     void setHostname(const QString& hostname);
     void setPlayerCount(int playerCount);
@@ -61,74 +60,7 @@ public:
     void removePlayer(const PlayerInfo& player);
 
     void handleStateChange(ServerCoordinator::State serverState);
-    void refreshStatus();
 };
-
-void ServerStatusPrivate::initialize()
-{
-    // set up log listeners
-    StatusHostname* hostnameLine = new StatusHostname;
-    QObject::connect(hostnameLine, &GameEvent::activated, [hostnameLine, this]() {
-        setHostname(hostnameLine->hostname());
-    });
-    coordinator->installGameEvent(hostnameLine);
-
-    StatusPlayerNumbers* playerLine = new StatusPlayerNumbers;
-    QObject::connect(playerLine, &GameEvent::activated, [playerLine, this]() {
-        setPlayerCount(playerLine->playerCount());
-        setMaxPlayers(playerLine->maxPlayers());
-    });
-    coordinator->installGameEvent(playerLine);
-
-    StatusMap* mapLine = new StatusMap;
-    QObject::connect(mapLine, &GameEvent::activated, [mapLine, this]() {
-        setMap(mapLine->map());
-    });
-    coordinator->installGameEvent(mapLine);
-
-    StatusIpAddress* ipLine = new StatusIpAddress;
-    QObject::connect(ipLine, &GameEvent::activated, [ipLine, this]() {
-        QUrl address;
-        address.setScheme("steam");
-        address.setHost(ipLine->ip());
-        address.setPort(static_cast<int>(ipLine->port()));
-        setAddress(address);
-    });
-    coordinator->installGameEvent(ipLine);
-
-    PlayerConnected* playerConnected = new PlayerConnected;
-    QObject::connect(playerConnected, &GameEvent::activated, [playerConnected, this]() {
-        addPlayer(playerConnected->player());
-    });
-    coordinator->installGameEvent(playerConnected);
-
-    PlayerDropped* playerDropped = new PlayerDropped;
-    QObject::connect(playerDropped, &GameEvent::activated, [playerDropped, this]() {
-        auto player = std::find_if(players.begin(), players.end(), [playerDropped](const PlayerInfo& info) { return info.name() == playerDropped->playerName(); });
-        removePlayer(*player);
-    });
-    coordinator->installGameEvent(playerDropped);
-
-    CvarValue* password = new CvarValue("sv_password");
-    QObject::connect(password, &GameEvent::activated, [password, this]() {
-        setPassword(password->value());
-    });
-    coordinator->installGameEvent(password);
-
-    CvarValue* stvPort = new CvarValue("tv_port");
-    QObject::connect(stvPort, &GameEvent::activated, [stvPort, this]() {
-        bool ok;
-        int port = stvPort->value().toInt(&ok);
-        setStvPort(ok ? port : 0);
-    });
-    coordinator->installGameEvent(stvPort);
-
-    CvarValue* stvPassword = new CvarValue("tv_password");
-    QObject::connect(stvPassword, &GameEvent::activated, [stvPassword, this]() {
-        setStvPassword(stvPassword->value());
-    });
-    coordinator->installGameEvent(stvPassword);
-}
 
 void ServerStatusPrivate::reset()
 {
@@ -209,7 +141,6 @@ void ServerStatusPrivate::handleStateChange(ServerCoordinator::State serverState
 {
     switch (serverState) {
         case ServerCoordinator::State::Running:
-            QTimer::singleShot(0, std::bind(&ServerStatusPrivate::refreshStatus, this));
             break;
 
         default:
@@ -218,21 +149,11 @@ void ServerStatusPrivate::handleStateChange(ServerCoordinator::State serverState
     }
 }
 
-void ServerStatusPrivate::refreshStatus()
-{
-    // FIXME Execute rcon command instead of this
-    coordinator->sendCommand("status");
-    coordinator->sendCommand("sv_password");
-    coordinator->sendCommand("tv_port");
-    coordinator->sendCommand("tv_password");
-}
-
 ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
     QObject(parent),
     d(new ServerStatusPrivate(this, coordinator))
 {
     connect(coordinator, &ServerCoordinator::stateChanged, std::bind(&ServerStatusPrivate::handleStateChange, d.data(), std::placeholders::_1));
-    d->initialize();
 
     new ServerStatusAdaptor(this);
     if (morgothd)
@@ -242,6 +163,13 @@ ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
 ServerStatus::~ServerStatus()
 {
 
+}
+
+void ServerStatus::trackGameServer(const org::morgoth::connector::GameServer* gameServer)
+{
+    using org::morgoth::connector::GameServer;
+    connect(gameServer, &GameServer::mapChanged, std::bind(&ServerStatusPrivate::setMap, d.data(), std::placeholders::_1));
+    d->setMap(gameServer->map());
 }
 
 const QString& ServerStatus::hostname() const

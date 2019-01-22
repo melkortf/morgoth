@@ -19,6 +19,7 @@
 #include "morgoth_export.h"
 #include "playerinfo.h"
 #include "servercoordinator.h"
+#include "gameserverinterface.h"
 #include <QtCore/QObject>
 
 namespace morgoth {
@@ -96,6 +97,8 @@ signals:
 public:
     explicit ServerStatus(ServerCoordinator* coordinator, QObject *parent = nullptr);
     virtual ~ServerStatus();
+
+    void trackGameServer(const org::morgoth::connector::GameServer* gameServer);
 
     const QString& hostname() const;
     int playerCount() const;

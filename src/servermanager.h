@@ -115,6 +115,7 @@ private:
 
 private slots:
     void resolveRegisteredGameServer(const QString& serviceName);
+    void removeGameServer(const QString& serviceName);
 
 private:
     QScopedPointer<ServerManagerPrivate> d;
