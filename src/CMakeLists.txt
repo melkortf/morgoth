@@ -40,6 +40,8 @@ set (morgoth_SOURCES
     userprocess.cpp
 )
 
+qt5_add_dbus_interface (morgoth_SOURCES interfaces/org.morgoth.connector.GameServer.xml gameserverinterface)
+
 add_library (morgoth SHARED
     ${morgoth_PUBLIC_HEADERS}
     ${morgoth_PRIVATE_HEADERS}

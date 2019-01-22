@@ -1,0 +1,12 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.morgoth.connector.GameServer">
+    <property name="gameLocation" type="s" access="read"/>
+    <property name="map" type="s" access="read"/>
+    <signal name="aboutToQuit">
+    </signal>
+    <signal name="mapChanged">
+      <arg name="map" type="s" direction="out"/>
+    </signal>
+  </interface>
+</node>

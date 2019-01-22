@@ -111,6 +111,12 @@ public:
     QStringList serverNames() const;
 
 private:
+    void listenForNextGameServer();
+
+private slots:
+    void resolveRegisteredGameServer(const QString& serviceName);
+
+private:
     QScopedPointer<ServerManagerPrivate> d;
 
 };

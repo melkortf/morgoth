@@ -16,6 +16,7 @@
 #include "servermanager.h"
 #include "morgothdaemon.h"
 #include "servermanageradaptor.h"
+#include "gameserverinterface.h"
 #include <QtCore>
 #include <algorithm>
 #include <iostream>
@@ -25,6 +26,9 @@ namespace morgoth {
 class ServerManagerPrivate {
 public:
     QList<Server*> servers;
+    QDBusServiceWatcher* watcher;
+    int lastGameServerId = 0;
+
 };
 
 ServerManager::ServerManager(QObject* parent) :
@@ -34,6 +38,15 @@ ServerManager::ServerManager(QObject* parent) :
     new ServerManagerAdaptor(this);
     if (morgothd)
         morgothd->dbusConnection().registerObject("/servers", this);
+
+
+//    connect(iface, &GameServer::mapChanged, [](const QString& map) { qDebug(" == MAP: %s ==", qPrintable(map)); });
+
+    d->watcher = new QDBusServiceWatcher(
+                "org.morgoth.connector.gameserver_0", morgothd->dbusConnection(),
+                QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration,
+                this);
+    connect(d->watcher, &QDBusServiceWatcher::serviceRegistered, this, &ServerManager::resolveRegisteredGameServer);
 }
 
 ServerManager::~ServerManager()
@@ -108,6 +121,11 @@ QDBusObjectPath ServerManager::serverPath(const QString& serverName) const
         return QDBusObjectPath();
 }
 
+const QList<Server*>& ServerManager::servers() const
+{
+    return d->servers;
+}
+
 QStringList ServerManager::serverNames() const
 {
     QStringList result;
@@ -116,6 +134,30 @@ QStringList ServerManager::serverNames() const
     });
 
     return result;
+}
+
+void ServerManager::listenForNextGameServer()
+{
+    d->lastGameServerId += 1;
+    QString serviceName = QStringLiteral("org.morgoth.connector.gameserver_%1").arg(QString::number(d->lastGameServerId));
+    d->watcher->addWatchedService(serviceName);
+}
+
+void ServerManager::resolveRegisteredGameServer(const QString& serviceName)
+{
+    using namespace org::morgoth::connector;
+    GameServer* iface = new GameServer(serviceName, "/", QDBusConnection::sessionBus(), this);
+    QDir gameLocation = iface->gameLocation();
+    auto it = std::find_if(servers().begin(), servers().end(), [&gameLocation](const Server* server) {
+        return QDir(server->path().toLocalFile()) == gameLocation;
+    });
+
+    if (it != servers().end()) {
+        qDebug("Server %s is online", qPrintable((*it)->name()));
+        listenForNextGameServer();
+    } else {
+        qWarning("Could not match %s to any of the known servers", qPrintable(serviceName));
+    }
 }
 
 } // namespace Morgoth
