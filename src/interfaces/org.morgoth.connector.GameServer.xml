@@ -3,10 +3,14 @@
   <interface name="org.morgoth.connector.GameServer">
     <property name="gameLocation" type="s" access="read"/>
     <property name="map" type="s" access="read"/>
+    <property name="address" type="s" access="read"/>
     <signal name="aboutToQuit">
     </signal>
     <signal name="mapChanged">
       <arg name="map" type="s" direction="out"/>
+    </signal>
+    <signal name="addressChanged">
+      <arg name="address" type="s" direction="out"/>
     </signal>
     <signal name="conVarChanged">
       <arg name="conVarName" type="s" direction="out"/>

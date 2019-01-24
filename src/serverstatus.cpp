@@ -179,14 +179,27 @@ void ServerStatus::trackGameServer(org::morgoth::connector::GameServer* gameServ
 {
     using org::morgoth::connector::GameServer;
 
+    connect(gameServer, &GameServer::mapChanged, std::bind(&ServerStatusPrivate::setMap, d.data(), std::placeholders::_1));
+    d->setMap(gameServer->map());
+
+    auto setAddressFromString = [this](const QString& str) {
+        QUrl address;
+        address.setScheme("steam");
+        auto s = str.split(':');
+        Q_ASSERT(s.length() == 2);
+        address.setHost(s.at(0));
+        address.setPort(s.at(1).toInt());
+        d->setAddress(address);
+    };
+
+    connect(gameServer, &GameServer::addressChanged, setAddressFromString);
+    setAddressFromString(gameServer->address());
+
     connect(gameServer, &GameServer::conVarChanged, std::bind(&ServerStatusPrivate::handleConVarChange, d.data(), std::placeholders::_1, std::placeholders::_2));
     gameServer->watchConVar("hostname");
     d->setHostname(gameServer->getConVarValue("hostname"));
     gameServer->watchConVar("sv_password");
     d->setPassword(gameServer->getConVarValue("sv_password"));
-
-    connect(gameServer, &GameServer::mapChanged, std::bind(&ServerStatusPrivate::setMap, d.data(), std::placeholders::_1));
-    d->setMap(gameServer->map());
 }
 
 const QString& ServerStatus::hostname() const
