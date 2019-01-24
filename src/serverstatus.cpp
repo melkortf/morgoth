@@ -55,6 +55,7 @@ public:
     void setAddress(const QUrl& address);
     void setPassword(const QString& password);
     void setStvPort(int stvPort);
+    void setStvPortFromString(const QString& stvPortString);
     void setStvPassword(const QString& stvPassword);
     void addPlayer(const PlayerInfo& player);
     void removePlayer(const PlayerInfo& player);
@@ -118,6 +119,17 @@ void ServerStatusPrivate::setStvPort(int stvPort)
     emit q->stvPortChanged(stvPort);
 }
 
+void ServerStatusPrivate::setStvPortFromString(const QString& stvPortString)
+{
+    bool ok;
+    int stvPort = stvPortString.toInt(&ok);
+    if (ok) {
+        setStvPort(stvPort);
+    } else {
+        qWarning("%s is an invalid STV port value", qPrintable(stvPortString));
+    }
+}
+
 void ServerStatusPrivate::setStvPassword(const QString& stvPassword)
 {
     this->stvPassword = stvPassword;
@@ -156,6 +168,10 @@ void ServerStatusPrivate::handleConVarChange(QString conVarName, QString newValu
         setHostname(newValue);
     } else if (conVarName == "sv_password") {
         setPassword(newValue);
+    } else if (conVarName == "tv_port") {
+        setStvPortFromString(newValue);
+    } else if (conVarName == "tv_password") {
+        setStvPassword(newValue);
     }
 }
 
@@ -200,6 +216,12 @@ void ServerStatus::trackGameServer(org::morgoth::connector::GameServer* gameServ
     d->setHostname(gameServer->getConVarValue("hostname"));
     gameServer->watchConVar("sv_password");
     d->setPassword(gameServer->getConVarValue("sv_password"));
+
+    // SourceTV details
+    gameServer->watchConVar("tv_password");
+    d->setStvPassword(gameServer->getConVarValue("tv_password"));
+    gameServer->watchConVar("tv_port");
+    d->setStvPortFromString(gameServer->getConVarValue("tv_port"));
 }
 
 const QString& ServerStatus::hostname() const
