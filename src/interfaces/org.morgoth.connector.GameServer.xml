@@ -4,6 +4,7 @@
     <property name="gameLocation" type="s" access="read"/>
     <property name="map" type="s" access="read"/>
     <property name="address" type="s" access="read"/>
+    <property name="maxPlayers" type="i" access="read"/>
     <signal name="aboutToQuit">
     </signal>
     <signal name="mapChanged">

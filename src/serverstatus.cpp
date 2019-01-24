@@ -195,6 +195,8 @@ void ServerStatus::trackGameServer(org::morgoth::connector::GameServer* gameServ
 {
     using org::morgoth::connector::GameServer;
 
+    d->setMaxPlayers(gameServer->maxPlayers());
+
     connect(gameServer, &GameServer::mapChanged, std::bind(&ServerStatusPrivate::setMap, d.data(), std::placeholders::_1));
     d->setMap(gameServer->map());
 
