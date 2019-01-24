@@ -98,7 +98,7 @@ public:
     explicit ServerStatus(ServerCoordinator* coordinator, QObject *parent = nullptr);
     virtual ~ServerStatus();
 
-    void trackGameServer(const org::morgoth::connector::GameServer* gameServer);
+    void trackGameServer(org::morgoth::connector::GameServer* gameServer);
 
     const QString& hostname() const;
     int playerCount() const;

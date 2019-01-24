@@ -60,6 +60,7 @@ public:
     void removePlayer(const PlayerInfo& player);
 
     void handleStateChange(ServerCoordinator::State serverState);
+    void handleConVarChange(QString conVarName, QString newValue);
 };
 
 void ServerStatusPrivate::reset()
@@ -140,12 +141,21 @@ void ServerStatusPrivate::removePlayer(const PlayerInfo& player)
 void ServerStatusPrivate::handleStateChange(ServerCoordinator::State serverState)
 {
     switch (serverState) {
-        case ServerCoordinator::State::Running:
+        case ServerCoordinator::State::Offline:
+            reset();
             break;
 
         default:
-            reset();
             break;
+    }
+}
+
+void ServerStatusPrivate::handleConVarChange(QString conVarName, QString newValue)
+{
+    if (conVarName == "hostname") {
+        setHostname(newValue);
+    } else if (conVarName == "sv_password") {
+        setPassword(newValue);
     }
 }
 
@@ -165,9 +175,16 @@ ServerStatus::~ServerStatus()
 
 }
 
-void ServerStatus::trackGameServer(const org::morgoth::connector::GameServer* gameServer)
+void ServerStatus::trackGameServer(org::morgoth::connector::GameServer* gameServer)
 {
     using org::morgoth::connector::GameServer;
+
+    connect(gameServer, &GameServer::conVarChanged, std::bind(&ServerStatusPrivate::handleConVarChange, d.data(), std::placeholders::_1, std::placeholders::_2));
+    gameServer->watchConVar("hostname");
+    d->setHostname(gameServer->getConVarValue("hostname"));
+    gameServer->watchConVar("sv_password");
+    d->setPassword(gameServer->getConVarValue("sv_password"));
+
     connect(gameServer, &GameServer::mapChanged, std::bind(&ServerStatusPrivate::setMap, d.data(), std::placeholders::_1));
     d->setMap(gameServer->map());
 }
@@ -212,7 +229,7 @@ QString ServerStatus::stvPassword() const
     return d->stvPassword;
 }
 
-const QList<PlayerInfo>&ServerStatus::players() const
+const QList<PlayerInfo>& ServerStatus::players() const
 {
     return d->players;
 }

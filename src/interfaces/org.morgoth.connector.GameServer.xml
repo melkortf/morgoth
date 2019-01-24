@@ -8,5 +8,16 @@
     <signal name="mapChanged">
       <arg name="map" type="s" direction="out"/>
     </signal>
+    <signal name="conVarChanged">
+      <arg name="conVarName" type="s" direction="out"/>
+      <arg name="newValue" type="s" direction="out"/>
+    </signal>
+    <method name="getConVarValue">
+      <arg type="s" direction="out"/>
+      <arg name="conVarName" type="s" direction="in"/>
+    </method>
+    <method name="watchConVar">
+      <arg name="conVarName" type="s" direction="in"/>
+    </method>
   </interface>
 </node>

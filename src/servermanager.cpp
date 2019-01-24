@@ -43,9 +43,6 @@ ServerManager::ServerManager(QObject* parent) :
     if (morgothd)
         morgothd->dbusConnection().registerObject("/servers", this);
 
-
-//    connect(iface, &GameServer::mapChanged, [](const QString& map) { qDebug(" == MAP: %s ==", qPrintable(map)); });
-
     d->watcher = new QDBusServiceWatcher(
                 "org.morgoth.connector.gameserver_0", morgothd->dbusConnection(),
                 QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration,
