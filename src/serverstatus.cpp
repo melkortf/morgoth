@@ -210,7 +210,6 @@ void ServerStatus::trackGameServer(org::morgoth::connector::GameServer* gameServ
         d->setAddress(address);
     };
 
-    connect(gameServer, &GameServer::addressChanged, setAddressFromString);
     setAddressFromString(gameServer->address());
 
     connect(gameServer, &GameServer::conVarChanged, std::bind(&ServerStatusPrivate::handleConVarChange, d.data(), std::placeholders::_1, std::placeholders::_2));
