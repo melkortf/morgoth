@@ -37,8 +37,10 @@ void PlayerConnected::maybeActivated(const QString& line, const QRegularExpressi
 {
     Q_UNUSED(line);
 
+    m_player = PlayerInfo();
+
     QString playerName = match.captured(3);
-    m_player = PlayerInfo(playerName);
+    m_player.setName(playerName);
 
     QString steamId = match.captured(5);
     m_player.setSteamId(SteamId(steamId, SteamId::Format::Id3));

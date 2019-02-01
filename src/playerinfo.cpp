@@ -20,13 +20,14 @@ namespace morgoth {
 
 class PlayerInfoData : public QSharedData {
 public:
-    PlayerInfoData(const QString& name) : name(name) {}
+    PlayerInfoData(int id) : id(id) {}
 
+    int id;
     QString name;
     SteamId steamId;
 };
 
-PlayerInfo::PlayerInfo(const QString& name) : d(new PlayerInfoData(name))
+PlayerInfo::PlayerInfo(int id) : d(new PlayerInfoData(id))
 {
 
 }
@@ -45,6 +46,16 @@ PlayerInfo& PlayerInfo::operator=(const PlayerInfo& other)
 {
     d = other.d;
     return *this;
+}
+
+int PlayerInfo::id() const
+{
+    return d->id;
+}
+
+void PlayerInfo::setId(int id)
+{
+    d->id = id;
 }
 
 QString PlayerInfo::name() const
@@ -69,7 +80,7 @@ void PlayerInfo::setSteamId(const SteamId& steamId)
 
 bool PlayerInfo::operator==(const PlayerInfo& other) const
 {
-    return  name() == other.name() && steamId() == other.steamId();
+    return id() == other.id() && name() == other.name() && steamId() == other.steamId();
 }
 
 } // namespace morgoth
@@ -77,6 +88,7 @@ bool PlayerInfo::operator==(const PlayerInfo& other) const
 QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::PlayerInfo& player)
 {
     argument.beginStructure();
+    argument << player.id();
     argument << player.name();
     argument << player.steamId().toSteamId64();
     argument.endStructure();
@@ -87,14 +99,17 @@ const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::PlayerIn
 {
     argument.beginStructure();
 
+    int id;
     QString name;
     quint64 steamId64;
 
+    argument >> id;
     argument >> name;
     argument >> steamId64;
 
     argument.endStructure();
 
+    player.setId(id);
     player.setName(name);
     player.setSteamId(morgoth::SteamId(steamId64));
 

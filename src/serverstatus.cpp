@@ -58,7 +58,7 @@ public:
     void setStvPortFromString(const QString& stvPortString);
     void setStvPassword(const QString& stvPassword);
     void addPlayer(const PlayerInfo& player);
-    void removePlayer(const PlayerInfo& player);
+    void removePlayer(int id);
 
     void handleStateChange(ServerCoordinator::State serverState);
     void handleConVarChange(QString conVarName, QString newValue);
@@ -143,9 +143,10 @@ void ServerStatusPrivate::addPlayer(const PlayerInfo& player)
     emit q->playersChanged(players);
 }
 
-void ServerStatusPrivate::removePlayer(const PlayerInfo& player)
+void ServerStatusPrivate::removePlayer(int id)
 {
-    players.removeAll(player);
+    auto player = std::find_if(players.begin(), players.end(), [id](const auto& p) { return p.id() == id; });
+    players.erase(player);
     setPlayerCount(playerCount - 1);
     emit q->playersChanged(players);
 }
@@ -223,6 +224,17 @@ void ServerStatus::trackGameServer(org::morgoth::connector::GameServer* gameServ
     d->setStvPassword(gameServer->getConVarValue("tv_password"));
     gameServer->watchConVar("tv_port");
     d->setStvPortFromString(gameServer->getConVarValue("tv_port"));
+
+    // player tracking
+    connect(gameServer, &GameServer::playerConnected, [this, gameServer](int id) {
+        PlayerInfo player(id);
+        player.setName(gameServer->getPlayerName(id));
+        player.setSteamId(SteamId(gameServer->getPlayerSteamId(id)));
+        d->addPlayer(player);
+    });
+    connect(gameServer, &GameServer::playerDisconnected, [this](int id) {
+        d->removePlayer(id);
+    });
 }
 
 const QString& ServerStatus::hostname() const

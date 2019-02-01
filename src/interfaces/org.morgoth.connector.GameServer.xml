@@ -7,12 +7,18 @@
     <property name="maxPlayers" type="i" access="read"/>
     <signal name="aboutToQuit">
     </signal>
-    <signal name="mapChanged">
-      <arg name="map" type="s" direction="out"/>
+    <signal name="playerConnected">
+      <arg name="userId" type="i" direction="out"/>
+    </signal>
+    <signal name="playerDisconnected">
+      <arg name="userId" type="i" direction="out"/>
     </signal>
     <signal name="conVarChanged">
       <arg name="conVarName" type="s" direction="out"/>
       <arg name="newValue" type="s" direction="out"/>
+    </signal>
+    <signal name="mapChanged">
+      <arg name="map" type="s" direction="out"/>
     </signal>
     <method name="getConVarValue">
       <arg type="s" direction="out"/>
@@ -20,6 +26,14 @@
     </method>
     <method name="watchConVar">
       <arg name="conVarName" type="s" direction="in"/>
+    </method>
+    <method name="getPlayerName">
+      <arg type="s" direction="out"/>
+      <arg name="userId" type="i" direction="in"/>
+    </method>
+    <method name="getPlayerSteamId">
+      <arg type="t" direction="out"/>
+      <arg name="userId" type="i" direction="in"/>
     </method>
   </interface>
 </node>

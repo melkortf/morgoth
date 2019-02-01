@@ -33,10 +33,9 @@ class PlayerInfoData;
 class MORGOTH_EXPORT PlayerInfo {
 public:
     /**
-     * \brief Creates a new instance of PlayerInfo with the given \c name.
-     * \param name The nickname of the player.
+     * \brief Creates a new instance of PlayerInfo with the given \c id.
      */
-    explicit PlayerInfo(const QString& name = QString());
+    explicit PlayerInfo(int id = 0);
 
     /**
      * \brief Constructs a new instance of PlayerInfo that is a copy of \c other.
@@ -52,6 +51,9 @@ public:
      * \brief Assigns \c other to \c this.
      */
     PlayerInfo& operator=(const PlayerInfo& other);
+
+    int id() const;
+    void setId(int id);
 
     QString name() const;
     void setName(const QString& name);
