@@ -40,15 +40,16 @@ ServerManager::ServerManager(QObject* parent) :
     d(new ServerManagerPrivate)
 {
     new ServerManagerAdaptor(this);
-    if (morgothd)
+    if (morgothd) {
         morgothd->dbusConnection().registerObject("/servers", this);
 
-    d->watcher = new QDBusServiceWatcher(
-                "org.morgoth.connector.gameserver_0", morgothd->dbusConnection(),
-                QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration,
-                this);
-    connect(d->watcher, &QDBusServiceWatcher::serviceRegistered, this, &ServerManager::resolveRegisteredGameServer);
-    connect(d->watcher, &QDBusServiceWatcher::serviceUnregistered, this, &ServerManager::removeGameServer);
+        d->watcher = new QDBusServiceWatcher(
+                    "org.morgoth.connector.gameserver_0", morgothd->dbusConnection(),
+                    QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration,
+                    this);
+        connect(d->watcher, &QDBusServiceWatcher::serviceRegistered, this, &ServerManager::resolveRegisteredGameServer);
+        connect(d->watcher, &QDBusServiceWatcher::serviceUnregistered, this, &ServerManager::removeGameServer);
+    }
 }
 
 ServerManager::~ServerManager()
