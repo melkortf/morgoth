@@ -20,7 +20,7 @@
 
 * Start, stop and show status of any game server with one command
 * Extend functionality by writing plug-ins
-* Access your servers via [anne](https://github.com/melkortf/anne) API and [ando](https://github.com/melkortf/ando) front-end
+* Access your servers via [anna](https://github.com/melkortf/anna) API and [ando](https://github.com/melkortf/ando) front-end
 
 ## Dependencies
 
