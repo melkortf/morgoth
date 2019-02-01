@@ -13,7 +13,5 @@
         <arg name="state" type="(s)" direction="out"/>
         <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="morgoth::ServerCoordinator::State"/>
     </signal>
-    <method name="flushLogs">
-    </method>
   </interface>
 </node>

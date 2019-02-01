@@ -14,16 +14,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "serverstatus.h"
-#include "gameevent.h"
 #include "morgothdaemon.h"
 #include "serverstatusadaptor.h"
-#include "gameevents/cvarvalue.h"
-#include "gameevents/playerconnected.h"
-#include "gameevents/playerdropped.h"
-#include "gameevents/statushostname.h"
-#include "gameevents/statusipaddress.h"
-#include "gameevents/statusmap.h"
-#include "gameevents/statusplayernumbers.h"
 #include <QtCore>
 #include <functional>
 

@@ -19,22 +19,6 @@ add_executable (testtmuxsessionwrapper testtmuxsessionwrapper.cpp)
 target_link_libraries (testtmuxsessionwrapper morgoth Qt5::Test)
 add_test (NAME TestTmuxSessionWrapper COMMAND testtmuxsessionwrapper)
 
-add_executable (testlogcollector testlogcollector.cpp)
-target_link_libraries (testlogcollector morgoth Qt5::Test)
-add_test (NAME TestLogCollector COMMAND testlogcollector)
-
-add_executable (teststatuscommand teststatuscommand.cpp)
-target_link_libraries (teststatuscommand morgoth Qt5::Test)
-add_test (NAME TestStatusCommand COMMAND teststatuscommand)
-
-add_executable (testgameevents testgameevents.cpp)
-target_link_libraries (testgameevents morgoth Qt5::Test)
-add_test (NAME TestGameEvents COMMAND testgameevents)
-
-add_executable (testcvars testcvars.cpp)
-target_link_libraries (testcvars morgoth Qt5::Test)
-add_test (NAME TestCvars COMMAND testcvars)
-
 add_executable (teststeamid teststeamid.cpp)
 target_link_libraries (teststeamid morgoth Qt5::Test)
 add_test (NAME TestSteamId COMMAND teststeamid)

@@ -1,12 +1,7 @@
 find_package (Qt5 5.10 REQUIRED COMPONENTS Core DBus Sql)
 set (CMAKE_AUTOMOC ON)
 
-add_subdirectory (gameevents)
-
 set (morgoth_PUBLIC_HEADERS
-    gameevent.h
-    logcollector.h
-    loglistener.h
     morgothdaemon.h
     morgothplugin.h
     persistor.h
@@ -23,9 +18,6 @@ set (morgoth_PUBLIC_HEADERS
 )
 
 set (morgoth_SOURCES
-    gameevent.cpp
-    logcollector.cpp
-    loglistener.cpp
     morgothdaemon.cpp
     persistor.cpp
     playerinfo.cpp
@@ -76,7 +68,7 @@ target_include_directories (morgoth
 
 target_link_libraries (morgoth
     PUBLIC Qt5::Core
-    PRIVATE Qt5::DBus Qt5::Sql gameevents
+    PRIVATE Qt5::DBus Qt5::Sql
 )
 
 set (morgoth_GENERATED_HEADERS

@@ -16,7 +16,6 @@
 #ifndef SERVERCOORDINATOR_H
 #define SERVERCOORDINATOR_H
 
-#include "gameevent.h"
 #include "morgoth_export.h"
 #include "server.h"
 #include "tmuxsessionwrapper.h"
@@ -25,8 +24,6 @@
 
 namespace morgoth {
 
-class LogCollector;
-class LogListener;
 class ServerCoordinatorPrivate;
 
 /**
@@ -78,18 +75,6 @@ public:
     virtual ~ServerCoordinator();
 
     /**
-     * \brief Attaches a new \c GameEvent to the log listener.
-     */
-    void installGameEvent(GameEvent* event);
-
-    /**
-     * \brief Finds the \c GameEvent, using its name as a key.
-     * \param name The event's name to find.
-     * \return The \c GameEvent instance, \c nullptr if nothing was found.
-     */
-    GameEvent* findGameEvent(const QString& name);
-
-    /**
      * \brief Sends the given \c command to the server.
      * \note This method does nothing if the server is not running.
      * \param command The command to be sent.
@@ -121,14 +106,6 @@ public slots:
      * \brief Sends the "quit" command to the server.
      */
     void stop();
-
-    /**
-     * \brief Saves all unsaved logs immediately.
-     */
-    void flushLogs();
-
-private:
-    bool createFifo(const QString& fileName, const QString& owner);
 
 private slots:
     void setState(State state);
