@@ -95,7 +95,7 @@ Server::Server(const QUrl& path, const QString& name, QObject* parent) :
         d->coordinatorPath.setPath(QStringLiteral("/servers/%1/coordinator").arg(name));
         d->coordinator = new ServerCoordinator(this);
         d->statusPath.setPath(QStringLiteral("/servers/%1/status").arg(name));
-        d->status = new ServerStatus(d->coordinator, this);
+        d->status = new ServerStatus(this);
     }
 }
 

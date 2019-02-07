@@ -95,10 +95,8 @@ signals:
     void addressChanged(QString address);
 
 public:
-    explicit ServerStatus(ServerCoordinator* coordinator, QObject *parent = nullptr);
+    explicit ServerStatus(Server* server);
     virtual ~ServerStatus();
-
-    void trackGameServer(org::morgoth::connector::GameServer* gameServer);
 
     const QString& hostname() const;
     int playerCount() const;
@@ -111,7 +109,8 @@ public:
     const QList<PlayerInfo>& players() const;
 
 private:
-    QScopedPointer<ServerStatusPrivate> d;
+    Q_DECLARE_PRIVATE(ServerStatus)
+    QScopedPointer<ServerStatusPrivate> const d_ptr;
 
 };
 

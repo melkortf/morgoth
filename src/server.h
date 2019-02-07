@@ -17,6 +17,7 @@
 #define SERVER_H
 
 #include "morgoth_export.h"
+#include "gameserverinterface.h"
 #include "serverconfiguration.h"
 #include <QtCore/QObject>
 #include <QtCore/QString>
@@ -87,6 +88,12 @@ class MORGOTH_EXPORT Server : public QObject {
      * This server's status object D-Bus path.
      */
     Q_PROPERTY(QDBusObjectPath statusPath READ statusPath CONSTANT)
+
+signals:
+    /**
+     * A game server was registerd on the D-Bus.
+     */
+    void gameServerOnline(org::morgoth::connector::GameServer* gameServer);
 
 public:
     /**

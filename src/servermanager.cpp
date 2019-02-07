@@ -156,14 +156,14 @@ void ServerManager::resolveRegisteredGameServer(const QString& serviceName)
 
     if (it != servers().end()) {
         qDebug("Server %s is online", qPrintable((*it)->name()));
-        (*it)->status()->trackGameServer(iface);
+        emit (*it)->gameServerOnline(iface);
         d->gameServers.insert(serviceName, iface);
         listenForNextGameServer();
     } else {
         qWarning("Could not match %s to any of the known servers", qPrintable(serviceName));
     }
 }
-
+ 
 void ServerManager::removeGameServer(const QString& serviceName)
 {
     GameServer* iface = d->gameServers.value(serviceName, nullptr);

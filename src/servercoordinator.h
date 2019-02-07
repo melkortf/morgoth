@@ -107,14 +107,9 @@ public slots:
      */
     void stop();
 
-private slots:
-    void setState(State state);
-    void handleServerStarted();
-    void handleServerStopped();
-    void stopSync();
-
 private:
-    QScopedPointer<ServerCoordinatorPrivate> d;
+    Q_DECLARE_PRIVATE(ServerCoordinator)
+    QScopedPointer<ServerCoordinatorPrivate> const d_ptr;
 
 };
 
