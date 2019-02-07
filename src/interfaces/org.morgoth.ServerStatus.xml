@@ -9,7 +9,7 @@
     <property name="password" type="s" access="read"/>
     <property name="stvPort" type="i" access="read"/>
     <property name="stvPassword" type="s" access="read"/>
-    <property name="players" type="a(st)" access="read">
+    <property name="players" type="a(ist)" access="read">
       <annotation name="org.qtproject.QtDBus.QtTypeName" value="morgoth::PlayerInfoList"/>
     </property>
     <signal name="hostnameChanged">
@@ -37,7 +37,7 @@
       <arg name="stvPassword" type="s" direction="out"/>
     </signal>
     <signal name="playersChanged">
-      <arg name="players" type="a(st)" direction="out"/>
+      <arg name="players" type="a(ist)" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="morgoth::PlayerInfoList"/>
     </signal>
   </interface>

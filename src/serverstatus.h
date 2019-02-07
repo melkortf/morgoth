@@ -19,6 +19,7 @@
 #include "morgoth_export.h"
 #include "playerinfo.h"
 #include "servercoordinator.h"
+#include "gameserverinterface.h"
 #include <QtCore/QObject>
 
 namespace morgoth {
@@ -91,10 +92,10 @@ signals:
 
     // DBus workaround to make setAutoRelaySignals() in adaptor work
     // (the D-Bus XML type is registered as a string).
-    void addressChanged(const QString& address);
+    void addressChanged(QString address);
 
 public:
-    explicit ServerStatus(ServerCoordinator* coordinator, QObject *parent = nullptr);
+    explicit ServerStatus(Server* server);
     virtual ~ServerStatus();
 
     const QString& hostname() const;
@@ -108,7 +109,8 @@ public:
     const QList<PlayerInfo>& players() const;
 
 private:
-    QScopedPointer<ServerStatusPrivate> d;
+    Q_DECLARE_PRIVATE(ServerStatus)
+    QScopedPointer<ServerStatusPrivate> const d_ptr;
 
 };
 

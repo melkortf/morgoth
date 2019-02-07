@@ -14,13 +14,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "servercoordinator.h"
-#include "logcollector.h"
-#include "loglistener.h"
+#include "gameserverinterface.h"
 #include "morgothdaemon.h"
 #include "serverconfiguration.h"
 #include "servercoordinatoradaptor.h"
-#include "gameevents/serverstarted.h"
-#include "gameevents/serverstopped.h"
 #include <QtCore>
 #include <unistd.h>
 #include <sys/types.h>
@@ -30,43 +27,158 @@
 namespace morgoth {
 
 class ServerCoordinatorPrivate {
+    Q_DISABLE_COPY(ServerCoordinatorPrivate)
+    Q_DECLARE_PUBLIC(ServerCoordinator)
+    ServerCoordinator *const q_ptr;
+
 public:
-    explicit ServerCoordinatorPrivate(Server* server) : server(server) {}
+    explicit ServerCoordinatorPrivate(ServerCoordinator* coordinator, Server* server);
+
+    void setState(ServerCoordinator::State state);
+    bool start();
+    void stop();
+    void onGameServerStarted(org::morgoth::connector::GameServer* gameServer);
+    void onGameServerStopped();
+    void stopSync();
 
     Server* server;
     ServerCoordinator::State state = ServerCoordinator::State::Offline;
     TmuxSessionWrapper tmux;
-    QString outputFileName;
-    LogListener* logListener = nullptr;
-    QMap<QString, GameEvent*> gameEvents;
-    LogCollector* logCollector;
+    QString logFileName;
 };
 
-ServerCoordinator::ServerCoordinator(Server* server) :
-    QObject(server),
-    d(new ServerCoordinatorPrivate(server))
+ServerCoordinatorPrivate::ServerCoordinatorPrivate(ServerCoordinator* coordinator, Server* server) :
+    q_ptr(coordinator),
+    server(server)
 {
-    Q_ASSERT(server->isValid());
+    QObject::connect(server, &Server::gameServerOnline, coordinator,
+                     [this](org::morgoth::connector::GameServer* gameServer) { onGameServerStarted(gameServer); });
+    QObject::connect(qApp, &QCoreApplication::aboutToQuit, coordinator,
+                     [this]() { stopSync(); });
+}
+
+void ServerCoordinatorPrivate::setState(ServerCoordinator::State state)
+{
+    Q_Q(ServerCoordinator);
+    this->state = state;
+    emit q->stateChanged(this->state);
+}
+
+bool ServerCoordinatorPrivate::start()
+{
+    Q_ASSERT(server->configuration());
+
+    if (!server->isValid()) {
+        qWarning("%s is not installed properly", qPrintable(server->name()));
+        return false;
+    }
+
+    if (state != ServerCoordinator::Offline) {
+        qWarning("%s is already running", qPrintable(server->name()));
+        return false;
+    }
+
+    qInfo("%s: starting...", qPrintable(server->name()));
+    setState(ServerCoordinator::Starting);
+
+    QString user = server->configuration()->value("org.morgoth.Server.user");
+    if (user.isEmpty() && morgothd)
+        user = morgothd->config().value("user").toString();
+
+    tmux.setUser(user);
+
+    if (!tmux.create()) {
+        qWarning("%s: could not create a tmux session", qPrintable(server->name()));
+        setState(ServerCoordinator::Crashed);
+        return false;
+    }
 
     QString logDirectory = server->configuration()->value("org.morgoth.Server.logDirectory");
     if (QDir::isRelativePath(logDirectory))
-        logDirectory.prepend(server->path().toLocalFile() + QDir::separator());
+        logDirectory.prepend(server->path().toLocalFile());
 
-    d->logCollector = new LogCollector(QDir::cleanPath(logDirectory), this);
-    connect(this, &ServerCoordinator::stateChanged, d->logCollector, &LogCollector::save);
+    logFileName = QString("%1/gameserver.log").arg(logDirectory);
 
-    connect(qApp, &QCoreApplication::aboutToQuit, this, &ServerCoordinator::stopSync);
+    if (!user.isEmpty()) {
+        passwd* pwd = ::getpwnam(user.toLocal8Bit().constData());
+        if (!pwd) {
+            char* error = ::strerror(errno);
+            qWarning("Error retrieving uid and gid of user %s (%s)", qPrintable(user), error);
+            setState(ServerCoordinator::Crashed);
+            return false;
+        } else {
+            ::chown(logFileName.toLocal8Bit().constData(), pwd->pw_uid, pwd->pw_gid);
+        }
+    }
 
-    ServerStarted* serverStarted = new ServerStarted;
-    connect(serverStarted, &GameEvent::activated, this, &ServerCoordinator::handleServerStarted);
-    installGameEvent(serverStarted);
+    if (!tmux.redirectOutput(logFileName)) {
+        qWarning("%s: could not redirect output to %s", qPrintable(server->name()), qPrintable(logFileName));
+        tmux.kill();
+        setState(ServerCoordinator::Crashed);
+        return false;
+    }
 
-    ServerStopped* serverStopped = new ServerStopped;
-    connect(serverStopped, &GameEvent::activated, this, &ServerCoordinator::handleServerStopped);
-    installGameEvent(serverStopped);
+    QString arguments = server->configuration()->value("org.morgoth.Server.launchArguments");
+    QString cmd = QString("%1/srcds_run %2").arg(server->path().toLocalFile(), arguments);
+    if (!tmux.sendKeys(cmd)) {
+        qWarning("%s: could not start the server", qPrintable(server->name()));
+        tmux.kill();
+        setState(ServerCoordinator::Crashed);
+        return false;
+    }
+
+    return true;
+}
+
+void ServerCoordinatorPrivate::stop()
+{
+    if (state == ServerCoordinator::Running || state == ServerCoordinator::Starting) {
+        qDebug("%s: stopping...", qPrintable(server->name()));
+        setState(ServerCoordinator::ShuttingDown);
+        tmux.sendKeys("quit");
+    }
+}
+
+void ServerCoordinatorPrivate::onGameServerStarted(org::morgoth::connector::GameServer* gameServer)
+{
+    Q_Q(ServerCoordinator);
+
+    if (state != ServerCoordinator::Starting) {
+        qWarning("Server located at %s was NOT started by morgoth!", qPrintable(gameServer->gameLocation()));
+    }
+
+    QObject::connect(gameServer, &org::morgoth::connector::GameServer::aboutToQuit, q, [this]() {
+        onGameServerStopped();
+    });
+
+    setState(ServerCoordinator::Running);
+    qInfo("%s: started", qPrintable(server->name()));
+}
+
+void ServerCoordinatorPrivate::onGameServerStopped()
+{
+    if (state != ServerCoordinator::ShuttingDown) {
+        qWarning("Server %s is stopping, but it was NOT registered as running!", qPrintable(server->name()));
+    }
+
+    setState(ServerCoordinator::Offline);
+    qInfo("%s: stopped", qPrintable(server->name()));
+}
+
+void ServerCoordinatorPrivate::stopSync()
+{
+    // TODO
+    // send stop keys and wait for the server to actually shut down
+}
+
+
+ServerCoordinator::ServerCoordinator(Server* server) :
+    QObject(server),
+    d_ptr(new ServerCoordinatorPrivate(this, server))
+{
+    Q_ASSERT(server->isValid());
 
     new ServerCoordinatorAdaptor(this);
-
     if (morgothd)
         morgothd->dbusConnection().registerObject(server->coordinatorPath().path(), this);
 }
@@ -77,172 +189,36 @@ ServerCoordinator::~ServerCoordinator()
     // is already destroyed and we relay on its existence
 }
 
-void ServerCoordinator::installGameEvent(GameEvent* event)
-{
-    d->gameEvents.insert(event->name(), event);
-    if (d->logListener)
-        d->logListener->installGameEvent(event);
-}
-
-GameEvent* ServerCoordinator::findGameEvent(const QString& name)
-{
-    return d->gameEvents.value(name, nullptr);
-}
-
 void ServerCoordinator::sendCommand(const QString& command)
 {
-    if (state() == Running)
+    Q_D(ServerCoordinator);
+
+    if (d->state == Running)
         d->tmux.sendKeys(command);
 }
 
 const Server* ServerCoordinator::server() const
 {
+    Q_D(const ServerCoordinator);
     return d->server;
 }
 
 ServerCoordinator::State ServerCoordinator::state() const
 {
+    Q_D(const ServerCoordinator);
     return d->state;
-}
-
-void ServerCoordinator::setState(ServerCoordinator::State state)
-{
-    d->state = state;
-    emit stateChanged(d->state);
 }
 
 bool ServerCoordinator::start()
 {
-    Q_ASSERT(server()->configuration());
-
-    if (!server()->isValid()) {
-        qWarning("%s is not installed properly", qPrintable(server()->name()));
-        return false;
-    }
-
-    if (state() != Offline) {
-        qWarning("%s is already running", qPrintable(server()->name()));
-        return false;
-    }
-
-    qInfo("%s: starting...", qPrintable(server()->name()));
-    setState(Starting);
-
-    QString user = server()->configuration()->value("org.morgoth.Server.user");
-    if (user.isEmpty() && morgothd)
-        user = morgothd->config().value("user").toString();
-
-    d->tmux.setUser(user);
-
-    if (!d->tmux.create()) {
-        qWarning("%s: could not create a tmux session", qPrintable(server()->name()));
-        setState(Crashed);
-        return false;
-    }
-
-    d->outputFileName = QString("/tmp/%1-tmux").arg(d->tmux.name());
-    if (!createFifo(d->outputFileName, user)) {
-        d->tmux.kill();
-        setState(Crashed);
-        return false;
-    }
-
-    d->logListener = new LogListener(d->outputFileName, this);
-    d->logListener->setLogCollector(d->logCollector);
-    d->logListener->start();
-
-    std::for_each(d->gameEvents.begin(), d->gameEvents.end(),
-                  std::bind(&LogListener::installGameEvent, d->logListener, std::placeholders::_1));
-
-    if (!d->tmux.redirectOutput(d->outputFileName)) {
-        qWarning("%s: could not redirect output to %s", qPrintable(server()->name()), qPrintable(d->outputFileName));
-        d->tmux.kill();
-        unlink(d->outputFileName.toLocal8Bit().constData());
-        setState(Crashed);
-        return false;
-    }
-
-    QString arguments = server()->configuration()->value("org.morgoth.Server.launchArguments");
-    QString cmd = QString("%1/srcds_run %2").arg(server()->path().toLocalFile(), arguments);
-    if (!d->tmux.sendKeys(cmd)) {
-        qWarning("%s: could not start the server", qPrintable(server()->name()));
-        d->tmux.kill();
-        unlink(d->outputFileName.toLocal8Bit().constData());
-        setState(Crashed);
-        return false;
-    }
-
-    return true;
+    Q_D(ServerCoordinator);
+    return d->start();
 }
 
 void ServerCoordinator::stop()
 {
-    if (state() == Running || state() == Starting) {
-        qDebug("%s: stopping...", qPrintable(server()->name()));
-        setState(ShuttingDown);
-        d->tmux.sendKeys("quit");
-    }
-}
-
-void ServerCoordinator::flushLogs()
-{
-    d->logCollector->save();
-}
-
-bool ServerCoordinator::createFifo(const QString& fileName, const QString& owner)
-{
-    int ret = ::mkfifo(fileName.toLocal8Bit().constData(), 0666);
-    if (ret) {
-        qWarning("%s: could not create fifo at %s", qPrintable(server()->name()), qPrintable(fileName));
-        return false;
-    }
-
-    if (!owner.isEmpty()) {
-        passwd* pwd = ::getpwnam(owner.toLocal8Bit().constData());
-        if (!pwd) {
-            char* error = ::strerror(errno);
-            qWarning("Error retrieving uid and gid of user %s (%s)", qPrintable(owner), error);
-            unlink(fileName.toLocal8Bit().constData());
-            return false;
-        } else {
-            ::chown(d->outputFileName.toLocal8Bit().constData(), pwd->pw_uid, pwd->pw_gid);
-        }
-    }
-
-    return true;
-}
-
-void ServerCoordinator::handleServerStarted()
-{
-    ServerStarted* e = qobject_cast<ServerStarted*>(sender());
-    qInfo("%s: started %s", qPrintable(server()->name()), qPrintable(e->game()));
-    setState(Running);
-}
-
-void ServerCoordinator::handleServerStopped()
-{
-    Q_ASSERT(d->logListener);
-    d->logListener->requestInterruption();
-    d->logListener = nullptr;
-    unlink(d->outputFileName.toLocal8Bit().constData());
-    d->tmux.kill();
-    Q_ASSERT(state() == ShuttingDown);
-    setState(Offline);
-    qInfo("%s: stopped", qPrintable(server()->name()));
-}
-
-void ServerCoordinator::stopSync()
-{
-    // send stop keys and wait for the server to actually shut down
-    stop();
-
-    if (d->logListener) {
-        d->logListener->wait();
-        d->logListener = nullptr;
-    }
-
-    d->tmux.kill();
-    unlink(d->outputFileName.toLocal8Bit().constData());
+    Q_D(ServerCoordinator);
+    d->stop();
 }
 
 } // namespace Morgoth

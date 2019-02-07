@@ -14,120 +14,122 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "serverstatus.h"
-#include "gameevent.h"
 #include "morgothdaemon.h"
 #include "serverstatusadaptor.h"
-#include "gameevents/cvarvalue.h"
-#include "gameevents/playerconnected.h"
-#include "gameevents/playerdropped.h"
-#include "gameevents/statushostname.h"
-#include "gameevents/statusipaddress.h"
-#include "gameevents/statusmap.h"
-#include "gameevents/statusplayernumbers.h"
 #include <QtCore>
 #include <functional>
 
 namespace morgoth {
 
 class ServerStatusPrivate {
+    Q_DISABLE_COPY(ServerStatusPrivate)
+    Q_DECLARE_PUBLIC(ServerStatus)
+    ServerStatus *const q_ptr;
+
 public:
-    explicit ServerStatusPrivate(ServerStatus* q, ServerCoordinator* coordinator) :
-        q(q), coordinator(coordinator) {}
+    explicit ServerStatusPrivate(ServerStatus* status, Server* server);
 
-    ServerStatus* q;
-    ServerCoordinator* coordinator;
+    void trackGameServer(org::morgoth::connector::GameServer* gameServer);
+    void handleStateChange(ServerCoordinator::State serverState);
+    void handleConVarChange(QString conVarName, QString newValue);
 
-    QString hostname;
-    int playerCount = 0;
-    int maxPlayers = 0;
-    QString map;
-    QUrl address;
-    QString password;
-    int stvPort;
-    QString stvPassword;
-    QList<PlayerInfo> players;
-
-    void initialize();
     void reset();
     void setHostname(const QString& hostname);
     void setPlayerCount(int playerCount);
     void setMaxPlayers(int maxPlayers);
     void setMap(const QString& map);
     void setAddress(const QUrl& address);
+    void setAddressFromString(const QString& addressString);
     void setPassword(const QString& password);
     void setStvPort(int stvPort);
+    void setStvPortFromString(const QString& stvPortString);
     void setStvPassword(const QString& stvPassword);
     void addPlayer(const PlayerInfo& player);
-    void removePlayer(const PlayerInfo& player);
+    void removePlayer(int id);
+    void clearPlayers();
 
-    void handleStateChange(ServerCoordinator::State serverState);
-    void refreshStatus();
+    Server* server;
+    QString hostname;
+    int playerCount = 0;
+    int maxPlayers = 0;
+    QString map;
+    QUrl address;
+    QString password;
+    int stvPort = 0;
+    QString stvPassword;
+    QList<PlayerInfo> players;
 };
 
-void ServerStatusPrivate::initialize()
+ServerStatusPrivate::ServerStatusPrivate(ServerStatus* status, Server* server) :
+    q_ptr(status),
+    server(server)
 {
-    // set up log listeners
-    StatusHostname* hostnameLine = new StatusHostname;
-    QObject::connect(hostnameLine, &GameEvent::activated, [hostnameLine, this]() {
-        setHostname(hostnameLine->hostname());
-    });
-    coordinator->installGameEvent(hostnameLine);
+    QObject::connect(server->coordinator(), &ServerCoordinator::stateChanged, status,
+                     [this](ServerCoordinator::State state) { handleStateChange(state); });
+    QObject::connect(server, &Server::gameServerOnline, status,
+                     [this](org::morgoth::connector::GameServer* gameServer) { trackGameServer(gameServer); });
+}
 
-    StatusPlayerNumbers* playerLine = new StatusPlayerNumbers;
-    QObject::connect(playerLine, &GameEvent::activated, [playerLine, this]() {
-        setPlayerCount(playerLine->playerCount());
-        setMaxPlayers(playerLine->maxPlayers());
-    });
-    coordinator->installGameEvent(playerLine);
+void ServerStatusPrivate::trackGameServer(org::morgoth::connector::GameServer* gameServer)
+{
+    Q_Q(ServerStatus);
+    using org::morgoth::connector::GameServer;
 
-    StatusMap* mapLine = new StatusMap;
-    QObject::connect(mapLine, &GameEvent::activated, [mapLine, this]() {
-        setMap(mapLine->map());
-    });
-    coordinator->installGameEvent(mapLine);
+    setMaxPlayers(gameServer->maxPlayers());
+    setAddressFromString(gameServer->address());
 
-    StatusIpAddress* ipLine = new StatusIpAddress;
-    QObject::connect(ipLine, &GameEvent::activated, [ipLine, this]() {
-        QUrl address;
-        address.setScheme("steam");
-        address.setHost(ipLine->ip());
-        address.setPort(static_cast<int>(ipLine->port()));
-        setAddress(address);
-    });
-    coordinator->installGameEvent(ipLine);
+    QObject::connect(gameServer, &GameServer::mapChanged, q,
+                     [this](const QString& map) { setMap(map); });
+    setMap(gameServer->map());
 
-    PlayerConnected* playerConnected = new PlayerConnected;
-    QObject::connect(playerConnected, &GameEvent::activated, [playerConnected, this]() {
-        addPlayer(playerConnected->player());
-    });
-    coordinator->installGameEvent(playerConnected);
+    QObject::connect(gameServer, &GameServer::conVarChanged, q,
+                     [this](const QString& conVarName, const QString& newValue) { handleConVarChange(conVarName, newValue); });
 
-    PlayerDropped* playerDropped = new PlayerDropped;
-    QObject::connect(playerDropped, &GameEvent::activated, [playerDropped, this]() {
-        auto player = std::find_if(players.begin(), players.end(), [playerDropped](const PlayerInfo& info) { return info.name() == playerDropped->playerName(); });
-        removePlayer(*player);
-    });
-    coordinator->installGameEvent(playerDropped);
+    gameServer->watchConVar("hostname");
+    setHostname(gameServer->getConVarValue("hostname"));
+    gameServer->watchConVar("sv_password");
+    setPassword(gameServer->getConVarValue("sv_password"));
 
-    CvarValue* password = new CvarValue("sv_password");
-    QObject::connect(password, &GameEvent::activated, [password, this]() {
-        setPassword(password->value());
-    });
-    coordinator->installGameEvent(password);
+    // SourceTV details
+    gameServer->watchConVar("tv_password");
+    setStvPassword(gameServer->getConVarValue("tv_password"));
+    gameServer->watchConVar("tv_port");
+    setStvPortFromString(gameServer->getConVarValue("tv_port"));
 
-    CvarValue* stvPort = new CvarValue("tv_port");
-    QObject::connect(stvPort, &GameEvent::activated, [stvPort, this]() {
-        bool ok;
-        int port = stvPort->value().toInt(&ok);
-        setStvPort(ok ? port : 0);
+    // player tracking
+    QObject::connect(gameServer, &GameServer::playerConnected, q, [this, gameServer](int id) {
+        PlayerInfo player(id);
+        player.setName(gameServer->getPlayerName(id));
+        player.setSteamId(SteamId(gameServer->getPlayerSteamId(id)));
+        addPlayer(player);
     });
-    coordinator->installGameEvent(stvPort);
+    QObject::connect(gameServer, &GameServer::playerDisconnected, q,
+                     [this](int id) { removePlayer(id); });
+}
 
-    CvarValue* stvPassword = new CvarValue("tv_password");
-    QObject::connect(stvPassword, &GameEvent::activated, [stvPassword, this]() {
-        setStvPassword(stvPassword->value());
-    });
-    coordinator->installGameEvent(stvPassword);
+void ServerStatusPrivate::handleStateChange(ServerCoordinator::State serverState)
+{
+    switch (serverState) {
+        case ServerCoordinator::State::Offline:
+            reset();
+            break;
+
+        default:
+            break;
+    }
+}
+
+void ServerStatusPrivate::handleConVarChange(QString conVarName, QString newValue)
+{
+    if (conVarName == "hostname") {
+        setHostname(newValue);
+    } else if (conVarName == "sv_password") {
+        setPassword(newValue);
+    } else if (conVarName == "tv_port") {
+        setStvPortFromString(newValue);
+    } else if (conVarName == "tv_password") {
+        setStvPassword(newValue);
+    }
 }
 
 void ServerStatusPrivate::reset()
@@ -140,103 +142,122 @@ void ServerStatusPrivate::reset()
     setPassword(QString());
     setStvPort(0);
     setStvPassword(QString());
+    clearPlayers();
 }
 
 void ServerStatusPrivate::setHostname(const QString& hostname)
 {
+    Q_Q(ServerStatus);
     this->hostname = hostname;
     emit q->hostnameChanged(this->hostname);
 }
 
 void ServerStatusPrivate::setPlayerCount(int playerCount)
 {
+    Q_Q(ServerStatus);
     this->playerCount = playerCount;
     emit q->playerCountChanged(playerCount);
 }
 
 void ServerStatusPrivate::setMaxPlayers(int maxPlayers)
 {
+    Q_Q(ServerStatus);
     this->maxPlayers = maxPlayers;
     emit q->maxPlayersChanged(maxPlayers);
 }
 
 void ServerStatusPrivate::setMap(const QString& map)
 {
+    Q_Q(ServerStatus);
     this->map = map;
     emit q->mapChanged(this->map);
 }
 
 void ServerStatusPrivate::setAddress(const QUrl& address)
 {
+    Q_Q(ServerStatus);
     this->address = address;
     emit q->addressChanged(this->address);
+    // for D-Bus compatibility
     emit q->addressChanged(address.toString());
+}
+
+void ServerStatusPrivate::setAddressFromString(const QString& addressString)
+{
+    QUrl address;
+    address.setScheme("steam");
+    auto s = addressString.split(':');
+    Q_ASSERT(s.length() == 2);
+    address.setHost(s.at(0));
+    address.setPort(s.at(1).toInt());
+    setAddress(address);
 }
 
 void ServerStatusPrivate::setPassword(const QString& password)
 {
+    Q_Q(ServerStatus);
     this->password = password;
     emit q->passwordChanged(this->password);
 }
 
 void ServerStatusPrivate::setStvPort(int stvPort)
 {
+    Q_Q(ServerStatus);
     this->stvPort = stvPort;
     emit q->stvPortChanged(stvPort);
 }
 
+void ServerStatusPrivate::setStvPortFromString(const QString& stvPortString)
+{
+    bool ok;
+    int stvPort = stvPortString.toInt(&ok);
+    if (ok) {
+        setStvPort(stvPort);
+    } else {
+        qWarning("%s is an invalid STV port value", qPrintable(stvPortString));
+    }
+}
+
 void ServerStatusPrivate::setStvPassword(const QString& stvPassword)
 {
+    Q_Q(ServerStatus);
     this->stvPassword = stvPassword;
     emit q->stvPasswordChanged(this->stvPassword);
 }
 
 void ServerStatusPrivate::addPlayer(const PlayerInfo& player)
 {
+    Q_Q(ServerStatus);
     players.append(player);
     setPlayerCount(playerCount + 1);
     emit q->playersChanged(players);
 }
 
-void ServerStatusPrivate::removePlayer(const PlayerInfo& player)
+void ServerStatusPrivate::removePlayer(int id)
 {
-    players.removeAll(player);
+    Q_Q(ServerStatus);
+    auto player = std::find_if(players.begin(), players.end(), [id](const auto& p) { return p.id() == id; });
+    players.erase(player);
     setPlayerCount(playerCount - 1);
     emit q->playersChanged(players);
 }
 
-void ServerStatusPrivate::handleStateChange(ServerCoordinator::State serverState)
+void ServerStatusPrivate::clearPlayers()
 {
-    switch (serverState) {
-        case ServerCoordinator::State::Running:
-            QTimer::singleShot(0, std::bind(&ServerStatusPrivate::refreshStatus, this));
-            break;
-
-        default:
-            reset();
-            break;
-    }
+    Q_Q(ServerStatus);
+    players.clear();
+    setPlayerCount(0);
+    emit q->playersChanged(players);
 }
 
-void ServerStatusPrivate::refreshStatus()
-{
-    // FIXME Execute rcon command instead of this
-    coordinator->sendCommand("status");
-    coordinator->sendCommand("sv_password");
-    coordinator->sendCommand("tv_port");
-    coordinator->sendCommand("tv_password");
-}
 
-ServerStatus::ServerStatus(ServerCoordinator* coordinator, QObject* parent) :
-    QObject(parent),
-    d(new ServerStatusPrivate(this, coordinator))
+ServerStatus::ServerStatus(Server* server) :
+    QObject(server),
+    d_ptr(new ServerStatusPrivate(this, server))
 {
-    connect(coordinator, &ServerCoordinator::stateChanged, std::bind(&ServerStatusPrivate::handleStateChange, d.data(), std::placeholders::_1));
-    d->initialize();
-
     new ServerStatusAdaptor(this);
     if (morgothd)
-        morgothd->dbusConnection().registerObject(coordinator->server()->statusPath().path(), this);
+        morgothd->dbusConnection().registerObject(server->statusPath().path(), this);
 }
 
 ServerStatus::~ServerStatus()
@@ -246,46 +267,55 @@ ServerStatus::~ServerStatus()
 
 const QString& ServerStatus::hostname() const
 {
+    Q_D(const ServerStatus);
     return d->hostname;
 }
 
 int ServerStatus::playerCount() const
 {
+    Q_D(const ServerStatus);
     return d->playerCount;
 }
 
 int ServerStatus::maxPlayers() const
 {
+    Q_D(const ServerStatus);
     return d->maxPlayers;
 }
 
 QString ServerStatus::map() const
 {
+    Q_D(const ServerStatus);
     return d->map;
 }
 
 QUrl ServerStatus::address() const
 {
+    Q_D(const ServerStatus);
     return d->address;
 }
 
 QString ServerStatus::password() const
 {
+    Q_D(const ServerStatus);
     return d->password;
 }
 
 int ServerStatus::stvPort() const
 {
+    Q_D(const ServerStatus);
     return d->stvPort;
 }
 
 QString ServerStatus::stvPassword() const
 {
+    Q_D(const ServerStatus);
     return d->stvPassword;
 }
 
-const QList<PlayerInfo>&ServerStatus::players() const
+const QList<PlayerInfo>& ServerStatus::players() const
 {
+    Q_D(const ServerStatus);
     return d->players;
 }
 

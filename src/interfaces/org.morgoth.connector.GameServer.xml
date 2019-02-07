@@ -1,0 +1,39 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.morgoth.connector.GameServer">
+    <property name="gameLocation" type="s" access="read"/>
+    <property name="map" type="s" access="read"/>
+    <property name="address" type="s" access="read"/>
+    <property name="maxPlayers" type="i" access="read"/>
+    <signal name="aboutToQuit">
+    </signal>
+    <signal name="playerConnected">
+      <arg name="userId" type="i" direction="out"/>
+    </signal>
+    <signal name="playerDisconnected">
+      <arg name="userId" type="i" direction="out"/>
+    </signal>
+    <signal name="conVarChanged">
+      <arg name="conVarName" type="s" direction="out"/>
+      <arg name="newValue" type="s" direction="out"/>
+    </signal>
+    <signal name="mapChanged">
+      <arg name="map" type="s" direction="out"/>
+    </signal>
+    <method name="getConVarValue">
+      <arg type="s" direction="out"/>
+      <arg name="conVarName" type="s" direction="in"/>
+    </method>
+    <method name="watchConVar">
+      <arg name="conVarName" type="s" direction="in"/>
+    </method>
+    <method name="getPlayerName">
+      <arg type="s" direction="out"/>
+      <arg name="userId" type="i" direction="in"/>
+    </method>
+    <method name="getPlayerSteamId">
+      <arg type="t" direction="out"/>
+      <arg name="userId" type="i" direction="in"/>
+    </method>
+  </interface>
+</node>
