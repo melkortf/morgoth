@@ -24,6 +24,9 @@
 #include <sys/stat.h>
 #include <pwd.h>
 
+// The time we wait for the game server to become online after starting it
+static constexpr auto GameServerStartTimeout = 30 * 1000;
+
 namespace morgoth {
 
 class ServerCoordinatorPrivate {
@@ -40,6 +43,7 @@ public:
     void onGameServerStarted(org::morgoth::connector::GameServer* gameServer);
     void onGameServerStopped();
     void stopSync();
+    void verifyStarted();
 
     Server* server;
     ServerCoordinator::State state = ServerCoordinator::State::Offline;
@@ -127,6 +131,7 @@ bool ServerCoordinatorPrivate::start()
         return false;
     }
 
+    QTimer::singleShot(GameServerStartTimeout, [this]() { verifyStarted(); });
     return true;
 }
 
@@ -169,6 +174,14 @@ void ServerCoordinatorPrivate::stopSync()
 {
     // TODO
     // send stop keys and wait for the server to actually shut down
+}
+
+void ServerCoordinatorPrivate::verifyStarted()
+{
+    if (state == ServerCoordinator::Starting) {
+        qWarning("Server %s has not became online in time; make sure the morgoth-connector plugin is installed correctly.", qPrintable(server->name()));
+        setState(ServerCoordinator::Crashed);
+    }
 }
 
 
