@@ -110,15 +110,11 @@ public:
 
     QStringList serverNames() const;
 
-private:
-    void listenForNextGameServer();
-
-private slots:
-    void resolveRegisteredGameServer(const QString& serviceName);
-    void removeGameServer(const QString& serviceName);
+    static auto constexpr DBusServerPath() { return "unix:path=/tmp/morgoth-server"; }
 
 private:
-    QScopedPointer<ServerManagerPrivate> d;
+    Q_DECLARE_PRIVATE(ServerManager)
+    QScopedPointer<ServerManagerPrivate> const d_ptr;
 
 };
 
