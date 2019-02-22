@@ -27,29 +27,69 @@ using org::morgoth::connector::GameServer;
 namespace morgoth {
 
 class ServerManagerPrivate {
+    Q_DISABLE_COPY(ServerManagerPrivate)
+    Q_DECLARE_PUBLIC(ServerManager)
+    ServerManager *const q_ptr;
+
 public:
+    explicit ServerManagerPrivate(ServerManager* serverManager);
+
+    void startDBusServer();
+    void registerGameServer(const QDBusConnection& connection);
+
     QList<Server*> servers;
-    QDBusServiceWatcher* watcher;
-    int lastGameServerId = 0;
-    QMap<QString, GameServer*> gameServers;
+    QList<GameServer*> gameServers;
+    QDBusServer* dbusServer = nullptr;
 
 };
 
+
+ServerManagerPrivate::ServerManagerPrivate(ServerManager* serverManager) :
+    q_ptr(serverManager)
+{
+    startDBusServer();
+}
+
+void ServerManagerPrivate::startDBusServer()
+{
+    Q_Q(ServerManager);
+    dbusServer = new QDBusServer(ServerManager::DBusServerPath(), q);
+
+    if (dbusServer->isConnected()) {
+        dbusServer->setAnonymousAuthenticationAllowed(true);
+
+        QObject::connect(dbusServer, &QDBusServer::newConnection, [this](const QDBusConnection& connection) {
+            registerGameServer(connection);
+        });
+    }
+}
+
+void ServerManagerPrivate::registerGameServer(const QDBusConnection& connection)
+{
+    Q_Q(ServerManager);
+    GameServer* iface = new GameServer(QString(), "/", connection, q);
+    QDir gameLocation = iface->gameLocation();
+
+    auto it = std::find_if(servers.begin(), servers.end(), [&gameLocation](const Server* server) {
+        return QDir(server->path().toLocalFile()) == gameLocation;
+    });
+
+    if (it != servers.end()) {
+        qDebug("Server %s is online", qPrintable((*it)->name()));
+        emit (*it)->gameServerOnline(iface);
+        gameServers.append(iface);
+    } else {
+        qWarning("Could not match %s to any of the known servers", qPrintable(iface->gameLocation()));
+    }
+}
+
 ServerManager::ServerManager(QObject* parent) :
     QObject(parent),
-    d(new ServerManagerPrivate)
+    d_ptr(new ServerManagerPrivate(this))
 {
     new ServerManagerAdaptor(this);
-    if (morgothd) {
+    if (morgothd)
         morgothd->dbusConnection().registerObject("/servers", this);
-
-        d->watcher = new QDBusServiceWatcher(
-                    "org.morgoth.connector.gameserver_0", morgothd->dbusConnection(),
-                    QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration,
-                    this);
-        connect(d->watcher, &QDBusServiceWatcher::serviceRegistered, this, &ServerManager::resolveRegisteredGameServer);
-        connect(d->watcher, &QDBusServiceWatcher::serviceUnregistered, this, &ServerManager::removeGameServer);
-    }
 }
 
 ServerManager::~ServerManager()
@@ -59,6 +99,8 @@ ServerManager::~ServerManager()
 
 Server* ServerManager::find(const QString& name) const
 {
+    Q_D(const ServerManager);
+
     auto it = std::find_if(d->servers.begin(), d->servers.end(), [&name](auto s) {
         return s->name() == name;
     });
@@ -83,6 +125,8 @@ Server* ServerManager::add(const QUrl& path, const QString& name)
 
 bool ServerManager::add(Server* server)
 {
+    Q_D(ServerManager);
+
     if (d->servers.contains(server)) {
         qWarning("Could not add server \"%s\": server already added", qPrintable(server->name()));
         return false;
@@ -102,6 +146,8 @@ bool ServerManager::add(Server* server)
 
 bool ServerManager::remove(const QString& serverName)
 {
+    Q_D(ServerManager);
+
     Server* server = find(serverName);
     if (server == nullptr) {
         qWarning("Could not find server \"%s\"; not removing anything", qPrintable(serverName));
@@ -126,53 +172,20 @@ QDBusObjectPath ServerManager::serverPath(const QString& serverName) const
 
 const QList<Server*>& ServerManager::servers() const
 {
+    Q_D(const ServerManager);
     return d->servers;
 }
 
 QStringList ServerManager::serverNames() const
 {
+    Q_D(const ServerManager);
+
     QStringList result;
     std::for_each(d->servers.begin(), d->servers.end(), [&result](const Server* s) {
         result.append(s->name());
     });
 
     return result;
-}
-
-void ServerManager::listenForNextGameServer()
-{
-    d->lastGameServerId += 1;
-    QString serviceName = QStringLiteral("org.morgoth.connector.gameserver_%1").arg(QString::number(d->lastGameServerId));
-    d->watcher->addWatchedService(serviceName);
-}
-
-void ServerManager::resolveRegisteredGameServer(const QString& serviceName)
-{
-    GameServer* iface = new GameServer(serviceName, "/", QDBusConnection::sessionBus(), this);
-    QDir gameLocation = iface->gameLocation();
-    auto it = std::find_if(servers().begin(), servers().end(), [&gameLocation](const Server* server) {
-        return QDir(server->path().toLocalFile()) == gameLocation;
-    });
-
-    if (it != servers().end()) {
-        qDebug("Server %s is online", qPrintable((*it)->name()));
-        emit (*it)->gameServerOnline(iface);
-        d->gameServers.insert(serviceName, iface);
-        listenForNextGameServer();
-    } else {
-        qWarning("Could not match %s to any of the known servers", qPrintable(serviceName));
-    }
-}
- 
-void ServerManager::removeGameServer(const QString& serviceName)
-{
-    GameServer* iface = d->gameServers.value(serviceName, nullptr);
-    if (iface) {
-        iface->deleteLater();
-        d->gameServers.remove(serviceName);
-    } else {
-        qWarning("Game server %s was not previously registered", qPrintable(serviceName));
-    }
 }
 
 } // namespace Morgoth
