@@ -2,6 +2,7 @@
 <node>
   <interface name="org.morgoth.ServerManager">
     <property name="servers" type="as" access="read"/>
+    <property name="dbusServerAddress" type="s" access="read"/>
     <method name="add">
         <arg type="b" direction="out"/>
         <arg name="path" type="s" direction="in"/>
