@@ -64,7 +64,7 @@ void ServerManagerPrivate::startDBusServer()
             registerGameServer(connection);
         });
     } else {
-        qWarning("Failed to start the DBus server. morgoth will most likely not function properly!");
+        qFatal("Failed to start the DBus server (%s)", DBusServerAddress);
     }
 }
 

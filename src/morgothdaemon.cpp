@@ -39,6 +39,9 @@ void setupSignalHandlers()
     if (::socketpair(AF_UNIX, SOCK_STREAM, 0, signalFd))
         qFatal("socketpair failed");
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdisabled-macro-expansion"
+
     hup.sa_handler = signalHandler;
     sigemptyset(&hup.sa_mask);
     hup.sa_flags = 0;
@@ -50,6 +53,8 @@ void setupSignalHandlers()
     term.sa_handler = signalHandler;
     sigemptyset(&term.sa_mask);
     term.sa_flags |= SA_RESTART;
+
+#pragma clang diagnostic pop
 
     if (sigaction(SIGTERM, &term, nullptr))
        qFatal("sigaction failed");
@@ -81,6 +86,10 @@ void systemdMessageHandler(QtMsgType type, const QMessageLogContext& context, co
     }
 
     fprintf(stderr, "%s%s\n", qPrintable(prefix), qPrintable(msg));
+
+    if (type == QtFatalMsg) {
+        std::abort();
+    }
 }
 
 void installMessageHandler()
