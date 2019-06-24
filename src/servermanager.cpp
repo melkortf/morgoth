@@ -26,6 +26,8 @@ using org::morgoth::connector::GameServer;
 
 namespace morgoth {
 
+constexpr auto DBusServerAddress = "unix:path=/tmp/morgoth-server";
+
 class ServerManagerPrivate {
     Q_DISABLE_COPY(ServerManagerPrivate)
     Q_DECLARE_PUBLIC(ServerManager)
@@ -53,7 +55,7 @@ ServerManagerPrivate::ServerManagerPrivate(ServerManager* serverManager) :
 void ServerManagerPrivate::startDBusServer()
 {
     Q_Q(ServerManager);
-    dbusServer = new QDBusServer(ServerManager::DBusServerPath(), q);
+    dbusServer = new QDBusServer(DBusServerAddress, q);
 
     if (dbusServer->isConnected()) {
         dbusServer->setAnonymousAuthenticationAllowed(true);
@@ -61,6 +63,8 @@ void ServerManagerPrivate::startDBusServer()
         QObject::connect(dbusServer, &QDBusServer::newConnection, [this](const QDBusConnection& connection) {
             registerGameServer(connection);
         });
+    } else {
+        qFatal("Failed to start the DBus server (%s)", DBusServerAddress);
     }
 }
 
@@ -186,6 +190,12 @@ QStringList ServerManager::serverNames() const
     });
 
     return result;
+}
+
+QString ServerManager::dbusServerAddress() const
+{
+    Q_D(const ServerManager);
+    return d->dbusServer->isConnected() ? d->dbusServer->address() : QString();
 }
 
 } // namespace Morgoth

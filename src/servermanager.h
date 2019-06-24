@@ -37,6 +37,11 @@ class MORGOTH_EXPORT ServerManager : public QObject {
      */
     Q_PROPERTY(QStringList servers READ serverNames)
 
+    /**
+     * The address of the D-Bus server.
+     */
+    Q_PROPERTY(QString dbusServerAddress READ dbusServerAddress CONSTANT)
+
 signals:
     /**
      * \brief Emitted when a new server has been added.
@@ -109,8 +114,7 @@ public:
     const QList<Server*>& servers() const;
 
     QStringList serverNames() const;
-
-    static auto constexpr DBusServerPath() { return "unix:path=/tmp/morgoth-server"; }
+    QString dbusServerAddress() const;
 
 private:
     Q_DECLARE_PRIVATE(ServerManager)
