@@ -158,7 +158,7 @@ void ServerCoordinatorPrivate::onGameServerStarted(org::morgoth::connector::Game
 void ServerCoordinatorPrivate::onGameServerStopped()
 {
     if (state != ServerCoordinator::ShuttingDown) {
-        qWarning("Server %s is stopping, but it was NOT registered as running!", qPrintable(server->name()));
+        qWarning("Server %s is stopping, but it was NOT marked for shut down!", qPrintable(server->name()));
     }
 
     setState(ServerCoordinator::Offline);
