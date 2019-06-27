@@ -48,6 +48,11 @@ class MORGOTH_EXPORT ServerCoordinator : public QObject {
      */
     Q_PROPERTY(morgoth::ServerCoordinator::Error error READ error)
 
+    /**
+     * Name of the tmux session.
+     */
+    Q_PROPERTY(QString sessionName READ sessionName)
+
 public:
     /**
      * \brief The State enum describes the state of the server's process.
@@ -103,6 +108,7 @@ public:
     const Server* server() const;
     State state() const;
     Error error() const;
+    QString sessionName() const;
 
 public slots:
     /**
