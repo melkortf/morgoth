@@ -43,6 +43,11 @@ class MORGOTH_EXPORT ServerCoordinator : public QObject {
      */
     Q_PROPERTY(const Server* server READ server CONSTANT)
 
+    /**
+     * Last server error.
+     */
+    Q_PROPERTY(morgoth::ServerCoordinator::Error error READ error)
+
 public:
     /**
      * \brief The State enum describes the state of the server's process.
@@ -56,6 +61,20 @@ public:
         Crashed         /**< The server has crashed. */
     };
     Q_ENUM(State)
+
+    /**
+     * \brief The Error enum describes an error that could cause the server
+     * to crash.
+     */
+    enum Error {
+        NoError,
+        UnableToCreateTmuxSession,
+        UnableToResolveUser,
+        UnableToRedirectTmuxOutput,
+        ServerExecutableFailed,
+        ServerNotRegisteredOnTime,
+    };
+    Q_ENUM(Error)
 
 signals:
     void stateChanged(morgoth::ServerCoordinator::State state);
@@ -83,6 +102,7 @@ public:
 
     const Server* server() const;
     State state() const;
+    Error error() const;
 
 public slots:
     /**
@@ -117,5 +137,7 @@ private:
 
 MORGOTH_EXPORT QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::State& state);
 MORGOTH_EXPORT const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::State& state);
+MORGOTH_EXPORT QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::Error& error);
+MORGOTH_EXPORT const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::Error& state);
 
 #endif // SERVERCOORDINATOR_H

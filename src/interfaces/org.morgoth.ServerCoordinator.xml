@@ -9,6 +9,9 @@
     <property name="state" type="(s)" access="read">
         <annotation name="org.qtproject.QtDBus.QtTypeName" value="morgoth::ServerCoordinator::State"/>
     </property>
+    <property name="error" type="(s)" access="read">
+        <annotation name="org.qtproject.QtDBus.QtTypeName" value="morgoth::ServerCoordinator::Error"/>
+    </property>
     <signal name="stateChanged">
         <arg name="state" type="(s)" direction="out"/>
         <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="morgoth::ServerCoordinator::State"/>
