@@ -16,6 +16,7 @@
 #include "config.h"
 #include "addcommand.h"
 #include "configcommand.h"
+#include "consolecommand.h"
 #include "listcommand.h"
 #include "morgothdaemon.h"
 #include "removecommand.h"
@@ -63,7 +64,8 @@ int main(int argc, char** argv)
         new StartCommand,
         new StopCommand,
         new StatusCommand,
-        new ConfigCommand
+        new ConfigCommand,
+        new ConsoleCommand
     });
 
     QCommandLineParser parser;
