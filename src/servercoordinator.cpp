@@ -236,6 +236,12 @@ ServerCoordinator::Error ServerCoordinator::error() const
     return d->error;
 }
 
+QString ServerCoordinator::sessionName() const
+{
+    Q_D(const ServerCoordinator);
+    return d->tmux.name();
+}
+
 bool ServerCoordinator::start()
 {
     Q_D(ServerCoordinator);

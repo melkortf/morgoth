@@ -27,6 +27,7 @@ static constexpr int TmuxProcessTimeout = 1000; // 1 second
 
 class TmuxProcessFactory {
 private:
+    // FIXME Share the executable
     static QString tmuxExec() {
         constexpr auto TmuxExec = "tmux";
         static QString tmuxBin;

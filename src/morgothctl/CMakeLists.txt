@@ -9,6 +9,7 @@ set (morgothctl_SOURCES
 
     addcommand.h
     configcommand.h
+    consolecommand.h
     listcommand.h
     removecommand.h
     startcommand.h
@@ -17,6 +18,7 @@ set (morgothctl_SOURCES
 
     addcommand.cpp
     configcommand.cpp
+    consolecommand.cpp
     listcommand.cpp
     removecommand.cpp
     startcommand.cpp
