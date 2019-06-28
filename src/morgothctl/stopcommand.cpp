@@ -18,6 +18,7 @@
 #include "servercoordinatorinterface.h"
 #include "serverinterface.h"
 #include "servermanagerinterface.h"
+#include "serverstatusinterface.h"
 #include <QtCore>
 
 int StopCommand::execute(QDBusConnection dbus, const QStringList& arguments, QTextStream& out)
@@ -65,6 +66,17 @@ int StopCommand::execute(QDBusConnection dbus, const QStringList& arguments, QTe
                 || coordinator.state() == morgoth::ServerCoordinator::State::Crashed) {
             out << "Server " << serverName << " is offline." << endl;
             return 0;
+        }
+
+        org::morgoth::ServerStatus status(morgoth::MorgothDaemon::dbusServiceName(), server.statusPath().path(), dbus);
+        if (status.playerCount() > 0) {
+            out << "There are players currently connected to the server. Stop the server anyway? (y/n) " << flush;
+            QTextStream qstdin(stdin);
+            char r;
+            qstdin >> r;
+            if (r != 'y') {
+                continue;
+            }
         }
 
         int ret = 0;
