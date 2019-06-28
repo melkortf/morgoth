@@ -51,6 +51,7 @@ public:
     ServerCoordinator::Error error = ServerCoordinator::Error::NoError;
     TmuxSessionWrapper tmux;
     QString logFileName;
+    QTimer startTimeoutTimer;
 };
 
 ServerCoordinatorPrivate::ServerCoordinatorPrivate(ServerCoordinator* coordinator, Server* server) :
@@ -61,6 +62,10 @@ ServerCoordinatorPrivate::ServerCoordinatorPrivate(ServerCoordinator* coordinato
                      [this](org::morgoth::connector::GameServer* gameServer) { onGameServerStarted(gameServer); });
     QObject::connect(qApp, &QCoreApplication::aboutToQuit, coordinator,
                      [this]() { stopSync(); });
+    QObject::connect(&startTimeoutTimer, &QTimer::timeout, coordinator,
+                     [this]() { verifyStarted(); });
+    startTimeoutTimer.setSingleShot(true);
+    startTimeoutTimer.setInterval(GameServerStartTimeout);
 }
 
 void ServerCoordinatorPrivate::setState(ServerCoordinator::State state)
@@ -79,7 +84,7 @@ bool ServerCoordinatorPrivate::start()
         return false;
     }
 
-    if (state != ServerCoordinator::Offline) {
+    if (!(state == ServerCoordinator::Offline || state == ServerCoordinator::Crashed)) {
         qWarning("%s is already running", qPrintable(server->name()));
         return false;
     }
@@ -138,7 +143,7 @@ bool ServerCoordinatorPrivate::start()
         return false;
     }
 
-    QTimer::singleShot(GameServerStartTimeout, [this]() { verifyStarted(); });
+    startTimeoutTimer.start();
     return true;
 }
 
@@ -163,6 +168,8 @@ void ServerCoordinatorPrivate::onGameServerStarted(org::morgoth::connector::Game
         onGameServerStopped();
     });
 
+    startTimeoutTimer.stop();
+
     setState(ServerCoordinator::Running);
     qInfo("%s: started", qPrintable(server->name()));
 }
@@ -174,6 +181,11 @@ void ServerCoordinatorPrivate::onGameServerStopped()
     }
 
     setState(ServerCoordinator::Offline);
+
+    if (!tmux.kill()) {
+        qWarning("Could not kill session %s", qPrintable(tmux.name()));
+    }
+
     qInfo("%s: stopped", qPrintable(server->name()));
 }
 
