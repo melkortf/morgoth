@@ -12,6 +12,7 @@ set (morgothctl_SOURCES
     consolecommand.h
     listcommand.h
     removecommand.h
+    restartcommand.h
     startcommand.h
     statuscommand.h
     stopcommand.h
@@ -21,6 +22,7 @@ set (morgothctl_SOURCES
     consolecommand.cpp
     listcommand.cpp
     removecommand.cpp
+    restartcommand.cpp
     startcommand.cpp
     statuscommand.cpp
     stopcommand.cpp
