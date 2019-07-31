@@ -24,5 +24,8 @@ script:
  - make VERBOSE=1
  - make coverage
 
+after_success:
+ - bash <(curl -s https://codecov.io/bash)
+
 os:
  - linux
