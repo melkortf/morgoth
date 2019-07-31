@@ -22,3 +22,15 @@ add_test (NAME TestTmuxSessionWrapper COMMAND testtmuxsessionwrapper)
 add_executable (teststeamid teststeamid.cpp)
 target_link_libraries (teststeamid morgoth Qt5::Test)
 add_test (NAME TestSteamId COMMAND teststeamid)
+
+include(CodeCoverage)
+setup_target_for_coverage_lcov(
+    NAME coverage
+    EXECUTABLE ctest
+    DEPENDENCIES
+        testserver
+        testservermanager
+        testuserprocess
+        testtmuxsessionwrapper
+        teststeamid
+)

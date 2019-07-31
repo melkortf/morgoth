@@ -9,6 +9,9 @@
   <a href="https://travis-ci.org/melkortf/morgoth">
     <img src="https://travis-ci.org/melkortf/morgoth.svg?branch=master" alt="build status">
   </a>
+  <a href="https://codecov.io/gh/melkortf/morgoth">
+    <img src="https://codecov.io/gh/melkortf/morgoth/branch/master/graph/badge.svg" alt="code coverage">
+  </a>
   <img src="https://img.shields.io/badge/status-experimental-yellow.svg" alt="status: experimental">
   <a href="https://github.com/melkortf/morgoth/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/license-GPL-blue.svg">
