@@ -21,7 +21,7 @@ script:
  - export CC=gcc-5
  - /usr/local/bin/cmake -DCMAKE_PREFIX_PATH=/opt/qt510/lib/cmake .
  - make VERBOSE=1
- - make test
+ - make coverage
 
 os:
  - linux
