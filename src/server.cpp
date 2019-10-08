@@ -167,3 +167,10 @@ const QDBusObjectPath& Server::statusPath() const
 }
 
 } // namespace Morgoth
+
+static void registerMetaType()
+{
+    qRegisterMetaType<org::morgoth::connector::GameServer*>();
+}
+
+Q_COREAPP_STARTUP_FUNCTION(registerMetaType)

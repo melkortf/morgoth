@@ -20,6 +20,7 @@
 #include "gameserverinterface.h"
 #include "serverconfiguration.h"
 #include <QtCore/QObject>
+#include <QtCore/QMetaType>
 #include <QtCore/QString>
 #include <QtCore/QUrl>
 #include <QtDBus/QDBusObjectPath>
@@ -135,5 +136,7 @@ private:
 };
 
 } // namespace Morgoth
+
+Q_DECLARE_METATYPE(org::morgoth::connector::GameServer*)
 
 #endif // SERVER_H

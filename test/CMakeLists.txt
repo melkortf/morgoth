@@ -1,4 +1,4 @@
-find_package (Qt5 REQUIRED COMPONENTS Test)
+find_package (Qt5 REQUIRED COMPONENTS Test DBus)
 
 set (CMAKE_AUTOMOC ON)
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -8,7 +8,7 @@ target_link_libraries (testserver morgoth Qt5::Test)
 add_test (NAME TestServer COMMAND testserver)
 
 add_executable (testservermanager testservermanager.cpp)
-target_link_libraries (testservermanager morgoth Qt5::Test)
+target_link_libraries (testservermanager morgoth Qt5::Test Qt5::DBus)
 add_test (NAME TestServerManager COMMAND testservermanager)
 
 add_executable (testuserprocess testuserprocess.cpp)
