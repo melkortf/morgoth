@@ -80,6 +80,12 @@ void ServerManagerPrivate::registerGameServer(const QDBusConnection& connection)
 
     if (it != servers.end()) {
         qDebug("Server %s is online", qPrintable((*it)->name()));
+        QObject::connect(iface, &GameServer::aboutToQuit, [this, iface]() {
+            Q_ASSERT(gameServers.contains(iface));
+            gameServers.removeAll(iface);
+            iface->deleteLater();
+        });
+
         emit (*it)->gameServerOnline(iface);
         gameServers.append(iface);
     } else {
