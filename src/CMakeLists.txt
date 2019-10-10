@@ -1,7 +1,5 @@
 find_package (Qt5 5.10 REQUIRED COMPONENTS Core DBus Sql)
 set (CMAKE_AUTOMOC ON)
-set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} --coverage -fprofile-arcs -ftest-coverage")
-set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} --coverage -fprofile-arcs -ftest-coverage")
 
 set (morgoth_PUBLIC_HEADERS
     morgothdaemon.h
@@ -42,6 +40,8 @@ add_library (morgoth SHARED
     ${morgoth_SOURCES}
 )
 
+target_compile_options (morgoth PUBLIC $<$<CONFIG:Debug>:--coverage -fprofile-arcs -ftest-coverage>)
+
 qt5_add_dbus_adaptor (morgoth_DBUS_ADAPTORS
     interfaces/org.morgoth.Daemon.xml morgothdaemon.h morgoth::MorgothDaemon)
 qt5_add_dbus_adaptor (morgoth_DBUS_ADAPTORS
@@ -69,7 +69,7 @@ target_include_directories (morgoth
 )
 
 target_link_libraries (morgoth
-    PUBLIC Qt5::Core
+    PUBLIC Qt5::Core $<$<CONFIG:Debug>:gcov>
     PRIVATE Qt5::DBus Qt5::Sql
 )
 
