@@ -223,8 +223,6 @@ ServerCoordinator::ServerCoordinator(Server* server) :
     QObject(server),
     d_ptr(new ServerCoordinatorPrivate(this, server))
 {
-    Q_ASSERT(server->isValid());
-
     new ServerCoordinatorAdaptor(this);
     if (morgothd)
         morgothd->dbusConnection().registerObject(server->coordinatorPath().path(), this);
@@ -330,10 +328,10 @@ const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCo
     return argument;
 }
 
-static void registerMetaType()
+static void registerMetaTypes()
 {
     qDBusRegisterMetaType<morgoth::ServerCoordinator::State>();
     qDBusRegisterMetaType<morgoth::ServerCoordinator::Error>();
 }
 
-Q_COREAPP_STARTUP_FUNCTION(registerMetaType)
+Q_COREAPP_STARTUP_FUNCTION(registerMetaTypes)

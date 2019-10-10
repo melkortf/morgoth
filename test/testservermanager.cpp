@@ -1,4 +1,4 @@
-#include <QtTest>
+#include <QtTest/QtTest>
 #include "server.h"
 #include "servermanager.h"
 
