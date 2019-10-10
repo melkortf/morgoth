@@ -96,6 +96,11 @@ signals:
      */
     void gameServerOnline(org::morgoth::connector::GameServer* gameServer);
 
+    /**
+     * A game server has lost its connection with the D-Bus server.
+     */
+    void gameServerTimedOut();
+
 public:
     /**
      * \brief Creates the new \c Server instance.

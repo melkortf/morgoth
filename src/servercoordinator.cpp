@@ -43,6 +43,7 @@ public:
     void stop();
     void onGameServerStarted(org::morgoth::connector::GameServer* gameServer);
     void onGameServerStopped();
+    void onGameServerTimedOut();
     void stopSync();
     void verifyStarted();
 
@@ -60,6 +61,8 @@ ServerCoordinatorPrivate::ServerCoordinatorPrivate(ServerCoordinator* coordinato
 {
     QObject::connect(server, &Server::gameServerOnline, coordinator,
                      [this](org::morgoth::connector::GameServer* gameServer) { onGameServerStarted(gameServer); });
+    QObject::connect(server, &Server::gameServerTimedOut, coordinator,
+                     [this]() { onGameServerTimedOut(); });
     QObject::connect(qApp, &QCoreApplication::aboutToQuit, coordinator,
                      [this]() { stopSync(); });
     QObject::connect(&startTimeoutTimer, &QTimer::timeout, coordinator,
@@ -187,6 +190,17 @@ void ServerCoordinatorPrivate::onGameServerStopped()
     }
 
     qInfo("%s: stopped", qPrintable(server->name()));
+}
+
+void ServerCoordinatorPrivate::onGameServerTimedOut()
+{
+    setState(ServerCoordinator::Crashed);
+
+    if (!tmux.kill()) {
+        qWarning("Could not kill session %s", qPrintable(tmux.name()));
+    }
+
+    qWarning("%s: crashed", qPrintable(server->name()));
 }
 
 void ServerCoordinatorPrivate::stopSync()

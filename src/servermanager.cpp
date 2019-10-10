@@ -20,6 +20,8 @@
 #include "gameserverinterface.h"
 #include <QtCore>
 #include <algorithm>
+#include <chrono>
+#include <functional>
 #include <iostream>
 
 using org::morgoth::connector::GameServer;
@@ -38,18 +40,23 @@ public:
 
     void startDBusServer();
     void registerGameServer(const QDBusConnection& connection);
+    void pingAllServers();
 
     QList<Server*> servers;
-    QList<GameServer*> gameServers;
+    QMap<GameServer*, Server*> gameServers;
     QDBusServer* dbusServer = nullptr;
+    QTimer* timer;
 
 };
 
 
 ServerManagerPrivate::ServerManagerPrivate(ServerManager* serverManager) :
-    q_ptr(serverManager)
+    q_ptr(serverManager),
+    timer(new QTimer(serverManager))
 {
     startDBusServer();
+    QObject::connect(timer, &QTimer::timeout, [this]() { pingAllServers(); });
+    timer->start(std::chrono::seconds(5));
 }
 
 void ServerManagerPrivate::startDBusServer()
@@ -82,14 +89,46 @@ void ServerManagerPrivate::registerGameServer(const QDBusConnection& connection)
         qDebug("Server %s is online", qPrintable((*it)->name()));
         QObject::connect(iface, &GameServer::aboutToQuit, [this, iface]() {
             Q_ASSERT(gameServers.contains(iface));
-            gameServers.removeAll(iface);
+            gameServers.remove(iface);
             iface->deleteLater();
         });
 
         emit (*it)->gameServerOnline(iface);
-        gameServers.append(iface);
+        gameServers.insert(iface, *it);
     } else {
         qWarning("Could not match %s to any of the known servers", qPrintable(iface->gameLocation()));
+    }
+}
+
+void ServerManagerPrivate::pingAllServers()
+{
+    Q_Q(ServerManager);
+
+    for (GameServer* gameServer: gameServers.keys()) {
+        QDBusPendingCall call = gameServer->asyncCall("ping");
+        QDBusPendingCallWatcher* watcher = new QDBusPendingCallWatcher(call, q);
+
+        QObject::connect(watcher, &QDBusPendingCallWatcher::finished, [this, gameServer](QDBusPendingCallWatcher* watcher) {
+            QDBusPendingReply<void> reply = *watcher;
+            if (reply.isError()) {
+                switch (reply.error().type()) {
+                    case QDBusError::NoReply:
+                    case QDBusError::Timeout:
+                    case QDBusError::Disconnected:
+                    case QDBusError::TimedOut:
+                        emit gameServers.value(gameServer)->gameServerTimedOut();
+                        gameServers.remove(gameServer);
+                        gameServer->deleteLater();
+                        break;
+
+                    default:
+                        qWarning() << reply.error();
+                        break;
+                }
+            }
+
+            watcher->deleteLater();
+        });
     }
 }
 
