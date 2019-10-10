@@ -1,5 +1,7 @@
 find_package (Qt5 5.10 REQUIRED COMPONENTS Core DBus Sql)
 set (CMAKE_AUTOMOC ON)
+set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} --coverage -fprofile-arcs -ftest-coverage")
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} --coverage -fprofile-arcs -ftest-coverage")
 
 set (morgoth_PUBLIC_HEADERS
     morgothdaemon.h
