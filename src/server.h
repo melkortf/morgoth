@@ -120,7 +120,7 @@ public:
      * \brief Returns path to the srcds_run script.
      * \note This function returns an empty string if \ref isValid() is \c false.
      */
-    const QString& srcdsExec();
+    const QString& srcdsExec() const;
 
     const QString& name() const;
     const QUrl& path() const;
@@ -136,7 +136,8 @@ public:
     const QDBusObjectPath& statusPath() const;
 
 private:
-    QScopedPointer<ServerPrivate> d;
+    Q_DECLARE_PRIVATE(Server)
+    QScopedPointer<ServerPrivate> const d_ptr;
 
 };
 

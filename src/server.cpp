@@ -22,13 +22,16 @@
 
 namespace morgoth {
 
-class ServerPrivate{
+class ServerPrivate {
+    Q_DISABLE_COPY(ServerPrivate)
+    Q_DECLARE_PUBLIC(Server)
+    Server* const q_ptr;
+
 public:
     explicit ServerPrivate(Server* server, const QUrl& path, const QString& name);
     void discover();
     void initializeDefaultConfiguration();
 
-    Server* d;
     QString name;
     QUrl path;
     bool valid;
@@ -42,7 +45,7 @@ public:
 };
 
 ServerPrivate::ServerPrivate(Server* server, const QUrl& path, const QString& name) :
-    d(server),
+    q_ptr(server),
     name(name),
     path(path)
 {
@@ -70,15 +73,17 @@ void ServerPrivate::discover()
 
 void ServerPrivate::initializeDefaultConfiguration()
 {
-    configuration = new ServerConfiguration(d);
+    Q_Q(Server);
+    configuration = new ServerConfiguration(q);
     configuration->setValue("org.morgoth.Server.launchArguments", "-port 27015 -secured +map cp_badlands");
     configuration->setValue("org.morgoth.Server.logDirectory", "logs"); // relative to path
 }
 
 Server::Server(const QUrl& path, const QString& name, QObject* parent) :
     QObject(parent),
-    d(new ServerPrivate(this, path, name))
+    d_ptr(new ServerPrivate(this, path, name))
 {
+    Q_D(Server);
     d->discover();
 
     new ServerAdaptor(this);
@@ -101,68 +106,81 @@ Server::Server(const QUrl& path, const QString& name, QObject* parent) :
 
 Server::~Server() {}
 
-const QString& Server::srcdsExec()
+const QString& Server::srcdsExec() const
 {
+    Q_D(const Server);
     return d->srcdsExec;
 }
 
 const QString& Server::name() const
 {
+    Q_D(const Server);
     return d->name;
 }
 
 const QUrl& Server::path() const
 {
+    Q_D(const Server);
     return d->path;
 }
 
 bool Server::isValid() const
 {
+    Q_D(const Server);
     return d->valid;
 }
 
 ServerCoordinator* Server::coordinator()
 {
+    Q_D(const Server);
     return d->coordinator;
 }
 
 const ServerCoordinator* Server::coordinator() const
 {
+    Q_D(const Server);
     return d->coordinator;
 }
 
 const QDBusObjectPath& Server::coordinatorPath()
 {
+    Q_D(const Server);
     return d->coordinatorPath;
 }
 
 ServerConfiguration* Server::configuration()
 {
+    Q_D(const Server);
     return d->configuration;
 }
 
 const ServerConfiguration* Server::configuration() const
 {
+    Q_D(const Server);
     return d->configuration;
 }
 
 const QDBusObjectPath& Server::configurationPath() const
 {
+    Q_D(const Server);
     return d->configurationPath;
 }
 
 ServerStatus* Server::status()
 {
+    Q_D(const Server);
     return d->status;
 }
 
 const ServerStatus* Server::status() const
 {
+    Q_D(const Server);
     return d->status;
 }
 
 const QDBusObjectPath& Server::statusPath() const
 {
+    Q_D(const Server);
     return d->statusPath;
 }
 
