@@ -27,6 +27,10 @@ add_executable (teststeamid teststeamid.cpp)
 target_link_libraries (teststeamid morgoth Qt5::Test)
 add_test (NAME TestSteamId COMMAND teststeamid)
 
+add_executable (testplayerinfo testplayerinfo.cpp)
+target_link_libraries (testplayerinfo morgoth Qt5::Test)
+add_test (NAME TestPlayerInfo COMMAND testplayerinfo)
+
 include(CodeCoverage)
 setup_target_for_coverage_lcov(
     NAME coverage
@@ -38,4 +42,5 @@ setup_target_for_coverage_lcov(
         testuserprocess
         testtmuxsessionwrapper
         teststeamid
+        testplayerinfo
 )
