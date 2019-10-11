@@ -20,6 +20,7 @@
 #include "gameserverinterface.h"
 #include "serverconfiguration.h"
 #include <QtCore/QObject>
+#include <QtCore/QMetaType>
 #include <QtCore/QString>
 #include <QtCore/QUrl>
 #include <QtDBus/QDBusObjectPath>
@@ -95,6 +96,11 @@ signals:
      */
     void gameServerOnline(org::morgoth::connector::GameServer* gameServer);
 
+    /**
+     * A game server has lost its connection with the D-Bus server.
+     */
+    void gameServerTimedOut();
+
 public:
     /**
      * \brief Creates the new \c Server instance.
@@ -114,7 +120,7 @@ public:
      * \brief Returns path to the srcds_run script.
      * \note This function returns an empty string if \ref isValid() is \c false.
      */
-    const QString& srcdsExec();
+    const QString& srcdsExec() const;
 
     const QString& name() const;
     const QUrl& path() const;
@@ -130,10 +136,13 @@ public:
     const QDBusObjectPath& statusPath() const;
 
 private:
-    QScopedPointer<ServerPrivate> d;
+    Q_DECLARE_PRIVATE(Server)
+    QScopedPointer<ServerPrivate> const d_ptr;
 
 };
 
 } // namespace Morgoth
+
+Q_DECLARE_METATYPE(org::morgoth::connector::GameServer*)
 
 #endif // SERVER_H

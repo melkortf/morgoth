@@ -35,5 +35,7 @@
       <arg type="t" direction="out"/>
       <arg name="userId" type="i" direction="in"/>
     </method>
+    <method name="ping">
+    </method>
   </interface>
 </node>

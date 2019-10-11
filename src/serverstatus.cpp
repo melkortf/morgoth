@@ -109,14 +109,8 @@ void ServerStatusPrivate::trackGameServer(org::morgoth::connector::GameServer* g
 
 void ServerStatusPrivate::handleStateChange(ServerCoordinator::State serverState)
 {
-    switch (serverState) {
-        case ServerCoordinator::State::Offline:
-            reset();
-            break;
-
-        default:
-            break;
-    }
+    Q_UNUSED(serverState);
+    reset();
 }
 
 void ServerStatusPrivate::handleConVarChange(QString conVarName, QString newValue)

@@ -40,6 +40,8 @@ add_library (morgoth SHARED
     ${morgoth_SOURCES}
 )
 
+target_compile_options (morgoth PRIVATE $<$<CONFIG:Debug>:--coverage -fprofile-arcs -ftest-coverage>)
+
 qt5_add_dbus_adaptor (morgoth_DBUS_ADAPTORS
     interfaces/org.morgoth.Daemon.xml morgothdaemon.h morgoth::MorgothDaemon)
 qt5_add_dbus_adaptor (morgoth_DBUS_ADAPTORS
@@ -67,7 +69,7 @@ target_include_directories (morgoth
 )
 
 target_link_libraries (morgoth
-    PUBLIC Qt5::Core
+    PUBLIC Qt5::Core $<$<CONFIG:Debug>:gcov>
     PRIVATE Qt5::DBus Qt5::Sql
 )
 
