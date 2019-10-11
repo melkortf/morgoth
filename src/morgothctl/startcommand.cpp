@@ -38,6 +38,8 @@ QString errorString(morgoth::ServerCoordinator::Error error)
             return "server executable failed";
         case ServerCoordinator::ServerNotRegisteredOnTime:
             return "server not registered on time";
+        default:
+            return QString();
     }
 }
 
