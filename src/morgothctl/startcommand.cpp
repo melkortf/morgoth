@@ -20,31 +20,6 @@
 #include "servermanagerinterface.h"
 #include <QtCore>
 
-namespace {
-
-QString errorString(morgoth::ServerCoordinator::Error error)
-{
-    using morgoth::ServerCoordinator;
-    switch (error) {
-        case ServerCoordinator::NoError:
-            return "no error";
-        case ServerCoordinator::UnableToCreateTmuxSession:
-            return "unable to create tmux session";
-        case ServerCoordinator::UnableToResolveUser:
-            return "unable to resolve user";
-        case ServerCoordinator::UnableToRedirectTmuxOutput:
-            return "unable to redirect tmux output";
-        case ServerCoordinator::ServerExecutableFailed:
-            return "server executable failed";
-        case ServerCoordinator::ServerNotRegisteredOnTime:
-            return "server not registered on time";
-        default:
-            return QString();
-    }
-}
-
-}
-
 int StartCommand::execute(QDBusConnection dbus, const QStringList& arguments, QTextStream& out)
 {
     QCommandLineParser parser;
@@ -106,7 +81,7 @@ int StartCommand::execute(QDBusConnection dbus, const QStringList& arguments, QT
                     break;
 
                 case morgoth::ServerCoordinator::Crashed:
-                    out << "FAILED (" << errorString(coordinator.error()) << ")" << endl;
+                    out << "FAILED (" << coordinator.error().message() << ")" << endl;
                     ret = 5;
                     loop.quit();
                     break;

@@ -18,7 +18,7 @@ void TestServerCoordinator::create()
     ServerCoordinator* coordinator = new ServerCoordinator(server);
     QCOMPARE(coordinator->server(), server);
     QCOMPARE(coordinator->state(), ServerCoordinator::State::Offline);
-    QCOMPARE(coordinator->error(), ServerCoordinator::Error::NoError);
+    QCOMPARE(coordinator->error(), ServerError::NoError);
     QVERIFY(!coordinator->sessionName().isEmpty());
 }
 

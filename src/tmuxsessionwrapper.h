@@ -84,7 +84,8 @@ public:
     operator bool() const { return exists(); }
 
 private:
-    QScopedPointer<TmuxSessionWrapperPrivate> d;
+    Q_DECLARE_PRIVATE(TmuxSessionWrapper)
+    QScopedPointer<TmuxSessionWrapperPrivate> const d_ptr;
 
 };
 

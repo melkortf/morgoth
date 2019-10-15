@@ -18,11 +18,14 @@
 #include "morgothdaemon.h"
 #include "serverconfiguration.h"
 #include "servercoordinatoradaptor.h"
+#include "serverstarter.h"
 #include <QtCore>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
+
+using org::morgoth::connector::GameServer;
 
 // The time we wait for the game server to become online after starting it
 // 30 seconds
@@ -41,34 +44,27 @@ public:
     void setState(ServerCoordinator::State state);
     bool start();
     void stop();
-    void onGameServerStarted(org::morgoth::connector::GameServer* gameServer);
+    void onGameServerStarted(GameServer* gameServer);
     void onGameServerStopped();
     void onGameServerTimedOut();
+    void onServerFailed(ServerError error);
     void stopSync();
-    void verifyStarted();
 
     Server* server;
     ServerCoordinator::State state = ServerCoordinator::State::Offline;
-    ServerCoordinator::Error error = ServerCoordinator::Error::NoError;
+    ServerError error;
     TmuxSessionWrapper tmux;
     QString logFileName;
-    QTimer startTimeoutTimer;
 };
 
 ServerCoordinatorPrivate::ServerCoordinatorPrivate(ServerCoordinator* coordinator, Server* server) :
     q_ptr(coordinator),
     server(server)
 {
-    QObject::connect(server, &Server::gameServerOnline, coordinator,
-                     [this](org::morgoth::connector::GameServer* gameServer) { onGameServerStarted(gameServer); });
     QObject::connect(server, &Server::gameServerTimedOut, coordinator,
                      [this]() { onGameServerTimedOut(); });
     QObject::connect(qApp, &QCoreApplication::aboutToQuit, coordinator,
                      [this]() { stopSync(); });
-    QObject::connect(&startTimeoutTimer, &QTimer::timeout, coordinator,
-                     [this]() { verifyStarted(); });
-    startTimeoutTimer.setSingleShot(true);
-    startTimeoutTimer.setInterval(GameServerStartTimeout);
 }
 
 void ServerCoordinatorPrivate::setState(ServerCoordinator::State state)
@@ -80,73 +76,13 @@ void ServerCoordinatorPrivate::setState(ServerCoordinator::State state)
 
 bool ServerCoordinatorPrivate::start()
 {
-    Q_ASSERT(server->configuration());
-
-    if (!server->isValid()) {
-        qWarning("%s is not installed properly", qPrintable(server->name()));
-        return false;
-    }
-
-    if (!(state == ServerCoordinator::Offline || state == ServerCoordinator::Crashed)) {
-        qWarning("%s is already running", qPrintable(server->name()));
-        return false;
-    }
-
-    qInfo("%s: starting...", qPrintable(server->name()));
-    error = ServerCoordinator::Error::NoError;
-    setState(ServerCoordinator::Starting);
-
-    QString user = server->configuration()->value("org.morgoth.Server.user");
-    if (user.isEmpty() && morgothd)
-        user = morgothd->config().value("user").toString();
-
-    tmux.setUser(user);
-
-    if (!tmux.create()) {
-        qWarning("%s: could not create a tmux session", qPrintable(server->name()));
-        error = ServerCoordinator::UnableToCreateTmuxSession;
-        setState(ServerCoordinator::Crashed);
-        return false;
-    }
-
-    QString logDirectory = server->configuration()->value("org.morgoth.Server.logDirectory");
-    if (QDir::isRelativePath(logDirectory))
-        logDirectory.prepend(server->path().toLocalFile());
-
-    logFileName = QString("%1/gameserver.log").arg(logDirectory);
-
-    if (!user.isEmpty()) {
-        passwd* pwd = ::getpwnam(user.toLocal8Bit().constData());
-        if (!pwd) {
-            char* error = ::strerror(errno);
-            qWarning("Error retrieving uid and gid of user %s (%s)", qPrintable(user), error);
-            this->error = ServerCoordinator::UnableToResolveUser;
-            setState(ServerCoordinator::Crashed);
-            return false;
-        } else {
-            ::chown(logFileName.toLocal8Bit().constData(), pwd->pw_uid, pwd->pw_gid);
-        }
-    }
-
-    if (!tmux.redirectOutput(logFileName)) {
-        qWarning("%s: could not redirect output to %s", qPrintable(server->name()), qPrintable(logFileName));
-        tmux.kill();
-        error = ServerCoordinator::UnableToRedirectTmuxOutput;
-        setState(ServerCoordinator::Crashed);
-        return false;
-    }
-
-    QString arguments = server->configuration()->value("org.morgoth.Server.launchArguments");
-    QString cmd = QString("%1/srcds_run %2").arg(server->path().toLocalFile(), arguments);
-    if (!tmux.sendKeys(cmd)) {
-        qWarning("%s: could not start the server", qPrintable(server->name()));
-        tmux.kill();
-        error = ServerCoordinator::ServerExecutableFailed;
-        setState(ServerCoordinator::Crashed);
-        return false;
-    }
-
-    startTimeoutTimer.start();
+    ServerStarter* starter = new ServerStarter(server, &tmux);
+    QObject::connect(starter, &ServerStarter::starting, std::bind(&ServerCoordinatorPrivate::setState, this, ServerCoordinator::Starting));
+    QObject::connect(starter, &ServerStarter::started, std::bind(&ServerCoordinatorPrivate::onGameServerStarted, this, std::placeholders::_1));
+    QObject::connect(starter, &ServerStarter::started, starter, &QObject::deleteLater);
+    QObject::connect(starter, &ServerStarter::failed, std::bind(&ServerCoordinatorPrivate::onServerFailed, this, std::placeholders::_1));
+    QObject::connect(starter, &ServerStarter::failed, starter, &QObject::deleteLater);
+    starter->start();
     return true;
 }
 
@@ -159,7 +95,7 @@ void ServerCoordinatorPrivate::stop()
     }
 }
 
-void ServerCoordinatorPrivate::onGameServerStarted(org::morgoth::connector::GameServer* gameServer)
+void ServerCoordinatorPrivate::onGameServerStarted(GameServer* gameServer)
 {
     Q_Q(ServerCoordinator);
 
@@ -170,8 +106,6 @@ void ServerCoordinatorPrivate::onGameServerStarted(org::morgoth::connector::Game
     QObject::connect(gameServer, &org::morgoth::connector::GameServer::aboutToQuit, q, [this]() {
         onGameServerStopped();
     });
-
-    startTimeoutTimer.stop();
 
     setState(ServerCoordinator::Running);
     qInfo("%s: started", qPrintable(server->name()));
@@ -203,19 +137,16 @@ void ServerCoordinatorPrivate::onGameServerTimedOut()
     qWarning("%s: crashed", qPrintable(server->name()));
 }
 
+void ServerCoordinatorPrivate::onServerFailed(ServerError error)
+{
+    this->error = error;
+    setState(ServerCoordinator::Crashed);
+}
+
 void ServerCoordinatorPrivate::stopSync()
 {
     // TODO
     // send stop keys and wait for the server to actually shut down
-}
-
-void ServerCoordinatorPrivate::verifyStarted()
-{
-    if (state == ServerCoordinator::Starting) {
-        qWarning("Server %s has not became online in time; make sure the morgoth-connector plugin is installed correctly.", qPrintable(server->name()));
-        error = ServerCoordinator::ServerNotRegisteredOnTime;
-        setState(ServerCoordinator::Crashed);
-    }
 }
 
 
@@ -254,7 +185,7 @@ ServerCoordinator::State ServerCoordinator::state() const
     return d->state;
 }
 
-ServerCoordinator::Error ServerCoordinator::error() const
+ServerError ServerCoordinator::error() const
 {
     Q_D(const ServerCoordinator);
     return d->error;
@@ -304,34 +235,8 @@ const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCo
     return argument;
 }
 
-QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::Error& error)
-{
-    QString strError = QMetaEnum::fromType<morgoth::ServerCoordinator::Error>().valueToKey(error);
-
-    argument.beginStructure();
-    argument << strError;
-    argument.endStructure();
-
-    return argument;
-}
-
-const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::Error& state)
-{
-    QString strError;
-
-    argument.beginStructure();
-    argument >> strError;
-    argument.endStructure();
-
-    int value = QMetaEnum::fromType<morgoth::ServerCoordinator::Error>().keyToValue(strError.toLocal8Bit().constData());
-    state = static_cast<morgoth::ServerCoordinator::Error>(value);
-    return argument;
-}
-
 static void registerMetaTypes()
 {
     qDBusRegisterMetaType<morgoth::ServerCoordinator::State>();
-    qDBusRegisterMetaType<morgoth::ServerCoordinator::Error>();
 }
-
 Q_COREAPP_STARTUP_FUNCTION(registerMetaTypes)
