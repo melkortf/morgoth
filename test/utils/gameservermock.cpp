@@ -1,5 +1,5 @@
 #include "gameservermock.h"
-#include "gameserveradaptor.h"
+#include "gameservermockadaptor.h"
 #include <QtDBus/QtDBus>
 #include <QtTest/QtTest>
 
