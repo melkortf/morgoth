@@ -118,6 +118,8 @@ void TestServerManager::handleGameServerConnection()
 
     QVERIFY(spy.wait(1000));
     QCOMPARE(spy.count(), 1);
+    auto arguments = spy.takeFirst();
+    QVERIFY(arguments.at(0).isValid());
 
     QVERIFY(testingGameServer.waitForFinished());
 }
