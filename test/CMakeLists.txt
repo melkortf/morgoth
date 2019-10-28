@@ -36,7 +36,7 @@ add_test (NAME TestPlayerInfo COMMAND testplayerinfo)
 include(CodeCoverage)
 setup_target_for_coverage_lcov(
     NAME coverage
-    EXECUTABLE ctest
+    EXECUTABLE ctest -V
     DEPENDENCIES
         testserver
         testservercoordinator
