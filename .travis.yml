@@ -14,7 +14,7 @@ before_install:
 install:
  - sudo apt-get -qy install qt510base qt510tools
  - sudo apt-get -qy install gcc-5 g++-5
- - sudo apt-get -qy install libsystemd-daemon-dev lcov python3.6
+ - sudo apt-get -qy install libsystemd-daemon-dev lcov python3.6 dbus-test-runner
  - wget https://cmake.org/files/v3.10/cmake-3.10.3-Linux-x86_64.sh && sudo sh cmake-3.10.3-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir
 
 script:
@@ -22,7 +22,7 @@ script:
  - export CC=gcc-5
  - /usr/local/bin/cmake -DCMAKE_PREFIX_PATH=/opt/qt510/lib/cmake -DCMAKE_BUILD_TYPE=Debug .
  - make VERBOSE=1
- - make coverage
+ - dbus-test-runner make coverage
 
 after_success:
  - bash <(curl -s https://codecov.io/bash)
