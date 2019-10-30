@@ -102,8 +102,12 @@ void installMessageHandler()
 namespace morgoth {
 
 class MorgothDaemonPrivate {
+    Q_DISABLE_COPY(MorgothDaemonPrivate)
+    Q_DECLARE_PUBLIC(MorgothDaemon)
+    MorgothDaemon *const q_ptr;
+
 public:
-    MorgothDaemonPrivate(MorgothDaemon* d);
+    explicit MorgothDaemonPrivate(MorgothDaemon* morgothDaemon);
 
     void parseArguments();
     void loadDefaults();
@@ -116,8 +120,8 @@ public:
     QVariantMap config;
 };
 
-MorgothDaemonPrivate::MorgothDaemonPrivate(MorgothDaemon *d) :
-    d(d),
+MorgothDaemonPrivate::MorgothDaemonPrivate(MorgothDaemon *morgothDaemon) :
+    q_ptr(morgothDaemon),
     dbusConnection(QDBusConnection::sessionBus())
 {
 
@@ -125,6 +129,8 @@ MorgothDaemonPrivate::MorgothDaemonPrivate(MorgothDaemon *d) :
 
 void MorgothDaemonPrivate::parseArguments()
 {
+    Q_Q(MorgothDaemon);
+
     QCommandLineParser parser;
     parser.addVersionOption();
 
@@ -166,11 +172,12 @@ void MorgothDaemonPrivate::readConfig()
 
 MorgothDaemon::MorgothDaemon(int& argc, char** argv) :
     QCoreApplication(argc, argv),
-    d(new MorgothDaemonPrivate(this))
+    d_ptr(new MorgothDaemonPrivate(this))
 {
     ::installMessageHandler();
     ::setupSignalHandlers();
 
+    Q_D(MorgothDaemon);
     d->signal = new QSocketNotifier(signalFd[1], QSocketNotifier::Read, this);
     connect(d->signal, &QSocketNotifier::activated, this, &MorgothDaemon::handleSignal);
 
@@ -196,11 +203,13 @@ MorgothDaemon::~MorgothDaemon()
 
 QDBusConnection MorgothDaemon::dbusConnection() const
 {
+    Q_D(const MorgothDaemon);
     return d->dbusConnection;
 }
 
 const QVariantMap &MorgothDaemon::config() const
 {
+    Q_D(const MorgothDaemon);
     return d->config;
 }
 
@@ -211,6 +220,7 @@ QString MorgothDaemon::version() const
 
 void MorgothDaemon::handleSignal()
 {
+    Q_D(MorgothDaemon);
     d->signal->setEnabled(false);
     int signal;
     ::read(signalFd[1], &signal, sizeof(signal));
