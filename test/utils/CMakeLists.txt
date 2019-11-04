@@ -19,3 +19,8 @@ add_executable (testinggameserver
     ${gameservermock_DBUS_ADAPTOR}
 )
 target_link_libraries (testinggameserver PUBLIC Qt5::Core Qt5::DBus)
+
+add_library (testutils OBJECT
+    testinggameservercontroller.cpp
+)
+target_link_libraries (testutils PUBLIC Qt5::Core)

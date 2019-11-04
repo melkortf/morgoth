@@ -1,12 +1,12 @@
 #include <QtTest/QtTest>
 #include "server.h"
 #include "servermanager.h"
+#include "utils/testinggameservercontroller.h"
 
 using namespace morgoth;
 
 class TestServerManager: public QObject {
     Q_OBJECT
-
     ServerManager* serverManager;
 
 private slots:
@@ -108,20 +108,17 @@ void TestServerManager::handleGameServerConnection()
     QSignalSpy spy(server, &Server::gameServerOnline);
     QVERIFY(spy.isValid());
 
-    QProcess testingGameServer;
-    testingGameServer.start(QStringLiteral("%1/utils/testinggameserver").arg(QCoreApplication::applicationDirPath()), {
-        serverManager->dbusServerAddress(),
-        QStringLiteral("/some/path")
-    });
+    TestingGameServerController controller;
+    controller.setPath("/some/path");
+    controller.start();
 
-    QVERIFY(testingGameServer.waitForStarted());
-
+    controller.connect(serverManager->dbusServerAddress());
     QVERIFY(spy.wait(1000));
     QCOMPARE(spy.count(), 1);
     auto arguments = spy.takeFirst();
     QVERIFY(arguments.at(0).isValid());
 
-    QVERIFY(testingGameServer.waitForFinished());
+    controller.stop();
 }
 
 QTEST_MAIN(TestServerManager)

@@ -19,8 +19,18 @@ void GameServerMock::connect(const QString& address)
     qDebug() << "Testing game server connected to" << address;
 }
 
-const QString& GameServerMock::gameLocation() const
+void GameServerMock::setMap(const QString& map)
 {
-    qDebug() << Q_FUNC_INFO;
-    return m_gameLocation;
+    m_map = map;
+    emit mapChanged(map);
+}
+
+void GameServerMock::setMaxPlayers(int maxPlayers)
+{
+    m_maxPlayers = maxPlayers;
+}
+
+void GameServerMock::setAddress(const QString& address)
+{
+    m_address = address;
 }

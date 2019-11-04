@@ -13,7 +13,7 @@ add_executable (testservercoordinator testservercoordinator.cpp)
 target_link_libraries (testservercoordinator morgoth Qt5::Test)
 add_test (NAME TestServerCoordinator COMMAND testservercoordinator)
 
-add_executable (testservermanager testservermanager.cpp)
+add_executable (testservermanager testservermanager.cpp $<TARGET_OBJECTS:testutils>)
 target_link_libraries (testservermanager morgoth Qt5::Test Qt5::DBus)
 add_test (NAME TestServerManager COMMAND testservermanager)
 
