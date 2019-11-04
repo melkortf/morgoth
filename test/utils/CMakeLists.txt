@@ -20,7 +20,6 @@ add_executable (testinggameserver
 )
 target_link_libraries (testinggameserver PUBLIC Qt5::Core Qt5::DBus)
 
-add_library (testutils OBJECT
-    testinggameservercontroller.cpp
-)
-target_link_libraries (testutils PUBLIC Qt5::Core)
+add_library (testutils OBJECT testinggameservercontroller.cpp)
+set_property (TARGET testutils PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_include_directories (testutils PUBLIC "${Qt5Core_INCLUDE_DIRS}")
