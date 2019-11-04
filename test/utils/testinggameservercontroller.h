@@ -14,6 +14,7 @@ public:
 
     void setMaxPlayers(int maxPlayers);
     void setAddress(const QString& address);
+    void setMap(const QString& map);
 
 private:
     QString m_path;

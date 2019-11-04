@@ -21,6 +21,8 @@ void readCommand()
         gameServer.setMaxPlayers(parts.first().toInt());
     } else if (command == QStringLiteral("set_address")) {
         gameServer.setAddress(parts.first());
+    } else if (command == QStringLiteral("set_map")) {
+        gameServer.setMap(parts.first());
     } else {
         qWarning() << "unrecognized command";
     }

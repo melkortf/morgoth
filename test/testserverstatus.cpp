@@ -18,6 +18,7 @@ private slots:
 
     void emptyAllProps();
     void fetchProps();
+    void changeMap();
 };
 
 void TestServerStatus::initTestCase()
@@ -64,14 +65,41 @@ void TestServerStatus::fetchProps()
     controller.start();
     controller.setMaxPlayers(7);
     controller.setAddress("127.0.0.1:27015");
-    controller.connect(serverManager->dbusServerAddress());
 
-    QTest::qWait(1000);
+    QSignalSpy serverOnline(server, &Server::gameServerOnline);
+    controller.connect(serverManager->dbusServerAddress());
+    QVERIFY(serverOnline.wait());
 
     QCOMPARE(serverStatus->maxPlayers(), 7);
     QCOMPARE(serverStatus->address(), QUrl("steam://127.0.0.1:27015"));
 
     controller.stop();
+}
+
+void TestServerStatus::changeMap()
+{
+    TestingGameServerController controller;
+    controller.setPath("/some/path");
+    controller.start();
+
+    QSignalSpy serverOnline(server, &Server::gameServerOnline);
+    controller.connect(serverManager->dbusServerAddress());
+    QVERIFY(serverOnline.wait());
+
+    QSignalSpy spy(serverStatus, &ServerStatus::mapChanged);
+    QVERIFY(spy.isValid());
+
+    QCOMPARE(serverStatus->map(), QString());
+    controller.setMap("cp_test_v1");
+    QVERIFY(spy.wait());
+    QCOMPARE(spy.count(), 1);
+    auto arguments = spy.takeFirst();
+    QVERIFY(arguments.at(0).isValid());
+    QCOMPARE(arguments.at(0).type(), QVariant::String);
+    QCOMPARE(arguments.at(0).value<QString>(), "cp_test_v1");
+
+    controller.stop();
+
 }
 
 QTEST_MAIN(TestServerStatus)

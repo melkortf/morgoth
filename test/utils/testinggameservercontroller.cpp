@@ -29,7 +29,6 @@ void TestingGameServerController::connect(const QString& dbusServerAddress)
     Q_ASSERT(m_process.state() == QProcess::Running);
     m_process.write(QStringLiteral("connect %1\n").arg(dbusServerAddress).toLocal8Bit());
     QVERIFY(QTest::qWaitFor([this]() { return m_process.bytesToWrite() == 0; }));
-    qDebug() << "DUPA";
 }
 
 void TestingGameServerController::stop()
@@ -54,5 +53,12 @@ void TestingGameServerController::setAddress(const QString& address)
 {
     Q_ASSERT(m_process.state() == QProcess::Running);
     m_process.write(QStringLiteral("set_address %1\n").arg(address).toLocal8Bit());
+    QVERIFY(QTest::qWaitFor([this]() { return m_process.bytesToWrite() == 0; }));
+}
+
+void TestingGameServerController::setMap(const QString& map)
+{
+    Q_ASSERT(m_process.state() == QProcess::Running);
+    m_process.write(QStringLiteral("set_map %1\n").arg(map).toLocal8Bit());
     QVERIFY(QTest::qWaitFor([this]() { return m_process.bytesToWrite() == 0; }));
 }
