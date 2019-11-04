@@ -74,7 +74,8 @@ private slots:
     void handleSignal();
 
 private:
-    QScopedPointer<MorgothDaemonPrivate> d;
+    Q_DECLARE_PRIVATE(MorgothDaemon)
+    QScopedPointer<MorgothDaemonPrivate> const d_ptr;
 
 };
 

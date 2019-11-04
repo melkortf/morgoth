@@ -181,10 +181,13 @@ void ServerStatusPrivate::setAddressFromString(const QString& addressString)
     QUrl address;
     address.setScheme("steam");
     auto s = addressString.split(':');
-    Q_ASSERT(s.length() == 2);
-    address.setHost(s.at(0));
-    address.setPort(s.at(1).toInt());
-    setAddress(address);
+    if (s.length() == 2) {
+        address.setHost(s.at(0));
+        address.setPort(s.at(1).toInt());
+        setAddress(address);
+    } else {
+        qWarning("%s is an invalid address", qPrintable(addressString));
+    }
 }
 
 void ServerStatusPrivate::setPassword(const QString& password)

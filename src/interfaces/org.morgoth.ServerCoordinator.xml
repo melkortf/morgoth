@@ -14,7 +14,7 @@
         <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="morgoth::ServerCoordinator::State"/>
     </signal>
     <property name="error" type="(s)" access="read">
-        <annotation name="org.qtproject.QtDBus.QtTypeName" value="morgoth::ServerCoordinator::Error"/>
+        <annotation name="org.qtproject.QtDBus.QtTypeName" value="morgoth::ServerError"/>
     </property>
     <property name="sessionName" type="s" access="read"/>
   </interface>

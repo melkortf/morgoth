@@ -18,6 +18,7 @@
 
 #include "morgoth_export.h"
 #include "server.h"
+#include "servererror.h"
 #include "tmuxsessionwrapper.h"
 #include <QtCore/QObject>
 #include <QtDBus/QDBusArgument>
@@ -46,7 +47,7 @@ class MORGOTH_EXPORT ServerCoordinator : public QObject {
     /**
      * Last server error.
      */
-    Q_PROPERTY(morgoth::ServerCoordinator::Error error READ error)
+    Q_PROPERTY(morgoth::ServerError error READ error)
 
     /**
      * Name of the tmux session.
@@ -66,20 +67,6 @@ public:
         Crashed         /**< The server has crashed. */
     };
     Q_ENUM(State)
-
-    /**
-     * \brief The Error enum describes an error that could cause the server
-     * to crash.
-     */
-    enum Error {
-        NoError,
-        UnableToCreateTmuxSession,
-        UnableToResolveUser,
-        UnableToRedirectTmuxOutput,
-        ServerExecutableFailed,
-        ServerNotRegisteredOnTime,
-    };
-    Q_ENUM(Error)
 
 signals:
     void stateChanged(morgoth::ServerCoordinator::State state);
@@ -107,7 +94,7 @@ public:
 
     const Server* server() const;
     State state() const;
-    Error error() const;
+    ServerError error() const;
     QString sessionName() const;
 
 public slots:
@@ -143,7 +130,5 @@ private:
 
 MORGOTH_EXPORT QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::State& state);
 MORGOTH_EXPORT const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::State& state);
-MORGOTH_EXPORT QDBusArgument& operator<<(QDBusArgument& argument, const morgoth::ServerCoordinator::Error& error);
-MORGOTH_EXPORT const QDBusArgument& operator>>(const QDBusArgument& argument, morgoth::ServerCoordinator::Error& state);
 
 #endif // SERVERCOORDINATOR_H

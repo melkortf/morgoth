@@ -1,15 +1,16 @@
 #include <QtTest/QtTest>
 #include "server.h"
 #include "servermanager.h"
+#include "utils/testinggameservercontroller.h"
 
 using namespace morgoth;
 
 class TestServerManager: public QObject {
     Q_OBJECT
-
     ServerManager* serverManager;
 
 private slots:
+    void initTestCase();
     void init();
     void cleanup();
 
@@ -21,6 +22,12 @@ private slots:
     void handleGameServerConnection();
 
 };
+
+void TestServerManager::initTestCase()
+{
+    QDBusConnection con = QDBusConnection::sessionBus();
+    QVERIFY(con.isConnected());
+}
 
 void TestServerManager::init()
 {
@@ -90,25 +97,6 @@ void TestServerManager::denyNameDuplicate()
     QVERIFY(server2 == nullptr);
 }
 
-class GameServerStub : public QObject {
-    Q_OBJECT
-    Q_PROPERTY(QString gameLocation READ gameLocation)
-
-public:
-    void connect(const QString& address)
-    {
-        QDBusConnection connection = QDBusConnection::connectToPeer(address, "morgoth-server");
-        QVERIFY(connection.isConnected());
-        bool registered = connection.registerObject("/", this);
-        QVERIFY(registered);
-    }
-
-    QString gameLocation() const
-    {
-        return "/some/path";
-    }
-
-};
 
 void TestServerManager::handleGameServerConnection()
 {
@@ -117,13 +105,20 @@ void TestServerManager::handleGameServerConnection()
     Server* server = serverManager->add(QUrl::fromLocalFile("/some/path"), "test");
     QVERIFY(server);
 
-    QSignalSpy spy(server, SIGNAL(gameServerOnline(org::morgoth::connector::GameServer*)));
+    QSignalSpy spy(server, &Server::gameServerOnline);
+    QVERIFY(spy.isValid());
 
-    GameServerStub* gameServer = new GameServerStub();
-    gameServer->connect(serverManager->dbusServerAddress());
-    QCoreApplication::processEvents(QEventLoop::AllEvents | QEventLoop::WaitForMoreEvents);
-    QEXPECT_FAIL("", "Pending investigation why the signal isn't being emitted", Continue);
+    TestingGameServerController controller;
+    controller.setPath("/some/path");
+    controller.start();
+
+    controller.connect(serverManager->dbusServerAddress());
+    QVERIFY(spy.wait(1000));
     QCOMPARE(spy.count(), 1);
+    auto arguments = spy.takeFirst();
+    QVERIFY(arguments.at(0).isValid());
+
+    controller.stop();
 }
 
 QTEST_MAIN(TestServerManager)

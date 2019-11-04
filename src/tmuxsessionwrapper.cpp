@@ -86,17 +86,30 @@ QString generateRandomSessionName()
 namespace morgoth {
 
 class TmuxSessionWrapperPrivate {
+    Q_DISABLE_COPY(TmuxSessionWrapperPrivate)
+    Q_DECLARE_PUBLIC(TmuxSessionWrapper)
+    TmuxSessionWrapper *const q_ptr;
+
 public:
+    explicit TmuxSessionWrapperPrivate(TmuxSessionWrapper* wrapper);
+
     QSharedPointer<TmuxProcessFactory> tmuxFactory { new TmuxProcessFactory };
     QString name;
     QString user;
 };
 
+TmuxSessionWrapperPrivate::TmuxSessionWrapperPrivate(TmuxSessionWrapper* wrapper) :
+    q_ptr(wrapper),
+    name(::generateRandomSessionName())
+{
+    
+}
+
 
 TmuxSessionWrapper::TmuxSessionWrapper() :
-    d(new TmuxSessionWrapperPrivate)
+    d_ptr(new TmuxSessionWrapperPrivate(this))
 {
-    d->name = ::generateRandomSessionName();
+
 }
 
 TmuxSessionWrapper::~TmuxSessionWrapper()
@@ -106,6 +119,8 @@ TmuxSessionWrapper::~TmuxSessionWrapper()
 
 bool TmuxSessionWrapper::create()
 {
+    Q_D(TmuxSessionWrapper);
+
     if (exists()) {
         qWarning("%s: the session is already created", Q_FUNC_INFO);
         return false;
@@ -133,6 +148,8 @@ bool TmuxSessionWrapper::create()
 
 bool TmuxSessionWrapper::redirectOutput(const QString& dest)
 {
+    Q_D(TmuxSessionWrapper);
+
     if (!exists()) {
         qWarning("%s: the session is not created", Q_FUNC_INFO);
         return false;
@@ -160,6 +177,8 @@ bool TmuxSessionWrapper::redirectOutput(const QString& dest)
 
 bool TmuxSessionWrapper::sendKeys(const QString& keys)
 {
+    Q_D(TmuxSessionWrapper);
+
     if (!exists()) {
         qWarning("%s: the session is not created", Q_FUNC_INFO);
         return false;
@@ -187,6 +206,8 @@ bool TmuxSessionWrapper::sendKeys(const QString& keys)
 
 bool TmuxSessionWrapper::kill()
 {
+    Q_D(TmuxSessionWrapper);
+
     if (!exists())
         return true;
 
@@ -211,11 +232,13 @@ bool TmuxSessionWrapper::kill()
 
 const QString& TmuxSessionWrapper::name() const
 {
+    Q_D(const TmuxSessionWrapper);
     return d->name;
 }
 
 bool TmuxSessionWrapper::exists() const
 {
+    Q_D(const TmuxSessionWrapper);
     auto tmux = d->tmuxFactory->create(d->user);
     tmux->setArguments({
         "has-session",
@@ -235,11 +258,13 @@ bool TmuxSessionWrapper::exists() const
 
 const QString TmuxSessionWrapper::user() const
 {
+    Q_D(const TmuxSessionWrapper);
     return d->user;
 }
 
 void TmuxSessionWrapper::setUser(const QString& user)
 {
+    Q_D(TmuxSessionWrapper);
     if (user != d->user) {
         if (exists()) {
             qWarning("%s: cannot change the user while the session is running", Q_FUNC_INFO);

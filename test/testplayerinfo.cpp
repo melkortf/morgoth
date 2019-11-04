@@ -6,7 +6,7 @@ using namespace morgoth;
 class TestPlayerInfo : public QObject {
     Q_OBJECT
 
-private:
+private slots:
     void create();
     void setId();
     void setName();
