@@ -12,3 +12,6 @@ build
 
 # Dolphin
 .directory
+
+# VSCode
+.vscode
