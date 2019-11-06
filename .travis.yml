@@ -22,7 +22,7 @@ script:
  - export CC=gcc-5
  - /usr/local/bin/cmake -DCMAKE_PREFIX_PATH=/opt/qt510/lib/cmake -DCMAKE_BUILD_TYPE=Debug .
  - make VERBOSE=1
- - dbus-test-runner -t make -p coverage
+ - make coverage
 
 after_success:
  - bash <(curl -s https://codecov.io/bash)
