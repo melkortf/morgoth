@@ -13,10 +13,6 @@ add_executable (testservercoordinator testservercoordinator.cpp)
 target_link_libraries (testservercoordinator morgoth Qt5::Test)
 add_test (NAME TestServerCoordinator COMMAND testservercoordinator)
 
-add_executable (testservermanager testservermanager.cpp $<TARGET_OBJECTS:testutils>)
-target_link_libraries (testservermanager morgoth Qt5::Test Qt5::DBus)
-add_test (NAME TestServerManager COMMAND testservermanager)
-
 add_executable (testuserprocess testuserprocess.cpp)
 target_link_libraries (testuserprocess morgoth Qt5::Test)
 add_test (NAME TestUserProcess COMMAND testuserprocess)
@@ -33,9 +29,22 @@ add_executable (testplayerinfo testplayerinfo.cpp)
 target_link_libraries (testplayerinfo morgoth Qt5::Test)
 add_test (NAME TestPlayerInfo COMMAND testplayerinfo)
 
-add_executable (testserverstatus testserverstatus.cpp $<TARGET_OBJECTS:testutils>)
-target_link_libraries (testserverstatus morgoth Qt5::Test Qt5::DBus)
-add_test (NAME TestServerStatus COMMAND testserverstatus)
+find_program (dbus_test_runner NAMES dbus-test-runner)
+if (dbus_test_runner)
+    add_executable (testservermanager testservermanager.cpp $<TARGET_OBJECTS:testutils>)
+    target_link_libraries (testservermanager morgoth Qt5::Test Qt5::DBus)
+    add_test (
+        NAME TestServerManager
+        COMMAND ${dbus_test_runner} -t $<TARGET_FILE:testservermanager>
+    )
+
+    add_executable (testserverstatus testserverstatus.cpp $<TARGET_OBJECTS:testutils>)
+    target_link_libraries (testserverstatus morgoth Qt5::Test Qt5::DBus)
+    add_test (
+        NAME TestServerStatus
+        COMMAND ${dbus_test_runner} -t $<TARGET_FILE:testserverstatus>
+    )
+endif ()
 
 include(CodeCoverage)
 setup_target_for_coverage_lcov(
@@ -44,10 +53,10 @@ setup_target_for_coverage_lcov(
     DEPENDENCIES
         testserver
         testservercoordinator
-        testservermanager
         testuserprocess
         testtmuxsessionwrapper
         teststeamid
         testplayerinfo
-        testserverstatus
+        $<TARGET_NAME_IF_EXISTS:testservermanager>
+        $<TARGET_NAME_IF_EXISTS:testserverstatus>
 )
