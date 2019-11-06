@@ -29,6 +29,20 @@ add_executable (testplayerinfo testplayerinfo.cpp)
 target_link_libraries (testplayerinfo morgoth Qt5::Test)
 add_test (NAME TestPlayerInfo COMMAND testplayerinfo)
 
+include(CodeCoverage)
+setup_target_for_coverage_lcov(
+    NAME coverage
+    EXECUTABLE ctest -V
+    DEPENDENCIES
+        testserver
+        testservercoordinator
+        testuserprocess
+        testtmuxsessionwrapper
+        teststeamid
+        testplayerinfo
+)
+
+
 find_program (dbus_test_runner NAMES dbus-test-runner)
 if (dbus_test_runner)
     add_executable (testservermanager testservermanager.cpp $<TARGET_OBJECTS:testutils>)
@@ -44,19 +58,9 @@ if (dbus_test_runner)
         NAME TestServerStatus
         COMMAND ${dbus_test_runner} -t $<TARGET_FILE:testserverstatus>
     )
-endif ()
 
-include(CodeCoverage)
-setup_target_for_coverage_lcov(
-    NAME coverage
-    EXECUTABLE ctest -V
-    DEPENDENCIES
-        testserver
-        testservercoordinator
-        testuserprocess
-        testtmuxsessionwrapper
-        teststeamid
-        testplayerinfo
-        $<TARGET_NAME_IF_EXISTS:testservermanager>
-        $<TARGET_NAME_IF_EXISTS:testserverstatus>
-)
+    add_dependencies (coverage
+        testservermanager
+        testserverstatus
+    )
+endif ()
