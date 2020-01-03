@@ -1,12 +1,12 @@
 sudo: required
-dist: xenial
+dist: bionic
 language: cpp
 
 compiler:
  - gcc
 
 before_install:
- - sudo add-apt-repository -y ppa:beineri/opt-qt-5.10.1-trusty
+ - sudo add-apt-repository -y ppa:beineri/opt-qt-5.10.1-xenial
  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
  - sudo add-apt-repository -y ppa:jonathonf/python-3.6
  - sudo apt-get -qy update
