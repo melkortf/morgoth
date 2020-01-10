@@ -1,4 +1,4 @@
-find_package (Qt5 5.10 REQUIRED COMPONENTS Core DBus Sql)
+find_package (Qt5 5.11 REQUIRED COMPONENTS Core DBus Sql)
 set (CMAKE_AUTOMOC ON)
 
 set (morgoth_PUBLIC_HEADERS

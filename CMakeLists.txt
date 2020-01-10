@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.10 FATAL_ERROR)
+cmake_minimum_required (VERSION 3.12 FATAL_ERROR)
 project (morgoth)
 set (CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 
@@ -34,7 +34,7 @@ else ()
     set (CMAKE_SHARED_LINKER_FLAGS "-Wl,-undefined,error")
 endif ()
 
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_VISIBILITY_PRESET hidden)
 set (CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 

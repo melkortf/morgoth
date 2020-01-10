@@ -27,8 +27,8 @@
 
 ## Dependencies
 
-* Qt (>= 5.10)
-* CMake (>= 3.10)
+* Qt (>= 5.11)
+* CMake (>= 3.12)
 * systemd
 * DBus
 
