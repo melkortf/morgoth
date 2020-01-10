@@ -14,7 +14,7 @@ addons:
          - qt511tools
 
 script:
- - /usr/local/bin/cmake -DCMAKE_PREFIX_PATH=/opt/qt511/lib/cmake -DCMAKE_BUILD_TYPE=Debug .
+ - cmake -DCMAKE_PREFIX_PATH=/opt/qt511/lib/cmake -DCMAKE_BUILD_TYPE=Debug .
  - make VERBOSE=1
  - make coverage
 
