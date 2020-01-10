@@ -113,7 +113,6 @@ public:
     void loadDefaults();
     void readConfig();
 
-    MorgothDaemon* d;
     QSocketNotifier* signal;
     QDBusConnection dbusConnection;
     QString configFileName;
@@ -137,7 +136,7 @@ void MorgothDaemonPrivate::parseArguments()
     QCommandLineOption configFileOption(QStringList() << "c" << "config", "Config file to use", "config");
     parser.addOption(configFileOption);
 
-    parser.process(*d);
+    parser.process(*q);
 
     configFileName = parser.isSet(configFileOption) ? parser.value(configFileOption) : QString();
 }
@@ -150,6 +149,8 @@ void MorgothDaemonPrivate::loadDefaults()
 
 void MorgothDaemonPrivate::readConfig()
 {
+    Q_Q(MorgothDaemon);
+
     if (configFileName.isEmpty())
         return;
 
@@ -164,7 +165,7 @@ void MorgothDaemonPrivate::readConfig()
         }
 
         qDebug("%s loaded.", qPrintable(configFileName));
-        emit d->configRead();
+        emit q->configRead();
     } else {
         qWarning() << configFileName << ": " << s.status();
     }
